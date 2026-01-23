@@ -4,19 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - ApexLog</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>Login - ApexLog System</title>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         :root {
-            --primary-color: #6366f1;
-            --secondary-color: #ec4899;
-            --bg-dark: #0f172a;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-glow: 0 0 10px rgba(99, 102, 241, 0.5);
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --accent: #06b6d4;
+            --bg-dark: #0b1120;
+            --card-bg: rgba(15, 23, 42, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
 
         body {
@@ -24,225 +32,321 @@
             padding: 0;
             height: 100vh;
             width: 100vw;
+            background-color: var(--bg-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: var(--bg-dark);
-            font-family: 'Outfit', sans-serif;
-            overflow: hidden;
             position: relative;
         }
 
-        /* Video Background / Animated Gradient */
-        .bg-animation {
+        /* Ambient Background Glow */
+        .ambient-light {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.15), transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.15), transparent 40%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Particle Canvas */
+        #particles-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
-            background: radial-gradient(circle at 50% 50%, rgba(76, 29, 149, 0.4), rgba(15, 23, 42, 1));
-            overflow: hidden;
+            z-index: 1;
         }
 
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.6;
-            animation: float 10s infinite ease-in-out;
-        }
-
-        .orb-1 {
-            width: 300px;
-            height: 300px;
-            background: var(--primary-color);
-            top: 10%;
-            left: 20%;
-            animation-delay: 0s;
-        }
-
-        .orb-2 {
-            width: 400px;
-            height: 400px;
-            background: var(--secondary-color);
-            bottom: 10%;
-            right: 15%;
-            animation-delay: -5s;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translate(0, 0);
-            }
-
-            50% {
-                transform: translate(30px, -50px);
-            }
-        }
-
-        /* Glassmorphism Card */
-        .login-card {
+        /* Login Container */
+        .login-container {
+            position: relative;
+            z-index: 10;
             width: 100%;
-            max-width: 420px;
-            padding: 2.5rem;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            max-width: 400px;
+            padding: 2px;
+            /* For gradient border */
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fadeInUp 0.8s ease-out;
-            margin: 1rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(30px);
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
+        @keyframes slideUp {
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        .brand-logo {
-            font-size: 2.5rem;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 2rem;
-            background: linear-gradient(135deg, #fff, #a5b4fc);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .form-control {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--glass-border);
-            color: #fff;
-            padding: 0.85rem 1rem;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-
-        .form-control:focus {
-            background: rgba(0, 0, 0, 0.5);
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
-            color: #fff;
-        }
-
-        .form-label {
-            color: #cbd5e1;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        .btn-premium {
+        .login-content {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 22px;
+            padding: 2.5rem;
             width: 100%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            padding: 1rem;
-            border-radius: 12px;
-            color: white;
-            font-weight: 700;
-            font-size: 1.1rem;
-            letter-spacing: 0.05em;
-            margin-top: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
             position: relative;
             overflow: hidden;
         }
 
-        .btn-premium::before {
+        /* Logo Area */
+        .brand-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--text-main);
+            background: linear-gradient(135deg, var(--primary-light), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+            filter: drop-shadow(0 0 15px rgba(79, 70, 229, 0.3));
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+
+        .brand-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Form Styling */
+        .form-floating>.form-control {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 12px;
+            height: 3.5rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-floating>.form-control:focus {
+            background: rgba(15, 23, 42, 0.9);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+        }
+
+        .form-floating>label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding-top: 0.6rem;
+            /* Adjust alignment */
+        }
+
+        .form-floating>.form-control:focus~label,
+        .form-floating>.form-control:not(:placeholder-shown)~label {
+            color: var(--primary-light);
+            transform: scale(0.85) translateY(-0.7rem) translateX(0.15rem);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            cursor: pointer;
+            z-index: 5;
+            transition: color 0.3s;
+        }
+
+        .password-toggle:hover {
+            color: var(--text-main);
+        }
+
+        /* Premium Button */
+        .btn-submit {
+            width: 100%;
+            height: 3.5rem;
+            background: linear-gradient(135deg, var(--primary), #4338ca);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 0.02em;
+            margin-top: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-submit::before {
             content: '';
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             transition: 0.5s;
         }
 
-        .btn-premium:hover {
+        .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+            background: linear-gradient(135deg, #4338ca, var(--primary));
         }
 
-        .btn-premium:hover::before {
+        .btn-submit:hover::before {
             left: 100%;
         }
 
-        .footer-text {
-            color: #94a3b8;
-            text-align: center;
-            margin-top: 2rem;
-            font-size: 0.9rem;
+        .btn-submit:active {
+            transform: translateY(0);
         }
 
-        .alert-custom {
-            display: none;
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.5);
-            color: #fda4af;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
+        /* Footer */
+        .login-footer {
+            margin-top: 2rem;
             text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .login-footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .login-footer a:hover {
+            color: #22d3ee;
+            text-decoration: underline;
+        }
+
+        /* Error Alert */
+        .alert-error {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 0.75rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: shake 0.4s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        @keyframes shake {
+
+            10%,
+            90% {
+                transform: translate3d(-1px, 0, 0);
+            }
+
+            20%,
+            80% {
+                transform: translate3d(2px, 0, 0);
+            }
+
+            30%,
+            50%,
+            70% {
+                transform: translate3d(-4px, 0, 0);
+            }
+
+            40%,
+            60% {
+                transform: translate3d(4px, 0, 0);
+            }
+        }
+
+        /* Decoration */
+        .glow-decoration {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: var(--primary);
+            filter: blur(90px);
+            border-radius: 50%;
+            opacity: 0.2;
+            top: -50px;
+            left: -50px;
+            pointer-events: none;
         }
     </style>
 </head>
 
 <body>
-    <div class="bg-animation">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-    </div>
+    <!-- Ambient & Particles -->
+    <div class="ambient-light"></div>
+    <canvas id="particles-canvas"></canvas>
 
-    <div class="login-card">
-        <div class="brand-logo">
-            <i class="bi bi-box-seam-fill me-2"></i>ApexLog
-        </div>
+    <!-- Login Card -->
+    <div class="login-container">
+        <div class="login-content">
+            <div class="glow-decoration"></div>
 
-        <div id="error-message" class="alert-custom">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span>Credenciais inválidas</span>
-        </div>
-
-        <form id="login-form">
-            <div class="mb-3">
-                <label for="email" class="form-label">Email Corporativo</label>
-                <input type="email" class="form-control" id="email" placeholder="nome@empresa.com" required>
+            <div class="brand-header">
+                <i class="bi bi-box-seam-fill logo-icon"></i>
+                <h1 class="brand-title">ApexLog</h1>
+                <p class="brand-subtitle">Gestão Logística Inteligente</p>
             </div>
-            <div class="mb-4">
-                <label for="password" class="form-label">Senha de Acesso</label>
-                <div class="position-relative">
-                    <input type="password" class="form-control" id="password" placeholder="••••••••" required
-                        style="padding-right: 40px;">
-                    <i class="bi bi-eye position-absolute top-50 end-0 translate-middle-y me-3" id="toggle-password"
-                        style="cursor: pointer; color: #cbd5e1; font-size: 1.2rem;"></i>
+
+            <!-- Error container (initially hidden by inline style style="display:none" to prevent flash) -->
+            <div id="error-message" class="alert-error" style="display: none;">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                <span>Credenciais inválidas</span>
+            </div>
+
+            <form id="login-form">
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control" id="email" placeholder="nome@empresa.com" required>
+                    <label for="email">Email Corporativo</label>
                 </div>
-            </div>
-            <button type="submit" class="btn btn-premium" id="btn-login">
-                ACESSAR SISTEMA
-            </button>
-        </form>
 
-        <div class="footer-text">
-            &copy; 2026 Sistema Integrado de Logística <br>
-            <a href="register.html" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Criar
-                uma conta</a>
+                <div class="form-floating mb-4 position-relative">
+                    <input type="password" class="form-control" id="password" placeholder="Senha" required
+                        style="padding-right: 45px;">
+                    <label for="password">Senha de Acesso</label>
+                    <i class="bi bi-eye password-toggle" id="toggle-password"></i>
+                </div>
+
+                <button type="submit" class="btn btn-submit" id="btn-login">
+                    <span class="btn-text">ACESSAR PLATAFORMA</span>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                &copy; 2026 ApexLog System<br>
+                <a href="register.html">Criar nova conta</a>
+            </div>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script type="module">
         import { login, getSession } from './js/auth.js';
 
@@ -257,8 +361,6 @@
         togglePassword.addEventListener('click', function () {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
-
-            // Toggle icon
             this.classList.toggle('bi-eye');
             this.classList.toggle('bi-eye-slash');
         });
@@ -272,8 +374,11 @@
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const btnText = btnLogin.querySelector('.btn-text'); // Fallback if exists, or use innerText if simple
 
-            btnLogin.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Acessando...';
+            // Loading State
+            const originalText = btnLogin.innerHTML;
+            btnLogin.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Autenticando...';
             btnLogin.disabled = true;
             errorMsg.style.display = 'none';
 
@@ -288,13 +393,139 @@
                     msg = 'Email ou senha incorretos.';
                 }
                 errorMsg.querySelector('span').innerText = msg;
-                errorMsg.style.display = 'block';
-                btnLogin.innerText = 'ACESSAR SISTEMA';
+                errorMsg.style.display = 'flex'; // Use flex for layout
+
+                // Reset Button
+                btnLogin.innerHTML = originalText;
                 btnLogin.disabled = false;
+
+                // Shake animation reset
+                const container = document.querySelector('.login-container');
+                container.style.animation = 'none';
+                container.offsetHeight; /* trigger reflow */
+                container.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => container.style.animation = '', 500);
+
             } else {
                 window.location.href = 'index.html';
             }
         });
+    </script>
+
+    <!-- Particle Animation Script -->
+    <script>
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        // Configuration
+        const particleCount = 60;
+        const connectionDistance = 150;
+        const mouseDistance = 200;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.size = Math.random() * 2 + 1;
+                this.color = Math.random() > 0.5 ? 'rgba(79, 70, 229, ' : 'rgba(6, 182, 212, ';
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce off edges
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color + '0.5)';
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        let mouse = { x: null, y: null };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        window.addEventListener('mouseout', () => {
+            mouse.x = null;
+            mouse.y = null;
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+
+                // Connect particles
+                for (let j = index; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dx = p.x - p2.x;
+                    const dy = p.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < connectionDistance) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 - distance / connectionDistance * 0.1})`;
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+
+                // Connect to mouse
+                if (mouse.x != null) {
+                    const dx = p.x - mouse.x;
+                    const dy = p.y - mouse.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < mouseDistance) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(129, 140, 248, ${0.2 - distance / mouseDistance * 0.2})`;
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            resize();
+            initParticles();
+        });
+
+        resize();
+        initParticles();
+        animate();
     </script>
 </body>
 

@@ -949,17 +949,24 @@
             opacity: 0;
             visibility: hidden;
             padding: 2rem;
-            height: calc(100vh - 70px);
+            min-height: calc(100vh - 70px);
+            height: auto;
             overflow-y: auto;
             /* Permite scroll vertical quando necessário */
             overflow-x: hidden;
             /* Remove scroll horizontal */
             transition: opacity 0.3s ease, visibility 0.3s ease;
+            flex-direction: column;
+            justify-content: flex-start !important;
+            align-items: stretch;
         }
 
         /* CLASSE PARA A VIEW ATIVA */
+        /* CLASSE PARA A VIEW ATIVA */
         .main-view.active-view {
-            display: block;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
             opacity: 1;
             visibility: visible;
         }
@@ -1437,6 +1444,49 @@
             background: var(--dark-surface-secondary);
             color: var(--dark-primary);
             border-color: var(--dark-border);
+        }
+    </style>
+    <style>
+        /* Correção FINAL para Layout das Abas de Relatórios e Análises */
+        #reports-view.active-view,
+        #pedidos-bloqueados-view.active-view,
+        #alteracao-rota-view.active-view {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+
+            /* Reseta altura e posicionamento */
+            height: auto !important;
+            min-height: 0 !important;
+            overflow-y: visible !important;
+            /* Deixa o corpo rolar, não a div */
+
+            /* Garante topo */
+            padding-top: 1rem !important;
+            margin-top: 0 !important;
+            justify-content: flex-start !important;
+        }
+
+        /* Garante que o container pai não centralize - Abordagem compatível via classe JS */
+        #main-content.force-block-layout {
+            display: block !important;
+            height: auto !important;
+            min-height: calc(100vh - 70px) !important;
+            padding-bottom: 2rem;
+            justify-content: flex-start !important;
+        }
+
+        /* Assegura que o título e card não tenham margens gigantescas */
+        #reports-view .animated-entry,
+        #pedidos-bloqueados-view .animated-entry,
+        #alteracao-rota-view .animated-entry {
+            margin-top: 0 !important;
+            margin-bottom: 1.5rem !important;
+            transform: none !important;
+            /* Remove animação de transform que pode causar espaço fantasma */
+            animation: none !important;
+            /* Temporariamente remove animação para garantir posição */
+            opacity: 1 !important;
         }
     </style>
 </head>
@@ -2604,6 +2654,9 @@
                 </div>
             </div>
     </div>
+    </div>
+    </div> <!-- Fechamento da div main-wrapper que envolve o Workspace -->
+    </div> <!-- Fechamento extra para segurança -->
 
     <div id="pedidos-bloqueados-view" class="main-view">
         <h1 class="h2 mb-4 animated-entry">Análise: Pedidos Bloqueados Manualmente</h1>
@@ -4511,6 +4564,15 @@
                 // Mostra a view correta
                 document.querySelectorAll('.main-view').forEach(view => view.classList.remove('active-view'));
                 document.getElementById(viewId).classList.add('active-view');
+
+                // --- CORREÇÃO DE LAYOUT: Adiciona classe ao #main-content para views específicas ---
+                const viewsQuePrecisamDeBlock = ['reports-view', 'pedidos-bloqueados-view', 'alteracao-rota-view'];
+                const mainContent = document.getElementById('main-content');
+                if (viewsQuePrecisamDeBlock.includes(viewId)) {
+                    mainContent.classList.add('force-block-layout');
+                } else {
+                    mainContent.classList.remove('force-block-layout');
+                }
             }
 
             // 2. Navegar para a aba interna (se houver) e expandir o accordion
