@@ -394,8 +394,8 @@
                 let msg = error.message || 'Erro ao realizar cadastro.';
                 if (msg.includes('Email not confirmed')) {
                     msg = 'Cadastro realizado! Verifique seu e-mail para confirmar.';
-                } else if (msg.includes('Cadastro restrito')) {
-                    msg = 'Apenas e-mails corporativos @selmi.com.br são aceitos.';
+                } else if (msg.includes('Cadastro restrito') || msg.includes('Email não permitido')) {
+                    msg = 'Email não permitido.';
                 } else if (msg.includes('Password should be at least')) {
                     msg = 'A senha deve ter no mínimo 6 caracteres.';
                 }

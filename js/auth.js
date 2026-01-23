@@ -57,7 +57,7 @@ export async function getUserProfile() {
 export async function signUp(email, password, fullName) {
     // Restrição de domínio de segurança
     if (!email.trim().toLowerCase().endsWith('@selmi.com.br')) {
-        return { error: { message: 'Cadastro restrito. Apenas e-mails @selmi.com.br são permitidos.' } };
+        return { error: { message: 'Email não permitido.' } };
     }
 
     const { data, error } = await supabase.auth.signUp({
