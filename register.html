@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - ApexLog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #ec4899;
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg-dark);
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Video Background / Animated Gradient */
+        .bg-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 80%, rgba(76, 29, 149, 0.4), rgba(15, 23, 42, 1));
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: float 12s infinite ease-in-out;
+        }
+
+        .orb-1 {
+            width: 350px;
+            height: 350px;
+            background: var(--secondary-color);
+            top: -5%;
+            right: 30%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 250px;
+            height: 250px;
+            background: var(--primary-color);
+            bottom: 10%;
+            left: 10%;
+            animation-delay: -3s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(-30px, 50px);
+            }
+        }
+
+        /* Glassmorphism Card */
+        .login-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.8s ease-out;
+            margin: 1rem;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .brand-logo i {
+            color: var(--secondary-color);
+        }
+
+        .form-control {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.2);
+            color: #fff;
+        }
+
+        .form-label {
+            color: #cbd5e1;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-register {
+            width: 100%;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            border: none;
+            padding: 0.9rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+            transition: transform 0.2s;
+        }
+
+        .btn-register:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(236, 72, 153, 0.4);
+        }
+
+        .footer-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .footer-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer-link a:hover {
+            text-decoration: underline;
+        }
+
+        .alert-custom {
+            display: none;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fda4af;
+            border-radius: 12px;
+            padding: 0.8rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-animation">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <div class="login-card">
+        <div class="brand-logo">
+            <i class="bi bi-person-plus-fill me-2"></i>Criar Conta
+        </div>
+
+        <div id="error-message" class="alert-custom">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> <span>Erro</span>
+        </div>
+
+        <form id="register-form">
+            <div class="mb-3">
+                <label for="fullName" class="form-label">Nome Completo</label>
+                <input type="text" class="form-control" id="fullName" placeholder="Seu nome" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email Corporativo</label>
+                <input type="email" class="form-control" id="email" placeholder="nome@empresa.com" required>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="form-label">Senha</label>
+                <div class="input-group">
+                    <input type="password" class="form-control" id="password" placeholder="Mínimo 6 caracteres" required
+                        minlength="6"
+                        style="border-right: none; border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                    <span class="input-group-text bg-transparent border-start-0 text-white"
+                        style="border-color: var(--glass-border); border-top-left-radius: 0; border-bottom-left-radius: 0; cursor: pointer;"
+                        id="togglePassword">
+                        <i class="bi bi-eye"></i>
+                    </span>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-register" id="btn-register">
+                CADASTRAR E ENTRAR
+            </button>
+        </form>
+
+        <div class="footer-link">
+            Já tem uma conta? <a href="login.html">Fazer Login</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { signUp, getSession } from './js/auth.js';
+
+        const registerForm = document.getElementById('register-form');
+        const errorMsg = document.getElementById('error-message');
+        const btnRegister = document.getElementById('btn-register');
+
+        // Se já estiver logado, redireciona
+        getSession().then(session => {
+            if (session) window.location.href = 'index.html';
+        });
+
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('bi-eye');
+            this.querySelector('i').classList.toggle('bi-eye-slash');
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            btnRegister.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cadastrando...';
+            btnRegister.disabled = true;
+            errorMsg.style.display = 'none';
+
+            const { data, error } = await signUp(email, password, fullName);
+
+            if (error) {
+                console.error(error);
+                let msg = error.message || 'Erro ao realizar cadastro.';
+                if (msg.includes('Email not confirmed')) {
+                    msg = 'Cadastro realizado! Verifique seu e-mail para confirmar.';
+                } else if (msg.includes('Cadastro restrito')) {
+                    msg = 'Apenas e-mails corporativos @selmi.com.br são aceitos.';
+                }
+                errorMsg.querySelector('span').innerText = msg;
+                errorMsg.style.display = 'block';
+                btnRegister.innerText = 'CADASTRAR E ENTRAR';
+                btnRegister.disabled = false;
+            } else {
+                // Sucesso - Verifica se o usuário foi logado automaticamente pelo Supabase
+                // Normalmente o signUp com autoConfirm: on (default em dev) loga o usuário.
+                // Se email confirmation estiver ligado, pode ser diferente.
+                // Mas vamos assumir fluxo simples.
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+
+</html>

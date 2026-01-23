@@ -1,0 +1,11 @@
+[build]
+  publish = "."
+  command = "# No build command needed for static site"
+
+[dev]
+  framework = "#static"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
