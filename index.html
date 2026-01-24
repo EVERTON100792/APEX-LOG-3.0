@@ -39,8 +39,8 @@
     <style>
         /* --- AJUSTE GLOBAL DE FONTE --- */
         html {
-            font-size: 15px;
-            /* Reduz a fonte base para 15px (padrão é 16px), diminuindo o tamanho de todas as unidades 'rem' */
+            font-size: 11.5px;
+            /* Reduzido para 11.5px para simular zoom de 80% (Modo Compacto Profissional) */
         }
 
         :root {
@@ -154,26 +154,26 @@
             color: var(--dark-text-primary);
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
-            overflow-x: hidden;
+            overflow: hidden;
+            /* REMOVE BARRA DE ROLAGEM GLOBAL */
+            height: 100vh;
+            width: 100vw;
             font-size: 0.9rem;
-            /* Reduz o tamanho da fonte do corpo para uma aparência mais compacta */
+            display: block !important;
+            /* PREVINE FLEXBOX WEIRDNESS NO BODY */
         }
 
+        /* Scrollbar invisível mas funcional */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 0px;
+            background: transparent;
         }
 
-        ::-webkit-scrollbar-track {
-            background: var(--dark-bg);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background-color: var(--dark-primary);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: var(--dark-primary-hover);
+        * {
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE/Edge */
         }
 
         h1,
@@ -296,66 +296,291 @@
             animation-delay: 0.6s;
         }
 
-        /* --- LAYOUT PRINCIPAL (TOP NAVBAR) --- */
         #main-content {
             display: flex;
             flex-direction: column;
-            min-height: calc(100vh - 70px);
-            padding-top: 70px;
-            /* Espaço para o Top Navbar */
+            min-height: 100vh;
+            padding: 1.5rem 1.5rem 1.5rem 100px;
+            /* Reduzido padding geral e ajustado offset da sidebar (80px + 20px) */
+            /* AUMENTADO PARA 140px PARA EVITAR SOBREPOSIÇÃO */
+            /* Ajustado padding esquerdo (100px sidebar + 40px gap) e topo reduzido */
             width: 100%;
-            transition: all 0.4s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            justify-content: flex-start !important;
+            /* Garante alinhamento ao topo */
+            margin-top: 0 !important;
+            /* Força margem zero */
+            overflow-y: auto;
+            /* Permite rolagem interna se necessário */
+            height: 100vh;
+            /* Ocupa altura total */
+            box-sizing: border-box;
+            /* Garante que padding não estoure largura */
+            z-index: 1;
+            /* Garante contexto de empilhamento base */
         }
 
-        /* Top Navbar Premium */
-        #top-navbar {
-            height: 70px;
-            background: var(--dark-surface);
-            backdrop-filter: blur(var(--backdrop-blur));
-            -webkit-backdrop-filter: blur(var(--backdrop-blur));
-            border-bottom: 1px solid var(--dark-border);
+        /* Ajuste para telas menores */
+        @media (max-width: 992px) {
+            #main-content {
+                padding-left: 1.5rem;
+                /* Remove o padding extra da sidebar em mobile */
+                padding-top: 80px;
+                /* Espaço para a Topbar Mobile */
+            }
+        }
+
+        /* --- SIDEBAR PREMIUM "GLASSMORPHISM" --- */
+        #sidebar-modern {
             position: fixed;
             top: 0;
             left: 0;
+            height: 100vh;
+            width: 80px;
+            /* Reduzido para 80px (Compacto) */
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem 0;
+            z-index: 1040;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.2);
+        }
+
+        #sidebar-modern:hover {
+            width: 260px;
+            background: rgba(15, 23, 42, 0.95);
+            /* Mais opaco no hover para leitura */
+        }
+
+        /* Logo na Sidebar */
+        .sidebar-logo-container {
             width: 100%;
-            z-index: 1000;
             display: flex;
             align-items: center;
+            justify-content: center;
+            /* Centralizado quando fechado */
             padding: 0 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2.5rem;
+            height: 50px;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: all 0.4s ease;
         }
 
-        .nav-modern-top .nav-link {
+        #sidebar-modern:hover .sidebar-logo-container {
+            justify-content: flex-start;
+            /* Alinhado à esquerda quando aberto */
+        }
+
+        .sidebar-brand-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--dark-text-primary);
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.3s ease;
+            margin-left: 0.75rem;
+        }
+
+        #sidebar-modern:hover .sidebar-brand-text {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Links de Navegação */
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            padding: 0 0.75rem;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
             color: var(--dark-text-secondary);
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 0.5rem 1.25rem;
-            border-radius: 100px;
+            text-decoration: none;
+            border-radius: 12px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid transparent;
-            margin: 0 0.25rem;
+            position: relative;
+            overflow: hidden;
+            height: 50px;
+            white-space: nowrap;
         }
 
-        .nav-modern-top .nav-link:hover {
-            background: var(--dark-surface-secondary);
+        .sidebar-link i {
+            font-size: 1.3rem;
+            min-width: 24px;
+            display: flex;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            /* IMPEDE QUE O ÍCONE SEJA ESMAGADO PELO TEXTO */
+        }
+
+        .sidebar-link span {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-left: 1rem;
+            opacity: 0;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+        }
+
+        #sidebar-modern:hover .sidebar-link span {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Oculta elementos extras quando a sidebar está fechada (width 100px) */
+        .sidebar-fade-element {
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        #sidebar-modern:hover .sidebar-fade-element {
+            opacity: 1;
+            visibility: visible;
+            height: auto;
+            margin-top: 1rem;
+            overflow: visible;
+        }
+
+        /* Ajuste do botão Carregar para ícone apenas quando fechado */
+        .group-hover-white {
+            transition: color 0.3s;
+        }
+
+        #sidebar-modern:not(:hover) .group .small {
+            display: none !important;
+        }
+
+        /* Estado Hover e Ativo dos Links */
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.05);
             color: var(--dark-text-primary);
         }
 
-        .nav-modern-top .nav-link.active {
-            background: linear-gradient(135deg, var(--dark-primary), var(--dark-accent));
-            color: white !important;
-            box-shadow: 0 4px 15px var(--dark-primary-glow);
+        .sidebar-link:hover i {
+            color: var(--dark-primary);
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 8px var(--dark-primary-glow));
         }
 
-        /* Dropdown customizado para Top Navbar */
-        .dropdown-menu-dark-glass {
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(15px);
+        .sidebar-link.active {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent);
+            color: var(--dark-primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10%;
+            height: 80%;
+            width: 4px;
+            background: var(--dark-primary);
+            border-radius: 0 4px 4px 0;
+            box-shadow: 2px 0 10px var(--dark-primary-glow);
+        }
+
+        /* Seção de Rodapé da Sidebar (Ações) */
+        .sidebar-footer {
+            width: 100%;
+            padding: 1rem 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Tooltip personalizado para sidebar fechada */
+        .tooltip-sidebar {
+            position: absolute;
+            left: 70px;
+            background: var(--dark-surface);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-10px);
+            transition: all 0.2s ease;
             border: 1px solid var(--dark-border);
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            padding: 0.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1050;
+        }
+
+        .sidebar-link:hover .tooltip-sidebar {
+            /* Só mostra se a sidebar não estiver hover (fechada) - Via JS ou CSS complexo, 
+               mas aqui vamos confiar na expansão da sidebar que revela o texto */
+            display: none;
+        }
+
+        /* Topbar Mobile (Só aparece em telas pequenas) */
+        #mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--dark-surface);
+            backdrop-filter: blur(20px);
+            z-index: 1030;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        @media (max-width: 992px) {
+            #sidebar-modern {
+                transform: translateX(-100%);
+                /* Esconde sidebar padrao em mobile */
+                width: 280px;
+                /* Largura fixa quando abrir */
+            }
+
+            #sidebar-modern.mobile-open {
+                transform: translateX(0);
+                box-shadow: 10px 0 50px rgba(0, 0, 0, 0.5);
+            }
+
+            #mobile-topbar {
+                display: flex;
+            }
+
+            #sidebar-modern:hover {
+                width: 280px;
+                /* Remove expand on hover behavior for mobile */
+            }
+
+            .sidebar-brand-text,
+            .sidebar-link span {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+
+            .sidebar-logo-container {
+                justify-content: flex-start;
+            }
         }
 
 
@@ -948,16 +1173,17 @@
             display: none;
             opacity: 0;
             visibility: hidden;
-            padding: 2rem;
-            min-height: calc(100vh - 70px);
+            /* Padding movido para o #main-content para evitar duplicação */
+            padding: 0;
+            width: 100%;
             height: auto;
-            overflow-y: auto;
-            /* Permite scroll vertical quando necessário */
-            overflow-x: hidden;
-            /* Remove scroll horizontal */
+            /* Deixe o conteúdo ditar a altura */
+            /* Remove scroll interno para usar o scroll do #main-content */
+            overflow: visible;
             transition: opacity 0.3s ease, visibility 0.3s ease;
             flex-direction: column;
             justify-content: flex-start !important;
+            /* Força topo */
             align-items: stretch;
         }
 
@@ -2108,629 +2334,741 @@
     <div id="realtime-toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 2000;">
     </div>
 
-    <!-- TOP NAVBAR PREMIUM -->
-    <header id="top-navbar" class="no-print">
-        <div class="container-fluid d-flex align-items-center justify-content-between">
-            <!-- Esquerda: Logo e Título -->
-            <div class="d-flex align-items-center">
-                <div id="logo-container" class="me-2" style="width: 40px;">
-                    <svg id="animated-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"
-                        style="cursor: pointer;" onclick="location.reload()">
-                        <defs>
-                            <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:var(--dark-accent-secondary);" />
-                                <stop offset="100%" style="stop-color:var(--dark-primary);" />
-                            </linearGradient>
-                        </defs>
-                        <path id="line-1" class="logo-line" d="M50 10 L90 30 L90 70 L50 90"></path>
-                        <path id="line-2" class="logo-line" d="M50 10 L10 30 L10 70 L50 90"></path>
-                        <path id="line-3" class="logo-line" d="M10 30 L50 50 L90 30"></path>
-                    </svg>
-                </div>
-                <div class="d-none d-md-block">
-                    <span class="fs-4 fw-bold text-light">ApexLog</span>
-                    <span class="badge bg-primary-subtle text-primary-emphasis fw-normal ms-1">v3.0</span>
-                </div>
-            </div>
-
-            <!-- Centro: Navegação Principal -->
-            <nav id="top-main-nav" class="nav-modern-top d-none d-lg-flex">
-                <a href="#summary-view" class="nav-link active"><i class="bi bi-pie-chart-fill me-2"></i>Resumo</a>
-                <a href="#workspace-view" class="nav-link"><i class="bi bi-tools me-2"></i>Mesa de Trabalho</a>
-                <a href="#reports-view" class="nav-link"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Relatórios</a>
-
-                <div class="dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                        aria-expanded="false">
-                        <i class="bi bi-clipboard2-data-fill me-2"></i>Análises
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-dark-glass">
-                        <li><a class="dropdown-item" href="#pedidos-bloqueados-view"><i
-                                    class="bi bi-slash-circle-fill me-2"></i>Pedidos Bloqueados</a></li>
-                        <li><a class="dropdown-item" href="#alteracao-rota-view"><i
-                                    class="bi bi-sign-turn-right-fill me-2"></i>Alteração de Rota</a></li>
-                    </ul>
-                </div>
-            </nav>
-
-            <!-- Direita: Ações e Perfil -->
-            <div class="d-flex align-items-center gap-2">
-                <!-- Processador Compacto -->
-                <div
-                    class="d-none d-sm-flex align-items-center bg-dark bg-opacity-50 rounded-pill p-1 border border-secondary">
-                    <input type="file" id="fileInput" class="d-none" accept=".xlsx, .xls, .csv">
-                    <button class="btn btn-sm btn-outline-light border-0 rounded-pill px-3"
-                        onclick="document.getElementById('fileInput').click()">
-                        <i class="bi bi-file-earmark-arrow-up me-1"></i>Carregar
-                    </button>
-                    <div class="vr mx-1 bg-secondary opacity-50" style="height: 20px;"></div>
-                    <button class="btn btn-sm btn-primary rounded-pill px-3" id="processarBtn" onclick="processar()"
-                        disabled>
-                        <i class="bi bi-lightning-fill me-1"></i><span>Processar</span>
-                    </button>
-                    <!-- Status compactado -->
-                    <div id="status" class="status-message small ms-2 pe-2"
-                        style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
-                </div>
-
-                <div class="form-check form-switch d-none d-xl-block ms-2" title="Processar Automaticamente">
-                    <input class="form-check-input" type="checkbox" role="switch" id="autoProcessCheckbox" checked>
-                </div>
-
-                <button class="btn btn-sm btn-outline-secondary rounded-circle ms-2" onclick="openCloudManager()"
-                    title="Nuvem">
-                    <i class="bi bi-cloud-arrow-up-fill"></i>
-                </button>
-
-                <!-- User Dropdown -->
-                <div class="dropdown ms-2">
-                    <button
-                        class="btn btn-sm bg-dark bg-opacity-75 rounded-pill border border-secondary text-light px-3 py-1 d-flex align-items-center"
-                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-circle text-primary me-2"></i>
-                        <span id="user-name-display" class="fw-bold small me-1">Usuário</span>
-                        <i class="bi bi-chevron-down small opacity-50"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark dropdown-menu-dark-glass">
-                        <li class="px-3 py-2 border-bottom border-secondary mb-2">
-                            <div id="user-greeting" class="small fw-bold text-muted">Olá!</div>
-                        </li>
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#configModal"><i
-                                    class="bi bi-sliders me-2"></i>Configurações</a></li>
-                        <li>
-                            <div class="dropdown-item d-flex align-items-center justify-content-between">
-                                <span><i class="bi bi-moon-stars-fill me-2"></i>Tema</span>
-                                <div class="form-check form-switch ms-3">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="theme-switcher"
-                                        onclick="toggleTheme()">
-                                </div>
-                            </div>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider border-secondary">
-                        </li>
-                        <li><a class="dropdown-item text-warning" href="#" data-bs-toggle="modal"
-                                data-bs-target="#confirmClearModal"><i class="bi bi-eraser-fill me-2"></i>Limpar
-                                Dados</a></li>
-                        <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i
-                                    class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
-                    </ul>
-                </div>
-            </div>
+    <!-- MOBILE TOPBAR -->
+    <header id="mobile-topbar" class="d-lg-none">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-link text-white p-0 me-3" onclick="toggleMobileSidebar()">
+                <i class="bi bi-list fs-1"></i>
+            </button>
+            <span class="fs-5 fw-bold text-light">ApexLog</span>
+        </div>
+        <div>
+            <!-- Mobile User/Actions could go here, or just rely on sidebar -->
+            <button class="btn btn-sm btn-outline-light rounded-circle" onclick="openCloudManager()">
+                <i class="bi bi-cloud-arrow-up-fill"></i>
+            </button>
         </div>
     </header>
 
-    <div class="main-wrapper">
-
-        <main id="main-content">
-
-
-            <!-- ======================================================================================= -->
-            <!-- VIEW: RESUMO GERAL -->
-            <!-- ======================================================================================= -->
-            <div id="summary-view" class="main-view active-view">
-                <h1 class="h2 mb-4 animated-entry">Dashboard de Previsão</h1>
-                <!-- p-4 e overflow-auto removidos, agora estão em .main-view -->
-
-                <!-- Container para o conteúdo do dashboard que aparece após o processamento -->
-                <div id="dashboard-content-container" style="display: none;">
-                    <div class="row g-4 mb-4">
-                        <!-- Coluna Esquerda: Gráfico Principal -->
-                        <div class="col-lg-8 animated-entry">
-                            <div class="card h-100">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h3 class="h5 mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Previsão de
-                                        Veículos</h3>
-                                    <span id="chart-subtitle"
-                                        class="badge bg-dark border border-secondary text-secondary fw-normal"></span>
-                                </div>
-                                <div class="card-body">
-                                    <div id="chart-resumo-veiculos" style="min-height: 450px;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Coluna Direita: KPIs Principais -->
-                        <div class="col-lg-4 animated-entry">
-                            <div class="row g-3 h-100 align-content-start" id="kpi-main-container">
-                                <!-- KPIs Principais inseridos via JS -->
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Linha Inferior: Outras Categorias -->
-                    <div class="row animated-entry">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-header bg-transparent border-bottom border-secondary-subtle py-3">
-                                    <h3 class="h6 mb-0 text-uppercase fw-bold text-secondary"><i
-                                            class="bi bi-grid-3x3-gap-fill me-2"></i>Outras Categorias</h3>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row g-3" id="kpi-other-container">
-                                        <!-- Outras categorias inseridas via JS -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tela de Boas-Vindas / Estado Vazio -->
-                <div id="summary-empty-state" class="animated-entry">
-                    <div class="d-flex flex-column align-items-center justify-content-center text-center"
-                        style="min-height: 70vh;"><i class="bi bi-cloud-arrow-up-fill"
-                            style="font-size: 5rem; color: var(--dark-primary);"></i>
-                        <h2 class="mt-4">Bem-vindo ao ApexLog</h2>
-                        <p class="lead text-muted">Para começar, carregue sua planilha de pedidos na barra lateral e
-                            clique em "Processar Cargas".<br>Seu dashboard de previsão será gerado aqui.</p>
-                    </div>
-                </div>
+    <!-- SIDEBAR MODERN -->
+    <aside id="sidebar-modern">
+        <!-- Logo Area -->
+        <div class="sidebar-logo-container">
+            <div id="logo-container-sidebar">
+                <!-- SVG Logo Clone -->
+                <svg viewBox="0 0 100 100" class="bi"
+                    style="width: 32px; height: 32px; filter: drop-shadow(0 0 5px var(--dark-primary));"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logo-gradient-sidebar" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:var(--dark-accent-secondary);" />
+                            <stop offset="100%" style="stop-color:var(--dark-primary);" />
+                        </linearGradient>
+                    </defs>
+                    <path class="logo-line" d="M50 10 L90 30 L90 70 L50 90" stroke="url(#logo-gradient-sidebar)"
+                        stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path class="logo-line" d="M50 10 L10 30 L10 70 L50 90" stroke="url(#logo-gradient-sidebar)"
+                        stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path class="logo-line" d="M10 30 L50 50 L90 30" stroke="url(#logo-gradient-sidebar)"
+                        stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
             </div>
-
-            <!-- ======================================================================================= -->
-            <!-- VIEW: MESAS DE TRABALHO -->
-            <!-- ======================================================================================= -->
-            <div id="workspace-view" class="main-view">
-                <h1 class="h2 mb-4 animated-entry">Mesas de Trabalho</h1> <!-- p-4 removido -->
-                <div class="row g-3">
-                    <div class="col-12 col-lg-6 col-xl-6 mb-4 animated-entry">
-                        <div class="workspace-card h-100">
-                            <div class="workspace-header">
-                                <h2 class="workspace-title"><i class="bi bi-layers-fill"></i>Painel de Montagem</h2>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-success" onclick="montarTodasAsRotas()"
-                                        title="Montar cargas para todas as rotas disponíveis automaticamente">
-                                        <i class="bi bi-magic me-1"></i>Auto
-                                    </button>
-                                    <button id="start-manual-routing-btn" class="btn btn-sm btn-outline-secondary"
-                                        data-bs-toggle="modal" data-bs-target="#manualRoutingModal"
-                                        title="Roteirização Manual">
-                                        <i class="bi bi-signpost-split-fill"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="card-body p-0">
-                                <ul class="nav nav-tabs-modern" id="vehicleTabs" role="tablist">
-                                    <li class="nav-item" role="presentation"><button class="nav-link tab-fiorino active"
-                                            data-bs-toggle="tab" data-bs-target="#fiorino-tab-pane"><i
-                                                class="bi bi-box-seam"></i>Fiorino <span id="badge-fiorino"
-                                                class="badge bg-white text-success ms-2 rounded-pill d-none">0</span></button>
-                                    </li>
-                                    <li class="nav-item" role="presentation"><button class="nav-link tab-van"
-                                            data-bs-toggle="tab" data-bs-target="#van-tab-pane"><i
-                                                class="bi bi-truck"></i>Van <span id="badge-van"
-                                                class="badge bg-white text-primary ms-2 rounded-pill d-none">0</span></button>
-                                    </li>
-                                    <li class="nav-item" role="presentation"><button class="nav-link tab-tres-quartos"
-                                            data-bs-toggle="tab" data-bs-target="#tres-quartos-tab-pane"><i
-                                                class="bi bi-truck-flatbed"></i>3/4 <span id="badge-tres-quartos"
-                                                class="badge bg-white text-dark ms-2 rounded-pill d-none">0</span></button>
-                                    </li>
-                                    <li class="nav-item" role="presentation"><button class="nav-link tab-toco"
-                                            data-bs-toggle="tab" data-bs-target="#toco-tab-pane"><i
-                                                class="bi bi-boxes"></i>Toco <span id="badge-toco"
-                                                class="badge bg-white text-secondary ms-2 rounded-pill d-none">0</span></button>
-                                    </li>
-                                    <li class="nav-item" role="presentation"><button class="nav-link tab-pr"
-                                            data-bs-toggle="tab" data-bs-target="#cargas-fechadas-pr-tab-pane"><i
-                                                class="bi bi-geo-alt"></i>PR Fechado <span id="badge-pr"
-                                                class="badge bg-white text-info ms-2 rounded-pill d-none">0</span></button>
-                                    </li>
-                                    <li class="nav-item" role="presentation"><button class="nav-link tab-br"
-                                            data-bs-toggle="tab" data-bs-target="#cargas-fechadas-rest-br-tab-pane"><i
-                                                class="bi bi-globe"></i>BR Fechado <span id="badge-br"
-                                                class="badge bg-white text-primary ms-2 rounded-pill d-none">0</span></button>
-                                    </li>
-                                    <li class="nav-item" role="presentation"><button class="nav-link tab-roteirizados"
-                                            data-bs-toggle="tab" data-bs-target="#roteirizados-tab-pane"
-                                            id="roteirizados-tab-btn"><i class="bi bi-map"></i>Roteirizados <span
-                                                id="badge-roteirizados"
-                                                class="badge bg-white text-danger ms-2 rounded-pill d-none">0</span></button>
-                                    </li>
-                                    <li class="nav-item" role="presentation"><button class="nav-link"
-                                            data-bs-toggle="tab" data-bs-target="#outros-pedidos-tab-pane"><i
-                                                class="bi bi-collection"></i>Outros <span id="badge-outros"
-                                                class="badge bg-secondary text-white ms-2 rounded-pill d-none">0</span></button>
-                                    </li>
-                                </ul>
-                                <div class="tab-content" id="vehicleTabsContent">
-                                    <div class="tab-pane fade show active workspace-tab-pane" id="fiorino-tab-pane"
-                                        role="tabpanel">
-                                        <div
-                                            class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
-                                            <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
-                                                para montar as Fiorinos ou crie uma carga manual.</p>
-                                            <button class="btn btn-sm btn-outline-light"
-                                                onclick="imprimirCargasGeneric('resultado-fiorino-geral', 'Cargas de Fiorino (Varejo)')"><i
-                                                    class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
-                                        </div>
-                                        <div class="mb-3 no-print" id="botoes-fiorino">
-                                            <div class="empty-state"><i class="bi bi-box"></i>
-                                                <p>Nenhuma rota de Fiorino disponível. Processe um arquivo para começar.
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <hr class="no-print">
-                                        <div id="resultado-fiorino-geral" class="mt-3"></div>
-                                    </div>
-                                    <div class="tab-pane fade workspace-tab-pane" id="van-tab-pane" role="tabpanel">
-                                        <div
-                                            class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
-                                            <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
-                                                para montar as Vans ou utilize as opções de exportação.</p>
-                                            <div class="btn-group btn-group-sm">
-                                                <button id="export-sobras-sp-btn" class="btn btn-sm btn-outline-warning"
-                                                    onclick="exportarSobrasSP_PDF()" disabled>
-                                                    <i class="bi bi-file-earmark-pdf-fill me-1"></i>Exportar Sobras SP
-                                                    (PDF)
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-light"
-                                                    onclick="imprimirCargasGeneric('resultado-van-geral', 'Cargas de Van (Varejo)')">
-                                                    <i class="bi bi-printer-fill me-1"></i>Imprimir Cargas Montadas
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3 no-print" id="botoes-van">
-                                            <div class="empty-state"><i class="bi bi-truck-front-fill"></i>
-                                                <p>Nenhuma rota de Van disponível. Processe um arquivo para começar.</p>
-                                            </div>
-                                        </div>
-                                        <hr class="no-print">
-                                        <div id="resultado-van-geral" class="mt-3"></div>
-                                    </div>
-                                    <div class="tab-pane fade workspace-tab-pane" id="tres-quartos-tab-pane"
-                                        role="tabpanel">
-                                        <div
-                                            class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
-                                            <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
-                                                para montar as cargas 3/4.</p>
-                                            <button class="btn btn-sm btn-outline-light"
-                                                onclick="imprimirCargasGeneric('resultado-34-geral', 'Cargas de 3/4 (Varejo)')"><i
-                                                    class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
-                                        </div>
-                                        <div class="mb-3 no-print" id="botoes-34">
-                                            <div class="empty-state"><i class="bi bi-truck-flatbed"></i>
-                                                <p>Nenhuma rota de 3/4 disponível. Processe um arquivo para começar.</p>
-                                            </div>
-                                        </div>
-                                        <hr class="no-print">
-                                        <div id="resultado-34-geral" class="mt-3"></div>
-                                    </div>
-                                    <div class="tab-pane fade" id="toco-tab-pane" role="tabpanel">
-                                        <div id="resultado-toco">
-                                            <div class="empty-state"><i class="bi bi-inboxes-fill"></i>
-                                                <p>Nenhuma carga "Toco" encontrada. Processe um arquivo.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane fade" id="cargas-fechadas-pr-tab-pane" role="tabpanel">
-                                        <div id="resultado-cargas-fechadas-pr">
-                                            <div class="empty-state"><i class="bi bi-building-fill-check"></i>
-                                                <p>Nenhuma Carga Fechada do Paraná encontrada. Processe um arquivo.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane fade" id="cargas-fechadas-rest-br-tab-pane" role="tabpanel">
-                                        <div id="resultado-cargas-fechadas-rest-br">
-                                            <div class="empty-state"><i class="bi bi-globe-americas"></i>
-                                                <p>Nenhuma Carga Fechada (Resto do Brasil) encontrada. Processe um
-                                                    arquivo.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane fade" id="roteirizados-tab-pane" role="tabpanel">
-                                        <div
-                                            class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
-                                            <p class="card-subtitle text-body-secondary small mb-0">Cargas geradas por
-                                                Roteirização de Lista.</p>
-                                            <button class="btn btn-sm btn-outline-light"
-                                                onclick="imprimirCargasGeneric('resultado-roteirizados', 'Cargas Roteirizadas')"><i
-                                                    class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
-                                        </div>
-                                        <div id="resultado-roteirizados" class="mt-3">
-                                            <div class="empty-state"><i class="bi bi-map"></i>
-                                                <p>Nenhuma carga roteirizada por lista.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane fade" id="outros-pedidos-tab-pane" role="tabpanel">
-                                        <div id="resultado-moinho" class="mb-3">
-                                            <div class="empty-state"><i class="bi bi-gear-wide-connected"></i>
-                                                <p>Nenhum pedido "Moinho" encontrado.</p>
-                                            </div>
-                                        </div>
-                                        <hr>
-                                        <div id="resultado-funcionarios" class="mb-3">
-                                            <div class="empty-state"><i class="bi bi-people-fill"></i>
-                                                <p>Nenhum pedido de funcionário encontrado.</p>
-                                            </div>
-                                        </div>
-                                        <hr>
-                                        <div id="resultado-transferencias" class="mb-3">
-                                            <div class="empty-state"><i class="bi bi-arrow-left-right"></i>
-                                                <p>Nenhum pedido de transferência encontrado.</p>
-                                            </div>
-                                        </div>
-                                        <hr>
-                                        <div id="resultado-exportacao" class="mb-3">
-                                            <div class="empty-state"><i class="bi bi-box-arrow-up-right"></i>
-                                                <p>Nenhum pedido de exportação encontrado.</p>
-                                            </div>
-                                        </div>
-                                        <hr>
-                                        <div id="resultado-marca-propria">
-                                            <div class="empty-state"><i class="bi bi-tags-fill"></i>
-                                                <p>Nenhum pedido de Marca Própria encontrado.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-lg-6 col-xl-6 mb-4 animated-entry">
-                        <div class="workspace-card h-100" id="pedidos-disponiveis-card">
-                            <div class="workspace-header">
-                                <h2 class="workspace-title"><i class="bi bi-database-check"></i>Banco de Pedidos</h2>
-                                <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-outline-warning" onclick="montarCargasPrioritarias()"
-                                        title="Montar Prioritários">
-                                        <i class="bi bi-lightning-charge-fill"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal"
-                                        data-bs-target="#bulkPriorityModal" title="Colar Prioritários">
-                                        <i class="bi bi-clipboard-plus"></i>
-                                    </button>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                            data-bs-toggle="dropdown" aria-expanded="false"><i
-                                                class="bi bi-file-text"></i></button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="#"
-                                                    onclick="exportarRelatorioDisponiveisPDF()"><i
-                                                        class="bi bi-file-pdf me-2"></i>Relatório de Fila de Pedidos
-                                                    (Por Data) (PDF)</a></li>
-                                            <li><a class="dropdown-item" href="#"
-                                                    onclick="exportarRelatorioDisponiveisExcel()"><i
-                                                        class="bi bi-file-spreadsheet me-2"></i>Relatório de Fila de
-                                                    Pedidos (Por Data) (Excel)</a></li>
-                                            <li><a class="dropdown-item" href="#"
-                                                    onclick="exportarRelatorioCompletoPorRotaExcel()"><i
-                                                        class="bi bi-file-excel me-2"></i>Relatório Completo de Pedidos
-                                                    Disponíveis (Por Rota) (Excel)</a></li>
-                                            <li><a class="dropdown-item" href="#"
-                                                    onclick="exportarRelatorioCompletoPorRotaPDF()"><i
-                                                        class="bi bi-file-earmark-pdf me-2"></i>Relatório Completo de
-                                                    Pedidos Disponíveis (Por Rota) (PDF)</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body p-0">
-                                <div class="search-container-modern no-print">
-                                    <div class="search-input-wrapper">
-                                        <i class="bi bi-search"></i>
-                                        <input type="text" id="pedidoSearchInput" class="search-input-modern"
-                                            placeholder="Buscar pedido, cliente, cidade..." onkeyup="liveSearch()">
-                                    </div>
-                                    <div id="search-result" class="mt-3"></div>
-                                    <div class="d-grid gap-2 mt-2">
-                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                            data-bs-target="#roteirizacaoModal"
-                                            title="Roteirizar e montar cargas a partir de uma lista de pedidos"><i
-                                                class="bi bi-map-fill me-1"></i>Roteirizar Lista</button>
-                                    </div>
-                                </div>
-                                <ul class="nav nav-tabs-modern" id="pedidosDisponiveisTabs" role="tablist">
-                                    <li class="nav-item" role="presentation"><button class="nav-link active"
-                                            data-bs-toggle="tab" data-bs-target="#disponiveis-tab-pane"><i
-                                                class="bi bi-check-circle me-2"></i>Disponíveis</button></li>
-                                    <li class="nav-item" role="presentation"><button class="nav-link"
-                                            data-bs-toggle="tab" data-bs-target="#bloqueados-regra-tab-pane"><i
-                                                class="bi bi-slash-circle me-2"></i>Bloqueados</button></li>
-                                </ul>
-                                <div class="tab-content" id="pedidosDisponiveisTabsContent">
-                                    <div class="tab-pane fade show active p-3 drop-zone-card" id="disponiveis-tab-pane"
-                                        role="tabpanel" ondragover="dragOver(event)" ondragleave="dragLeave(event)"
-                                        ondrop="drop(event)" data-load-id="geral">
-                                        <!-- NOVA LEGENDA DE CORES -->
-                                        <div class="d-flex flex-wrap gap-2 mb-3 no-print">
-                                            <div class="legend-item"><span class="legend-color text-success"><i
-                                                        class="bi bi-circle-fill"></i></span> Fiorino</div>
-                                            <div class="legend-item"><span class="legend-color"
-                                                    style="color: var(--dark-primary);"><i
-                                                        class="bi bi-circle-fill"></i></span> Van</div>
-                                            <div class="legend-item"><span class="legend-color text-warning"><i
-                                                        class="bi bi-circle-fill"></i></span> 3/4</div>
-                                        </div>
-                                        <!-- FIM DA LEGENDA -->
-                                        <div id="resultado-geral">
-                                            <div class="empty-state"><i class="bi bi-file-earmark-excel"></i>
-                                                <p>Nenhum pedido de varejo disponível.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="tab-pane fade p-3" id="bloqueados-regra-tab-pane" role="tabpanel">
-                                        <div id="resultado-cf-numerico">
-                                            <div class="empty-state"><i class="bi bi-funnel"></i>
-                                                <p>Nenhum pedido bloqueado por regra.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Botão Flutuante para Montagens Especiais -->
-            <button
-                class="btn btn-primary shadow-lg position-fixed bottom-0 end-0 m-4 rounded-circle d-flex align-items-center justify-content-center no-print btn-floating-special"
-                type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMontagens"
-                aria-controls="offcanvasMontagens" title="Montagens Especiais">
-                <i class="bi bi-star-fill fs-4"></i>
-            </button>
-
-            <!-- Offcanvas: Montagens Especiais -->
-            <div class="offcanvas offcanvas-end text-light offcanvas-glass" tabindex="-1" id="offcanvasMontagens"
-                aria-labelledby="offcanvasMontagensLabel">
-                <div class="offcanvas-header border-bottom border-secondary">
-                    <h5 class="offcanvas-title" id="offcanvasMontagensLabel"><i
-                            class="bi bi-star-fill me-2 text-warning"></i>Montagens Especiais</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
-                        aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body">
-                    <p class="small text-muted mb-4">Gerencie vendas antecipadas e cargas especiais de forma isolada.
-                    </p>
-
-                    <div class="card mb-4 bg-dark-glass text-light">
-                        <div class="card-header bg-transparent border-secondary">
-                            <h2 class="card-title h6 mb-0 text-success"><i class="bi bi-cash-coin me-2"></i>Venda
-                                Antecipada</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label for="vendaAntecipadaInput" class="form-label small mb-0">Números dos
-                                    pedidos:</label>
-                                <button class="btn btn-xs btn-outline-secondary"
-                                    onclick="pasteToSpecialLoad('vendaAntecipadaInput')"><i
-                                        class="bi bi-clipboard-plus-fill me-1"></i>Colar</button>
-                            </div>
-                            <textarea class="form-control bg-dark border-secondary text-light" id="vendaAntecipadaInput"
-                                rows="4" placeholder="Cole os pedidos aqui..."></textarea>
-                            <button class="btn btn-success w-100 mt-3" type="button"
-                                onclick="montarCargaPredefinida('vendaAntecipadaInput', 'resultado-venda-antecipada', pedidosVendaAntecipadaProcessados, 'Venda Antecipada')">
-                                <i class="bi bi-box-seam me-2"></i>Montar Carga
-                            </button>
-                        </div>
-                    </div>
-                    <div id="resultado-venda-antecipada" class="mb-4"></div>
-
-                    <div class="card bg-dark-glass text-light">
-                        <div class="card-header bg-transparent border-secondary">
-                            <h2 class="card-title h6 mb-0 text-info"><i class="bi bi-magic me-2"></i>Carga Especial</h2>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label for="pedidosEspeciaisInput" class="form-label small mb-0">Números dos
-                                    pedidos:</label>
-                                <button class="btn btn-xs btn-outline-secondary"
-                                    onclick="pasteToSpecialLoad('pedidosEspeciaisInput')"><i
-                                        class="bi bi-clipboard-plus-fill me-1"></i>Colar</button>
-                            </div>
-                            <textarea class="form-control bg-dark border-secondary text-light"
-                                id="pedidosEspeciaisInput" rows="4" placeholder="Cole os pedidos aqui..."></textarea>
-                            <button class="btn btn-info w-100 mt-3 text-dark fw-bold" type="button"
-                                onclick="montarCargaPredefinida('pedidosEspeciaisInput', 'resultado-carga-especial', pedidosEspeciaisProcessados, 'Especial')">
-                                <i class="bi bi-lightning-fill me-2"></i>Montar Carga
-                            </button>
-                        </div>
-                    </div>
-                    <div id="resultado-carga-especial" class="mt-4"></div>
-                </div>
-            </div>
-    </div>
-    </div>
-    </div> <!-- Fechamento da div main-wrapper que envolve o Workspace -->
-    </div> <!-- Fechamento extra para segurança -->
-
-    <div id="pedidos-bloqueados-view" class="main-view">
-        <h1 class="h2 mb-4 animated-entry">Análise: Pedidos Bloqueados Manualmente</h1>
-        <div class="card border-danger animated-entry">
-            <div class="card-header bg-danger-subtle text-danger-emphasis">
-                <h2 class="card-title h5 mb-0"><i class="bi bi-slash-circle-fill me-2"></i>Pedidos Bloqueados
-                    Manualmente</h2>
-            </div>
-            <div class="card-body" id="card-bloqueados">
-                <div id="resultado-bloqueados"></div>
-            </div>
+            <span class="sidebar-brand-text">ApexLog <span
+                    class="badge bg-primary-subtle text-primary-emphasis fw-normal"
+                    style="font-size: 0.6rem; vertical-align: top;">v3.0</span></span>
         </div>
-    </div>
 
-    <div id="alteracao-rota-view" class="main-view">
-        <h1 class="h2 mb-4 animated-entry">Análise: Alteração de Rota</h1>
-        <div class="card border-warning animated-entry">
-            <div class="card-header bg-warning-subtle text-warning-emphasis">
-                <h2 class="card-title h5 mb-0"><i class="bi bi-sign-turn-right-fill me-2"></i>Pedidos da Rota 1
-                    para Alteração</h2>
-            </div>
-            <div class="card-body">
-                <div id="resultado-rota1"></div>
-            </div>
-        </div>
-    </div>
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <a href="#summary-view" class="sidebar-link active" onclick="activateView('summary-view', this)">
+                <i class="bi bi-pie-chart-fill"></i>
+                <span>Resumo</span>
+            </a>
+            <a href="#workspace-view" class="sidebar-link" onclick="activateView('workspace-view', this)">
+                <i class="bi bi-tools"></i>
+                <span>Mesa de Trabalho</span>
+            </a>
+            <a href="#reports-view" class="sidebar-link" onclick="activateView('reports-view', this)">
+                <i class="bi bi-file-earmark-pdf-fill"></i>
+                <span>Relatórios</span>
+            </a>
 
-    <!-- ======================================================================================= -->
-    <!-- VIEW: RELATÓRIOS -->
-    <!-- ======================================================================================= -->
-    <div id="reports-view" class="main-view">
-        <h1 class="h2 mb-4 animated-entry">Relatórios Gerenciais</h1>
-        <div class="card animated-entry">
-            <div class="card-header">
-                <h2 class="card-title h5 mb-0"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Previsão de
-                    Expedição</h2>
-            </div>
-            <div class="card-body text-center">
-                <p class="text-muted">Gere um relatório gerencial em PDF com a previsão de expedição baseada nos
-                    resultados atuais.</p>
-                <p class="text-muted small">O relatório incluirá um resumo geral e o detalhamento das cargas de
-                    varejo montadas.</p>
-                <button class="btn btn-primary btn-lg mt-2" onclick="gerarRelatorioPDF()">
-                    <i class="bi bi-download me-2"></i>Gerar Relatório PDF
+            <!-- Dropdown Logic for Sidebar (Basic Collapse) -->
+            <div class="sidebar-link-group">
+                <a href="#" class="sidebar-link" data-bs-toggle="collapse" data-bs-target="#analises-collapse">
+                    <i class="bi bi-clipboard2-data-fill"></i>
+                    <span>Análises <i class="bi bi-chevron-down ms-auto"
+                            style="font-size: 0.8rem; opacity: 0.5;"></i></span>
+                </a>
+                <div class="collapse ps-3" id="analises-collapse" data-bs-parent=".sidebar-nav">
+                    <a href="#pedidos-bloqueados-view" class="sidebar-link"
+                        onclick="activateView('pedidos-bloqueados-view', this)" style="height: 40px;">
+                        <i class="bi bi-slash-circle-fill" style="font-size: 1rem;"></i>
+                        <span style="font-size: 0.85rem;">Bloqueados</span>
+                    </a>
+                    <a href="#alteracao-rota-view" class="sidebar-link"
+                        onclick="activateView('alteracao-rota-view', this)" style="height: 40px;">
+                        <i class="bi bi-sign-turn-right-fill" style="font-size: 1rem;"></i>
+                        <span style="font-size: 0.85rem;">Alt. Rota</span>
+                    </a>
+                </div>
+                <!-- Route Filter Container (Restored) -->
+                <!-- Route Filter Container (Optimized) -->
+                <div id="filtro-rota-container" class="px-3 py-2 no-print sidebar-fade-element">
+                    <label class="form-label text-muted small mb-1">Filtrar Rotas</label>
+                    <div class="d-flex flex-column gap-1">
+                        <select id="rotaInicioSelect"
+                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                            style="font-size: 0.75rem;">
+                            <option value="">Início...</option>
+                        </select>
+                        <select id="rotaFimSelect"
+                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                            style="font-size: 0.75rem;">
+                            <option value="">Fim...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr style="border-color: rgba(255,255,255,0.1); width: 80%; margin: 1rem auto;">
+
+                <!-- Operational Buttons (Compact) -->
+                <div class="px-3" style="cursor: pointer;" onclick="document.getElementById('fileInput').click()">
+                    <div
+                        class="p-2 rounded-3 text-center border border-dashed border-secondary hover-border-primary transition-all position-relative overflow-hidden group">
+                        <i class="bi bi-file-earmark-arrow-up text-secondary fs-4 d-block mb-1 group-hover-white"></i>
+                        <span class="small text-muted d-block group-hover-white"
+                            style="font-size: 0.7rem;">Carregar</span>
+                        <!-- Hidden Input -->
+                        <input type="file" id="fileInput" class="d-none" accept=".xlsx, .xls, .csv">
+                    </div>
+                </div>
+
+                <div class="px-3 mt-2">
+                    <button id="processarBtn" class="btn btn-primary w-100 p-2 position-relative" onclick="processar()"
+                        disabled style="overflow: hidden;">
+                        <i class="bi bi-lightning-fill fs-5"></i>
+                        <span class="d-block small mt-1" style="font-size: 0.75rem; line-height: 1;">Processar</span>
+                    </button>
+                </div>
+
+                <div class="px-2 mt-2 text-center">
+                    <div id="status" class="status-message small text-muted text-truncate"
+                        style="font-size: 0.7rem; max-width: 100%;">Aguardando...</div>
+                </div>
+
+        </nav>
+
+        <!-- Footer / User -->
+        <div class="sidebar-footer">
+            <!-- Tools Row -->
+            <div class="d-flex justify-content-around mb-2">
+                <button class="btn btn-sm btn-icon text-muted" onclick="openCloudManager()" title="Nuvem">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                </button>
+                <div class="form-check form-switch m-0" title="Auto Processar">
+                    <input class="form-check-input" type="checkbox" role="switch" id="autoProcessCheckbox" checked
+                        style="transform: scale(0.8);">
+                </div>
+                <button class="btn btn-sm btn-icon text-muted" onclick="toggleTheme()" title="Mudar Tema">
+                    <i class="bi bi-moon-stars-fill"></i>
                 </button>
             </div>
+
+            <!-- User Profile w/ Dropup -->
+            <div class="dropup">
+                <a href="#"
+                    class="d-flex align-items-center text-decoration-none text-light p-2 rounded hover-bg-light-10"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center text-primary fw-bold"
+                        style="width: 32px; height: 32px;">
+                        U
+                    </div>
+                    <div class="ms-2 overflow-hidden">
+                        <div id="user-name-display" class="fw-bold small text-truncate">Usuário</div>
+                        <div class="text-xs text-muted" style="font-size: 0.65rem;">Conectado</div>
+                    </div>
+                    <i class="bi bi-three-dots-vertical ms-auto text-muted small"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-dark-glass p-2 mb-2 ms-2">
+                    <li><span class="dropdown-header py-0">ApexLog v3.0</span></li>
+                    <li>
+                        <hr class="dropdown-divider border-white-10">
+                    </li>
+                    <li><a class="dropdown-item rounded-2 small" href="#" data-bs-toggle="modal"
+                            data-bs-target="#configModal"><i class="bi bi-sliders me-2"></i>Configurações</a></li>
+                    <li><a class="dropdown-item rounded-2 small text-warning" href="#" data-bs-toggle="modal"
+                            data-bs-target="#confirmClearModal"><i class="bi bi-eraser-fill me-2"></i>Limpar Dados</a>
+                    </li>
+                    <li>
+                        <hr class="dropdown-divider border-white-10">
+                    </li>
+                    <li><a class="dropdown-item rounded-2 small text-danger" href="#" onclick="logout()"><i
+                                class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
+                </ul>
+            </div>
         </div>
+    </aside>
+
+    <!-- Overlay for Mobile -->
+    <div id="sidebar-overlay" class="d-lg-none" onclick="toggleMobileSidebar()"
+        style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1035; display: none; backdrop-filter: blur(5px);">
     </div>
 
-    <!-- Painel de Ações em Massa (inicialmente oculto) -->
-    <div id="bulk-actions-panel"
-        class="card position-fixed bottom-0 start-50 translate-middle-x mb-3 shadow-lg no-print"
-        style="display: none; z-index: 1050; width: auto;">
-        <div class="card-body d-flex align-items-center p-2">
-            <span class="me-3">
-                <strong id="bulk-actions-count">0</strong>
-                <span id="bulk-actions-label"> itens selecionados</span>
-            </span>
-            <div class="btn-group btn-group-sm">
-                <button class="btn btn-outline-warning" onclick="bulkAction('prioritize')"><i
-                        class="bi bi-star-fill me-1"></i> Priorizar</button>
-                <button class="btn btn-outline-info" onclick="bulkAction('recall')"><i
-                        class="bi bi-arrow-repeat me-1"></i> Marcar Recall</button>
-                <button class="btn btn-outline-secondary" onclick="bulkAction('copy')"><i
-                        class="bi bi-clipboard-check me-1"></i> Copiar Números</button>
-                <button class="btn btn-outline-danger" onclick="bulkAction('block')"><i
-                        class="bi bi-slash-circle me-1"></i> Bloquear</button>
+    <!-- JS for Sidebar Logic -->
+    <script>
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar-modern');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('mobile-open');
+            overlay.style.display = sidebar.classList.contains('mobile-open') ? 'block' : 'none';
+        }
+
+        function activateView(viewId, linkElement) {
+            // Hide all views
+            document.querySelectorAll('.main-view').forEach(el => {
+                el.classList.remove('active-view');
+                el.style.display = 'none'; // Force hide
+            });
+
+            // Show target view
+            const target = document.getElementById(viewId);
+            if (target) {
+                target.classList.add('active-view');
+                target.style.display = 'block'; // Or flex/whatever depending on CSS, but active-view handles it usually
+
+                // Special fix for some views needing flex
+                if (viewId === 'summary-view' || viewId === 'workspace-view') {
+                    // target.style.display = 'block'; // active-view css handles this
+                }
+            }
+
+            // Update Active Link State
+            document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+            if (linkElement) linkElement.classList.add('active');
+
+            // Close sidebar on mobile if open
+            if (window.innerWidth < 992) {
+                toggleMobileSidebar();
+            }
+
+            // CRITICAL FIX: Reset scroll position to top when switching views
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    </script>
+
+    <!-- .main-wrapper removed for flattened layout -->
+
+    <main id="main-content">
+
+
+        <!-- ======================================================================================= -->
+        <!-- VIEW: RESUMO GERAL -->
+        <!-- ======================================================================================= -->
+        <div id="summary-view" class="main-view active-view">
+            <h1 class="h2 mb-4 animated-entry">Dashboard de Previsão</h1>
+            <!-- p-4 e overflow-auto removidos, agora estão em .main-view -->
+
+            <!-- Container para o conteúdo do dashboard que aparece após o processamento -->
+            <div id="dashboard-content-container" style="display: none;">
+                <div class="row g-4 mb-4">
+                    <!-- Coluna Esquerda: Gráfico Principal -->
+                    <div class="col-lg-8 animated-entry">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3 class="h5 mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Previsão de
+                                    Veículos</h3>
+                                <span id="chart-subtitle"
+                                    class="badge bg-dark border border-secondary text-secondary fw-normal"></span>
+                            </div>
+                            <div class="card-body">
+                                <div id="chart-resumo-veiculos" style="min-height: 450px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coluna Direita: KPIs Principais -->
+                    <div class="col-lg-4 animated-entry">
+                        <div class="row g-3 h-100 align-content-start" id="kpi-main-container">
+                            <!-- KPIs Principais inseridos via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Linha Inferior: Outras Categorias -->
+                <div class="row animated-entry">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-transparent border-bottom border-secondary-subtle py-3">
+                                <h3 class="h6 mb-0 text-uppercase fw-bold text-secondary"><i
+                                        class="bi bi-grid-3x3-gap-fill me-2"></i>Outras Categorias</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3" id="kpi-other-container">
+                                    <!-- Outras categorias inseridas via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button type="button" class="btn-close ms-3" aria-label="Fechar" onclick="clearBulkSelection()"></button>
+
+            <!-- Tela de Boas-Vindas / Estado Vazio -->
+            <div id="summary-empty-state" class="animated-entry">
+                <div class="d-flex flex-column align-items-center justify-content-center text-center"
+                    style="min-height: 70vh;"><i class="bi bi-cloud-arrow-up-fill"
+                        style="font-size: 5rem; color: var(--dark-primary);"></i>
+                    <h2 class="mt-4">Bem-vindo ao ApexLog</h2>
+                    <p class="lead text-muted">Para começar, carregue sua planilha de pedidos na barra lateral e
+                        clique em "Processar Cargas".<br>Seu dashboard de previsão será gerado aqui.</p>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <!-- ======================================================================================= -->
+        <!-- VIEW: MESAS DE TRABALHO -->
+        <!-- ======================================================================================= -->
+        <div id="workspace-view" class="main-view">
+            <h1 class="h2 mb-4 animated-entry">Mesas de Trabalho</h1> <!-- p-4 removido -->
+            <div class="row g-3">
+                <div class="col-12 col-lg-6 col-xl-6 mb-4 animated-entry">
+                    <div class="workspace-card h-100">
+                        <div class="workspace-header">
+                            <h2 class="workspace-title"><i class="bi bi-layers-fill"></i>Painel de Montagem</h2>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-success" onclick="montarTodasAsRotas()"
+                                    title="Montar cargas para todas as rotas disponíveis automaticamente">
+                                    <i class="bi bi-magic me-1"></i>Auto
+                                </button>
+                                <button id="start-manual-routing-btn" class="btn btn-sm btn-outline-secondary"
+                                    data-bs-toggle="modal" data-bs-target="#manualRoutingModal"
+                                    title="Roteirização Manual">
+                                    <i class="bi bi-signpost-split-fill"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="nav nav-tabs-modern" id="vehicleTabs" role="tablist">
+                                <li class="nav-item" role="presentation"><button class="nav-link tab-fiorino active"
+                                        data-bs-toggle="tab" data-bs-target="#fiorino-tab-pane"><i
+                                            class="bi bi-box-seam"></i>Fiorino <span id="badge-fiorino"
+                                            class="badge bg-white text-success ms-2 rounded-pill d-none">0</span></button>
+                                </li>
+                                <li class="nav-item" role="presentation"><button class="nav-link tab-van"
+                                        data-bs-toggle="tab" data-bs-target="#van-tab-pane"><i
+                                            class="bi bi-truck"></i>Van <span id="badge-van"
+                                            class="badge bg-white text-primary ms-2 rounded-pill d-none">0</span></button>
+                                </li>
+                                <li class="nav-item" role="presentation"><button class="nav-link tab-tres-quartos"
+                                        data-bs-toggle="tab" data-bs-target="#tres-quartos-tab-pane"><i
+                                            class="bi bi-truck-flatbed"></i>3/4 <span id="badge-tres-quartos"
+                                            class="badge bg-white text-dark ms-2 rounded-pill d-none">0</span></button>
+                                </li>
+                                <li class="nav-item" role="presentation"><button class="nav-link tab-toco"
+                                        data-bs-toggle="tab" data-bs-target="#toco-tab-pane"><i
+                                            class="bi bi-boxes"></i>Toco <span id="badge-toco"
+                                            class="badge bg-white text-secondary ms-2 rounded-pill d-none">0</span></button>
+                                </li>
+                                <li class="nav-item" role="presentation"><button class="nav-link tab-pr"
+                                        data-bs-toggle="tab" data-bs-target="#cargas-fechadas-pr-tab-pane"><i
+                                            class="bi bi-geo-alt"></i>PR Fechado <span id="badge-pr"
+                                            class="badge bg-white text-info ms-2 rounded-pill d-none">0</span></button>
+                                </li>
+                                <li class="nav-item" role="presentation"><button class="nav-link tab-br"
+                                        data-bs-toggle="tab" data-bs-target="#cargas-fechadas-rest-br-tab-pane"><i
+                                            class="bi bi-globe"></i>BR Fechado <span id="badge-br"
+                                            class="badge bg-white text-primary ms-2 rounded-pill d-none">0</span></button>
+                                </li>
+                                <li class="nav-item" role="presentation"><button class="nav-link tab-roteirizados"
+                                        data-bs-toggle="tab" data-bs-target="#roteirizados-tab-pane"
+                                        id="roteirizados-tab-btn"><i class="bi bi-map"></i>Roteirizados <span
+                                            id="badge-roteirizados"
+                                            class="badge bg-white text-danger ms-2 rounded-pill d-none">0</span></button>
+                                </li>
+                                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
+                                        data-bs-target="#outros-pedidos-tab-pane"><i class="bi bi-collection"></i>Outros
+                                        <span id="badge-outros"
+                                            class="badge bg-secondary text-white ms-2 rounded-pill d-none">0</span></button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="vehicleTabsContent">
+                                <div class="tab-pane fade show active workspace-tab-pane" id="fiorino-tab-pane"
+                                    role="tabpanel">
+                                    <div
+                                        class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
+                                        <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
+                                            para montar as Fiorinos ou crie uma carga manual.</p>
+                                        <button class="btn btn-sm btn-outline-light"
+                                            onclick="imprimirCargasGeneric('resultado-fiorino-geral', 'Cargas de Fiorino (Varejo)')"><i
+                                                class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
+                                    </div>
+                                    <div class="mb-3 no-print" id="botoes-fiorino">
+                                        <div class="empty-state"><i class="bi bi-box"></i>
+                                            <p>Nenhuma rota de Fiorino disponível. Processe um arquivo para começar.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <hr class="no-print">
+                                    <div id="resultado-fiorino-geral" class="mt-3"></div>
+                                </div>
+                                <div class="tab-pane fade workspace-tab-pane" id="van-tab-pane" role="tabpanel">
+                                    <div
+                                        class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
+                                        <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
+                                            para montar as Vans ou utilize as opções de exportação.</p>
+                                        <div class="btn-group btn-group-sm">
+                                            <button id="export-sobras-sp-btn" class="btn btn-sm btn-outline-warning"
+                                                onclick="exportarSobrasSP_PDF()" disabled>
+                                                <i class="bi bi-file-earmark-pdf-fill me-1"></i>Exportar Sobras SP
+                                                (PDF)
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-light"
+                                                onclick="imprimirCargasGeneric('resultado-van-geral', 'Cargas de Van (Varejo)')">
+                                                <i class="bi bi-printer-fill me-1"></i>Imprimir Cargas Montadas
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 no-print" id="botoes-van">
+                                        <div class="empty-state"><i class="bi bi-truck-front-fill"></i>
+                                            <p>Nenhuma rota de Van disponível. Processe um arquivo para começar.</p>
+                                        </div>
+                                    </div>
+                                    <hr class="no-print">
+                                    <div id="resultado-van-geral" class="mt-3"></div>
+                                </div>
+                                <div class="tab-pane fade workspace-tab-pane" id="tres-quartos-tab-pane"
+                                    role="tabpanel">
+                                    <div
+                                        class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
+                                        <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
+                                            para montar as cargas 3/4.</p>
+                                        <button class="btn btn-sm btn-outline-light"
+                                            onclick="imprimirCargasGeneric('resultado-34-geral', 'Cargas de 3/4 (Varejo)')"><i
+                                                class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
+                                    </div>
+                                    <div class="mb-3 no-print" id="botoes-34">
+                                        <div class="empty-state"><i class="bi bi-truck-flatbed"></i>
+                                            <p>Nenhuma rota de 3/4 disponível. Processe um arquivo para começar.</p>
+                                        </div>
+                                    </div>
+                                    <hr class="no-print">
+                                    <div id="resultado-34-geral" class="mt-3"></div>
+                                </div>
+                                <div class="tab-pane fade" id="toco-tab-pane" role="tabpanel">
+                                    <div id="resultado-toco">
+                                        <div class="empty-state"><i class="bi bi-inboxes-fill"></i>
+                                            <p>Nenhuma carga "Toco" encontrada. Processe um arquivo.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="cargas-fechadas-pr-tab-pane" role="tabpanel">
+                                    <div id="resultado-cargas-fechadas-pr">
+                                        <div class="empty-state"><i class="bi bi-building-fill-check"></i>
+                                            <p>Nenhuma Carga Fechada do Paraná encontrada. Processe um arquivo.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="cargas-fechadas-rest-br-tab-pane" role="tabpanel">
+                                    <div id="resultado-cargas-fechadas-rest-br">
+                                        <div class="empty-state"><i class="bi bi-globe-americas"></i>
+                                            <p>Nenhuma Carga Fechada (Resto do Brasil) encontrada. Processe um
+                                                arquivo.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="roteirizados-tab-pane" role="tabpanel">
+                                    <div
+                                        class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
+                                        <p class="card-subtitle text-body-secondary small mb-0">Cargas geradas por
+                                            Roteirização de Lista.</p>
+                                        <button class="btn btn-sm btn-outline-light"
+                                            onclick="imprimirCargasGeneric('resultado-roteirizados', 'Cargas Roteirizadas')"><i
+                                                class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
+                                    </div>
+                                    <div id="resultado-roteirizados" class="mt-3">
+                                        <div class="empty-state"><i class="bi bi-map"></i>
+                                            <p>Nenhuma carga roteirizada por lista.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="outros-pedidos-tab-pane" role="tabpanel">
+                                    <div id="resultado-moinho" class="mb-3">
+                                        <div class="empty-state"><i class="bi bi-gear-wide-connected"></i>
+                                            <p>Nenhum pedido "Moinho" encontrado.</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div id="resultado-funcionarios" class="mb-3">
+                                        <div class="empty-state"><i class="bi bi-people-fill"></i>
+                                            <p>Nenhum pedido de funcionário encontrado.</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div id="resultado-transferencias" class="mb-3">
+                                        <div class="empty-state"><i class="bi bi-arrow-left-right"></i>
+                                            <p>Nenhum pedido de transferência encontrado.</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div id="resultado-exportacao" class="mb-3">
+                                        <div class="empty-state"><i class="bi bi-box-arrow-up-right"></i>
+                                            <p>Nenhum pedido de exportação encontrado.</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div id="resultado-marca-propria">
+                                        <div class="empty-state"><i class="bi bi-tags-fill"></i>
+                                            <p>Nenhum pedido de Marca Própria encontrado.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6 col-xl-6 mb-4 animated-entry">
+                    <div class="workspace-card h-100" id="pedidos-disponiveis-card">
+                        <div class="workspace-header">
+                            <h2 class="workspace-title"><i class="bi bi-database-check"></i>Banco de Pedidos</h2>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-warning" onclick="montarCargasPrioritarias()"
+                                    title="Montar Prioritários">
+                                    <i class="bi bi-lightning-charge-fill"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal"
+                                    data-bs-target="#bulkPriorityModal" title="Colar Prioritários">
+                                    <i class="bi bi-clipboard-plus"></i>
+                                </button>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                        data-bs-toggle="dropdown" aria-expanded="false"><i
+                                            class="bi bi-file-text"></i></button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#"
+                                                onclick="exportarRelatorioDisponiveisPDF()"><i
+                                                    class="bi bi-file-pdf me-2"></i>Relatório de Fila de Pedidos
+                                                (Por Data) (PDF)</a></li>
+                                        <li><a class="dropdown-item" href="#"
+                                                onclick="exportarRelatorioDisponiveisExcel()"><i
+                                                    class="bi bi-file-spreadsheet me-2"></i>Relatório de Fila de
+                                                Pedidos (Por Data) (Excel)</a></li>
+                                        <li><a class="dropdown-item" href="#"
+                                                onclick="exportarRelatorioCompletoPorRotaExcel()"><i
+                                                    class="bi bi-file-excel me-2"></i>Relatório Completo de Pedidos
+                                                Disponíveis (Por Rota) (Excel)</a></li>
+                                        <li><a class="dropdown-item" href="#"
+                                                onclick="exportarRelatorioCompletoPorRotaPDF()"><i
+                                                    class="bi bi-file-earmark-pdf me-2"></i>Relatório Completo de
+                                                Pedidos Disponíveis (Por Rota) (PDF)</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="search-container-modern no-print">
+                                <div class="search-input-wrapper">
+                                    <i class="bi bi-search"></i>
+                                    <input type="text" id="pedidoSearchInput" class="search-input-modern"
+                                        placeholder="Buscar pedido, cliente, cidade..." onkeyup="liveSearch()">
+                                </div>
+                                <div id="search-result" class="mt-3"></div>
+                                <div class="d-grid gap-2 mt-2">
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                                        data-bs-target="#roteirizacaoModal"
+                                        title="Roteirizar e montar cargas a partir de uma lista de pedidos"><i
+                                            class="bi bi-map-fill me-1"></i>Roteirizar Lista</button>
+                                </div>
+                            </div>
+                            <ul class="nav nav-tabs-modern" id="pedidosDisponiveisTabs" role="tablist">
+                                <li class="nav-item" role="presentation"><button class="nav-link active"
+                                        data-bs-toggle="tab" data-bs-target="#disponiveis-tab-pane"><i
+                                            class="bi bi-check-circle me-2"></i>Disponíveis</button></li>
+                                <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
+                                        data-bs-target="#bloqueados-regra-tab-pane"><i
+                                            class="bi bi-slash-circle me-2"></i>Bloqueados</button></li>
+                            </ul>
+                            <div class="tab-content" id="pedidosDisponiveisTabsContent">
+                                <div class="tab-pane fade show active p-3 drop-zone-card" id="disponiveis-tab-pane"
+                                    role="tabpanel" ondragover="dragOver(event)" ondragleave="dragLeave(event)"
+                                    ondrop="drop(event)" data-load-id="geral">
+                                    <!-- NOVA LEGENDA DE CORES -->
+                                    <div class="d-flex flex-wrap gap-2 mb-3 no-print">
+                                        <div class="legend-item"><span class="legend-color text-success"><i
+                                                    class="bi bi-circle-fill"></i></span> Fiorino</div>
+                                        <div class="legend-item"><span class="legend-color"
+                                                style="color: var(--dark-primary);"><i
+                                                    class="bi bi-circle-fill"></i></span> Van</div>
+                                        <div class="legend-item"><span class="legend-color text-warning"><i
+                                                    class="bi bi-circle-fill"></i></span> 3/4</div>
+                                    </div>
+                                    <!-- FIM DA LEGENDA -->
+                                    <div id="resultado-geral">
+                                        <div class="empty-state"><i class="bi bi-file-earmark-excel"></i>
+                                            <p>Nenhum pedido de varejo disponível.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade p-3" id="bloqueados-regra-tab-pane" role="tabpanel">
+                                    <div id="resultado-cf-numerico">
+                                        <div class="empty-state"><i class="bi bi-funnel"></i>
+                                            <p>Nenhum pedido bloqueado por regra.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botão Flutuante para Montagens Especiais -->
+        <button
+            class="btn btn-primary shadow-lg position-fixed bottom-0 end-0 m-4 rounded-circle d-flex align-items-center justify-content-center no-print btn-floating-special"
+            type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMontagens"
+            aria-controls="offcanvasMontagens" title="Montagens Especiais">
+            <i class="bi bi-star-fill fs-4"></i>
+        </button>
+
+        <!-- Offcanvas: Montagens Especiais -->
+        <div class="offcanvas offcanvas-end text-light offcanvas-glass" tabindex="-1" id="offcanvasMontagens"
+            aria-labelledby="offcanvasMontagensLabel">
+            <div class="offcanvas-header border-bottom border-secondary">
+                <h5 class="offcanvas-title" id="offcanvasMontagensLabel"><i
+                        class="bi bi-star-fill me-2 text-warning"></i>Montagens Especiais</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                    aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <p class="small text-muted mb-4">Gerencie vendas antecipadas e cargas especiais de forma isolada.
+                </p>
+
+                <div class="card mb-4 bg-dark-glass text-light">
+                    <div class="card-header bg-transparent border-secondary">
+                        <h2 class="card-title h6 mb-0 text-success"><i class="bi bi-cash-coin me-2"></i>Venda
+                            Antecipada</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label for="vendaAntecipadaInput" class="form-label small mb-0">Números dos
+                                pedidos:</label>
+                            <button class="btn btn-xs btn-outline-secondary"
+                                onclick="pasteToSpecialLoad('vendaAntecipadaInput')"><i
+                                    class="bi bi-clipboard-plus-fill me-1"></i>Colar</button>
+                        </div>
+                        <textarea class="form-control bg-dark border-secondary text-light" id="vendaAntecipadaInput"
+                            rows="4" placeholder="Cole os pedidos aqui..."></textarea>
+                        <button class="btn btn-success w-100 mt-3" type="button"
+                            onclick="montarCargaPredefinida('vendaAntecipadaInput', 'resultado-venda-antecipada', pedidosVendaAntecipadaProcessados, 'Venda Antecipada')">
+                            <i class="bi bi-box-seam me-2"></i>Montar Carga
+                        </button>
+                    </div>
+                </div>
+                <div id="resultado-venda-antecipada" class="mb-4"></div>
+
+                <div class="card bg-dark-glass text-light">
+                    <div class="card-header bg-transparent border-secondary">
+                        <h2 class="card-title h6 mb-0 text-info"><i class="bi bi-magic me-2"></i>Carga Especial</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label for="pedidosEspeciaisInput" class="form-label small mb-0">Números dos
+                                pedidos:</label>
+                            <button class="btn btn-xs btn-outline-secondary"
+                                onclick="pasteToSpecialLoad('pedidosEspeciaisInput')"><i
+                                    class="bi bi-clipboard-plus-fill me-1"></i>Colar</button>
+                        </div>
+                        <textarea class="form-control bg-dark border-secondary text-light" id="pedidosEspeciaisInput"
+                            rows="4" placeholder="Cole os pedidos aqui..."></textarea>
+                        <button class="btn btn-info w-100 mt-3 text-dark fw-bold" type="button"
+                            onclick="montarCargaPredefinida('pedidosEspeciaisInput', 'resultado-carga-especial', pedidosEspeciaisProcessados, 'Especial')">
+                            <i class="bi bi-lightning-fill me-2"></i>Montar Carga
+                        </button>
+                    </div>
+                </div>
+                <div id="resultado-carga-especial" class="mt-4"></div>
+            </div>
+        </div>
+        </div>
+        </div>
+        </div> <!-- Fechamento da div main-wrapper que envolve o Workspace -->
+        </div> <!-- Fechamento extra para segurança -->
+
+        <div id="pedidos-bloqueados-view" class="main-view">
+            <h1 class="h2 mb-4 animated-entry">Análise: Pedidos Bloqueados Manualmente</h1>
+            <div class="card border-danger animated-entry">
+                <div class="card-header bg-danger-subtle text-danger-emphasis">
+                    <h2 class="card-title h5 mb-0"><i class="bi bi-slash-circle-fill me-2"></i>Pedidos Bloqueados
+                        Manualmente</h2>
+                </div>
+                <div class="card-body" id="card-bloqueados">
+                    <div id="resultado-bloqueados"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="alteracao-rota-view" class="main-view">
+            <h1 class="h2 mb-4 animated-entry">Análise: Alteração de Rota</h1>
+            <div class="card border-warning animated-entry">
+                <div class="card-header bg-warning-subtle text-warning-emphasis">
+                    <h2 class="card-title h5 mb-0"><i class="bi bi-sign-turn-right-fill me-2"></i>Pedidos da Rota 1
+                        para Alteração</h2>
+                </div>
+                <div class="card-body">
+                    <div id="resultado-rota1"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================================================================================= -->
+        <!-- VIEW: RELATÓRIOS -->
+        <!-- ======================================================================================= -->
+        <div id="reports-view" class="main-view">
+            <h1 class="h2 mb-4 animated-entry">Relatórios Gerenciais</h1>
+            <div class="card animated-entry">
+                <div class="card-header">
+                    <h2 class="card-title h5 mb-0"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Previsão de
+                        Expedição</h2>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted">Gere um relatório gerencial em PDF com a previsão de expedição baseada nos
+                        resultados atuais.</p>
+                    <p class="text-muted small">O relatório incluirá um resumo geral e o detalhamento das cargas de
+                        varejo montadas.</p>
+                    <button class="btn btn-primary btn-lg mt-2" onclick="gerarRelatorioPDF()">
+                        <i class="bi bi-download me-2"></i>Gerar Relatório PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel de Ações em Massa (inicialmente oculto) -->
+        <div id="bulk-actions-panel"
+            class="card position-fixed bottom-0 start-50 translate-middle-x mb-3 shadow-lg no-print"
+            style="display: none; z-index: 1050; width: auto;">
+            <div class="card-body d-flex align-items-center p-2">
+                <span class="me-3">
+                    <strong id="bulk-actions-count">0</strong>
+                    <span id="bulk-actions-label"> itens selecionados</span>
+                </span>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-warning" onclick="bulkAction('prioritize')"><i
+                            class="bi bi-star-fill me-1"></i> Priorizar</button>
+                    <button class="btn btn-outline-info" onclick="bulkAction('recall')"><i
+                            class="bi bi-arrow-repeat me-1"></i> Marcar Recall</button>
+                    <button class="btn btn-outline-secondary" onclick="bulkAction('copy')"><i
+                            class="bi bi-clipboard-check me-1"></i> Copiar Números</button>
+                    <button class="btn btn-outline-danger" onclick="bulkAction('block')"><i
+                            class="bi bi-slash-circle me-1"></i> Bloquear</button>
+                </div>
+                <button type="button" class="btn-close ms-3" aria-label="Fechar"
+                    onclick="clearBulkSelection()"></button>
+            </div>
+        </div>
 
     </main>
-    </div> <!-- Fim do main-wrapper -->
+    <!-- </div> removed -->
 
     <!-- ======================================================================================= -->
     <!-- NOVO: MODAL PARA VISUALIZAÇÃO DE ROTA NO MAPA -->
@@ -3863,7 +4201,9 @@
         function limparTudo() {
             console.log('Função "limparTudo" iniciada para reset completo.');
             limparEstadoAtual(); // Limpa o estado atual
+            limparEstadoAtual(); // Limpa o estado atual
             location.reload(); // Recarrega a página
+            if (window.triggerLogActivity) window.triggerLogActivity('LIMPEZA_SISTEMA', { tipo: 'completa' });
         }
 
 
@@ -3954,8 +4294,8 @@
             });
 
             // Restaura o estado da aplicação a partir do localStorage ao carregar a página.
-            // DESATIVADO A PEDIDO: Sempre iniciar em branco para evitar confusão entre sessões.
-            // loadStateFromLocalStorage();
+            // REATIVADO: Garante persistência em F5
+            loadStateFromLocalStorage();
 
             // Restaura a última view e aba ativas
             const lastView = localStorage.getItem('lastActiveView');
@@ -4230,6 +4570,10 @@
                     const autoProcessCheckbox = document.getElementById('autoProcessCheckbox');
                     if (autoProcessCheckbox && autoProcessCheckbox.checked) {
                         processar();
+                        // Log activity via Exposed Global or module imports if accessible. 
+                        // Since this is inside a script tag not module, we might need a bridge.
+                        // We'll rely on the processar() function to trigger the log if updated, 
+                        // OR dispatch an event.
                     }
 
                 } catch (error) {
@@ -7932,7 +8276,11 @@
             displayGerais(document.getElementById('resultado-geral'), gruposGerais);
             updateAndRenderKPIs();
             updateAndRenderChart();
+            updateAndRenderChart();
             showToast(`Carga manual ${newLoad.numero} criada para ${vehicleInfo[vehicleType].name}!`, 'success');
+
+            // AUDIT LOG
+            if (window.triggerLogActivity) window.triggerLogActivity('CARGA_MANUAL_CRIADA', { numero: newLoad.numero, veiculo: vehicleInfo[vehicleType].name });
         }
 
         function cancelManualLoad() {
@@ -8199,6 +8547,8 @@
 
                 // AUDIT LOG
                 import('./js/realtime.js').then(m => m.logActivity('ACAO_EM_MASSA', { tipo: action, qtd: selectedPedidos.length }));
+                // Local toast for immediate feedback
+                if (window.showLocalToast) window.showLocalToast('Você', `Ação em massa: ${action} (${selectedPedidos.length})`, 'info');
             }
 
             clearBulkSelection();
@@ -8326,6 +8676,7 @@
 
                 // AUDIT LOG
                 import('./js/realtime.js').then(m => m.logActivity('CARGA_MANUAL', { carga: nomeCarga, veiculo: veiculoEscolhido.nome }));
+                if (window.showLocalToast) window.showLocalToast('Você', `Carga Manual Criada: ${nomeCarga}`, 'success');
 
                 showToast(`Carga ${nomeCarga} montada com sucesso em um(a) ${veiculoEscolhido.nome}!`, 'success');
 
@@ -9099,6 +9450,10 @@
                 saveStateToLocalStorage();
                 renderAllUI(); // Atualiza toda a interface para refletir as prioridades
                 showToast(`${countAdded} pedidos priorizados com sucesso!`, "success");
+
+                // AUDIT LOG
+                if (window.triggerLogActivity) window.triggerLogActivity('PRIORIZACAO_EM_MASSA', { qtd: countAdded });
+
                 input.value = '';
                 const modal = bootstrap.Modal.getInstance(document.getElementById('bulkPriorityModal'));
                 if (modal) modal.hide();
@@ -9736,20 +10091,29 @@
                 statusDiv.innerHTML = `<p class="text-success">Progresso anterior restaurado com sucesso!</p>`;
                 processarBtn.disabled = false;
 
-                // Ativa a primeira aba de navegação e mostra a view correspondente
-                const activeLink = document.querySelector('#sidebar-nav a.nav-link.active');
-                if (!activeLink) {
-                    document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active-view'));
-                    const firstLink = document.querySelector('#sidebar-nav a.main-nav-link');
-                    if (firstLink) {
-                        firstLink.classList.add('active');
-                        const targetViewId = firstLink.getAttribute('href');
-                        if (targetViewId) {
-                            const targetView = document.querySelector(targetViewId);
-                            if (targetView) targetView.classList.add('active-view');
+                // Re-renderizar a UI com os dados carregados
+                statusDiv.innerHTML = `<p class="text-success">Progresso anterior restaurado com sucesso!</p>`;
+                processarBtn.disabled = false;
+
+                // 2026-01-24: Força a restauração da VIEW e da TAB ativa para evitar tela em branco
+                setTimeout(() => {
+                    const lastView = localStorage.getItem('lastActiveView') || '#summary-view';
+                    const viewLink = document.querySelector(`a[href="${lastView}"]`);
+                    if (viewLink) {
+                        viewLink.click(); // Simula clique para ativar view e sidebar
+                    } else {
+                        activateView('summary-view', document.querySelector('a[href="#summary-view"]'));
+                    }
+
+                    const lastTab = localStorage.getItem('lastActiveTab');
+                    if (lastTab) {
+                        const tabBtn = document.querySelector(`button[data-bs-target="${lastTab}"]`);
+                        if (tabBtn) {
+                            // Pequeno delay para garantir que a aba esteja visível antes de clicar
+                            setTimeout(() => tabBtn.click(), 100);
                         }
                     }
-                }
+                }, 100);
 
                 popularFiltrosDeRota();
                 atualizarListaBloqueados();
@@ -10077,33 +10441,70 @@
                 }, 5000);
             });
 
-            // 3. Hook Process Button
+            // 3. Hook Process Button & Global Log Helper
+            window.triggerLogActivity = (action, details) => {
+                logActivity(action, details);
+                // Also show a local toast immediately for responsiveness
+                showLocalToast('Você', action.replace('_', ' '), 'success');
+            };
+
             const processBtn = document.getElementById('processarBtn');
             if (processBtn) {
-                // We use 'mousedown' or add validation to ensure it only logs when actually processing
-                processBtn.addEventListener('click', () => {
-                    const fileInput = document.getElementById('fileInput');
-                    const fileName = fileInput?.files[0]?.name || 'Arquivo desconhecido';
-                    logActivity('PROCESSANDO', { arquivo: fileName });
-                });
+                // The actual processing logic is in the global scope `processar()`. 
+                // We will add the logging inside the `processar()` function logic via the bridge.
+            }
+
+            function showLocalToast(user, action, type = 'info') {
+                const container = document.getElementById('realtime-toast-container');
+                if (!container) return;
+
+                // Prevent duplicate toasts if realtime comes back fast
+                // (Simple heuristic: check if last child text content matches, or just let it stack)
+
+                const toastId = 'toast-local-' + Math.random().toString(36).substr(2, 9);
+                const bgClass = type === 'success' ? 'text-bg-success' : (type === 'error' ? 'text-bg-danger' : 'text-bg-info');
+
+                const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center ${bgClass} border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                <strong>${user}</strong>: ${action}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>`;
+                container.insertAdjacentHTML('beforeend', toastHtml);
+                setTimeout(() => {
+                    const toast = document.getElementById(toastId);
+                    if (toast) {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 500);
+                    }
+                }, 4000);
             }
 
             // 4. Logout is now handled in the Top Navbar dropdown
 
-            // --- 4.1 Update User Greeting ---
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                const greetingEl = document.getElementById('user-greeting');
-                if (user && greetingEl) {
-                    // Try to get name from metadata or email
-                    const name = user.user_metadata?.name || user.email.split('@')[0];
-                    greetingEl.innerHTML = `<i class="bi bi-person-circle me-2"></i>Bem-vindo, ${name}!`;
+            // --- 4.1 Update User Greeting & Profile ---
+            async function updateUserDisplay() {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        // Try to get name from metadata or email
+                        const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0];
 
-                    // Update Top Badge as well
-                    const topBadge = document.getElementById('user-name-display');
-                    if (topBadge) topBadge.textContent = name;
-                }
-            } catch (e) { console.error('Error fetching user for greeting:', e); }
+                        // Update Sidebar Profile
+                        const userNameDisplay = document.getElementById('user-name-display');
+                        if (userNameDisplay) userNameDisplay.textContent = name;
+
+                        // Basic greeting if element exists
+                        const greetingEl = document.getElementById('user-greeting');
+                        if (greetingEl) greetingEl.innerHTML = `<i class="bi bi-person-circle me-2"></i>Bem-vindo, ${name}!`;
+                    }
+                } catch (e) { console.error('Error fetching user for greeting:', e); }
+            }
+            await updateUserDisplay();
 
             // 5. Check for Shared Sessions (Notifications)
             try {
@@ -10177,7 +10578,7 @@
                                     <small class="text-muted">${new Date(s.created_at).toLocaleString()}</small>
                                 </div>
                                 <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-info" onclick="window.openShareModal('${s.id}', '${s.name}')" title="Compartilhar"><i class="bi bi-share-fill"></i></button>
+                                    <button class="btn btn-outline-info" onclick="window.openShareModal('${s.id}', this.getAttribute('data-name'))" data-name="${s.name.replace(/"/g, '&quot;')}" title="Compartilhar"><i class="bi bi-share-fill"></i></button>
                                     <button class="btn btn-outline-primary" onclick="window.performLoadSession('${s.id}')" title="Carregar"><i class="bi bi-upload"></i></button>
                                     <button class="btn btn-outline-danger" onclick="window.performDeleteSession('${s.id}')" title="Excluir"><i class="bi bi-trash-fill"></i></button>
                                 </div>
