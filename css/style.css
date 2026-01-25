@@ -1,0 +1,1707 @@
+        /* --- AJUSTE GLOBAL DE FONTE --- */
+        html {
+            font-size: 11.5px;
+            /* Reduzido para 11.5px para simular zoom de 80% (Modo Compacto Profissional) */
+        }
+
+        :root {
+            /* Paleta de Cores "Midnight Pro" - Mais equilibrada, moderna e menos escura */
+            --dark-bg: #0f172a;
+            /* Slate 900 - Azul profundo, não preto */
+            --dark-surface: rgba(30, 41, 59, 0.75);
+            /* Slate 800 - Translúcido */
+            --dark-surface-secondary: rgba(51, 65, 85, 0.5);
+            /* Slate 700 */
+            --dark-border: rgba(148, 163, 184, 0.15);
+            /* Slate 400 sutil */
+            --dark-primary: #3b82f6;
+            /* Blue 500 */
+            --dark-primary-hover: #2563eb;
+            /* Blue 600 */
+            --dark-primary-glow: rgba(59, 130, 246, 0.35);
+            --dark-accent: #8b5cf6;
+            /* Violet 500 */
+            --dark-accent-secondary: #ec4899;
+            /* Pink 500 - Mais vibrante */
+            --dark-accent-glow: rgba(139, 92, 246, 0.35);
+            --dark-text-primary: #f8fafc;
+            /* Slate 50 - Quase branco */
+            --dark-text-secondary: #94a3b8;
+            /* Slate 400 - Cinza azulado */
+            --box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+            /* Sombra mais suave */
+            --backdrop-blur: 16px;
+            /* Blur equilibrado */
+            --border-radius: 16px;
+            /* Bordas mais arredondadas e modernas */
+        }
+
+        /* --- NOVO: Variáveis para o Tema Claro --- */
+        [data-bs-theme="light"] {
+            --dark-bg: #f1f5f9;
+            /* Slate 100 - Fundo claro e limpo */
+            --dark-surface: #ffffff;
+            /* Branco puro */
+            --dark-surface-secondary: #f8fafc;
+            /* Slate 50 */
+            --dark-border: #cbd5e1;
+            /* Slate 300 */
+            --dark-primary: #2563eb;
+            /* Blue 600 - Mais contraste no claro */
+            --dark-primary-hover: #1d4ed8;
+            --dark-primary-glow: rgba(37, 99, 235, 0.2);
+            --dark-accent: #7c3aed;
+            /* Violet 600 */
+            --dark-accent-secondary: #db2777;
+            /* Pink 600 */
+            --dark-accent-glow: rgba(124, 58, 237, 0.2);
+            --dark-text-primary: #0f172a;
+            /* Slate 900 */
+            --dark-text-secondary: #64748b;
+            /* Slate 500 */
+            --box-shadow: 0 10px 25px -5px rgba(148, 163, 184, 0.2);
+            --backdrop-blur: 12px;
+        }
+
+        /* --- NOVAS ANIMAÇÕES DE FUNDO --- */
+        @keyframes move-aurora-glow {
+            0% {
+                background-position: 0% 50%, 50% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%, 50% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%, 50% 50%;
+            }
+        }
+
+        @keyframes scanline {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(50px);
+            }
+        }
+
+        /* --- NOVO FUNDO ANIMADO PARA TEMA ESCURO --- */
+        [data-bs-theme="dark"] body {
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.12), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.12), transparent 25%);
+            background-size: 100% 100%, 100% 100%;
+            animation: move-aurora-glow 20s ease-in-out infinite;
+        }
+
+        /* --- Fundo para Tema Claro (mais sutil) --- */
+        [data-bs-theme="light"] body {
+            background-image:
+                radial-gradient(at 0% 0%, hsla(210, 100%, 50%, 0.03), transparent 50%),
+                radial-gradient(at 100% 100%, hsla(265, 88%, 60%, 0.03), transparent 50%);
+            background-size: 150% 150%, 150% 150%;
+            animation: move-aurora-glow 20s ease-in-out infinite;
+        }
+
+        /* --- MELHORIAS GERAIS --- */
+        body {
+            background-color: var(--dark-bg);
+            background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat, repeat;
+            background-attachment: fixed;
+            font-family: 'Inter', sans-serif;
+            color: var(--dark-text-primary);
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            /* REMOVE BARRA DE ROLAGEM GLOBAL */
+            height: 100vh;
+            width: 100vw;
+            font-size: 0.9rem;
+            display: block !important;
+            /* PREVINE FLEXBOX WEIRDNESS NO BODY */
+        }
+
+        /* Scrollbar Moderna e Elegante */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+            transition: all 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.5);
+            border: 1px solid transparent;
+            background-clip: content-box;
+        }
+
+        /* Suporte para Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+        }
+
+        .accordion-body {
+            max-height: 450px;
+            overflow-y: auto;
+            padding: 0 !important;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            scrollbar-width: thin;
+            -ms-overflow-style: auto;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--dark-text-primary) !important;
+        }
+
+        [data-bs-theme="dark"] h1,
+        [data-bs-theme="dark"] h2,
+        [data-bs-theme="dark"] h3,
+        [data-bs-theme="dark"] h4,
+        [data-bs-theme="dark"] h5 {
+            background: linear-gradient(to right, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- TIPOGRAFIA RESPONSIVA (Valores ajustados para uma aparência mais compacta e profissional) --- */
+        h1.h2 {
+            font-size: clamp(1.3rem, 1.5vw, 1.5rem);
+        }
+
+        /* Reajustado para nova base */
+        h3 {
+            font-size: clamp(1.1rem, 1.2vw, 1.2rem);
+        }
+
+        /* Reajustado para nova base */
+        .card-title.h5,
+        .modal-title {
+            font-size: clamp(0.9rem, 1.0vw, 1.0rem);
+        }
+
+        /* Reajustado para nova base */
+        #sidebar .fs-4 {
+            font-size: clamp(1.1rem, 1.2vw, 1.25rem);
+        }
+
+        /* Reajustado para nova base */
+
+
+        /* --- ANIMAÇÕES --- */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 8px var(--dark-primary-glow), 0 0 10px var(--dark-accent-glow);
+            }
+
+            50% {
+                box-shadow: 0 0 25px var(--dark-primary-glow), 0 0 35px var(--dark-accent-glow);
+            }
+
+            100% {
+                box-shadow: 0 0 8px var(--dark-primary-glow), 0 0 10px var(--dark-accent-glow);
+            }
+        }
+
+        .animated-entry {
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+            /* Garante que comece invisível */
+        }
+
+        /* NOVA ANIMAÇÃO PARA DESTAQUE DE MUDANÇA */
+        @keyframes highlight-change {
+
+            0%,
+            100% {
+                box-shadow: none;
+            }
+
+            50% {
+                box-shadow: 0 0 15px 5px var(--dark-accent-glow);
+                border-color: var(--dark-accent);
+            }
+        }
+
+        .highlight-change-animation {
+            animation: highlight-change 1.2s ease-in-out;
+        }
+
+        .animated-entry:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .animated-entry:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .animated-entry:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .animated-entry:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .animated-entry:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .animated-entry:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        #main-content {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 1.5rem 1.5rem 1.5rem 100px;
+            /* Reduzido padding geral e ajustado offset da sidebar (80px + 20px) */
+            /* AUMENTADO PARA 140px PARA EVITAR SOBREPOSIÇÃO */
+            /* Ajustado padding esquerdo (100px sidebar + 40px gap) e topo reduzido */
+            width: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            justify-content: flex-start !important;
+            /* Garante alinhamento ao topo */
+            margin-top: 0 !important;
+            /* Força margem zero */
+            overflow-y: auto;
+            /* Permite rolagem interna se necessário */
+            height: 100vh;
+            /* Ocupa altura total */
+            box-sizing: border-box;
+            /* Garante que padding não estoure largura */
+            z-index: 1;
+            /* Garante contexto de empilhamento base */
+        }
+
+        /* Ajuste para telas menores */
+        @media (max-width: 992px) {
+            #main-content {
+                padding-left: 1.5rem;
+                /* Remove o padding extra da sidebar em mobile */
+                padding-top: 80px;
+                /* Espaço para a Topbar Mobile */
+            }
+        }
+
+        /* --- SIDEBAR PREMIUM "GLASSMORPHISM" --- */
+        #sidebar-modern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 80px;
+            /* Reduzido para 80px (Compacto) */
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem 0;
+            z-index: 1040;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: hidden;
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.2);
+        }
+
+        #sidebar-modern:hover {
+            width: 260px;
+            background: rgba(15, 23, 42, 0.95);
+            /* Mais opaco no hover para leitura */
+        }
+
+        /* Logo na Sidebar */
+        .sidebar-logo-container {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Centralizado quando fechado */
+            padding: 0 1.5rem;
+            margin-bottom: 2.5rem;
+            height: 50px;
+            overflow: hidden;
+            white-space: nowrap;
+            transition: all 0.4s ease;
+        }
+
+        #sidebar-modern:hover .sidebar-logo-container {
+            justify-content: flex-start;
+            /* Alinhado à esquerda quando aberto */
+        }
+
+        .sidebar-brand-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--dark-text-primary);
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.3s ease;
+            margin-left: 0.75rem;
+        }
+
+        #sidebar-modern:hover .sidebar-brand-text {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Links de Navegação */
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            padding: 0 0.75rem;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            color: var(--dark-text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            height: 50px;
+            white-space: nowrap;
+        }
+
+        .sidebar-link i {
+            font-size: 1.3rem;
+            min-width: 24px;
+            display: flex;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            /* IMPEDE QUE O ÍCONE SEJA ESMAGADO PELO TEXTO */
+        }
+
+        .sidebar-link span {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-left: 1rem;
+            opacity: 0;
+            transform: translateX(10px);
+            transition: all 0.3s ease;
+        }
+
+        #sidebar-modern:hover .sidebar-link span {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Oculta elementos extras quando a sidebar está fechada (width 100px) */
+        .sidebar-fade-element {
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        #sidebar-modern:hover .sidebar-fade-element {
+            opacity: 1;
+            visibility: visible;
+            height: auto;
+            margin-top: 1rem;
+            overflow: visible;
+        }
+
+        /* Ajuste do botão Carregar para ícone apenas quando fechado */
+        .group-hover-white {
+            transition: color 0.3s;
+        }
+
+        #sidebar-modern:not(:hover) .group .small {
+            display: none !important;
+        }
+
+        /* Estado Hover e Ativo dos Links */
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--dark-text-primary);
+        }
+
+        .sidebar-link:hover i {
+            color: var(--dark-primary);
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 8px var(--dark-primary-glow));
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), transparent);
+            color: var(--dark-primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10%;
+            height: 80%;
+            width: 4px;
+            background: var(--dark-primary);
+            border-radius: 0 4px 4px 0;
+            box-shadow: 2px 0 10px var(--dark-primary-glow);
+        }
+
+        /* Seção de Rodapé da Sidebar (Ações) */
+        .sidebar-footer {
+            width: 100%;
+            padding: 1rem 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        /* Tooltip personalizado para sidebar fechada */
+        .tooltip-sidebar {
+            position: absolute;
+            left: 70px;
+            background: var(--dark-surface);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(-10px);
+            transition: all 0.2s ease;
+            border: 1px solid var(--dark-border);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1050;
+        }
+
+        .sidebar-link:hover .tooltip-sidebar {
+            /* Só mostra se a sidebar não estiver hover (fechada) - Via JS ou CSS complexo, 
+               mas aqui vamos confiar na expansão da sidebar que revela o texto */
+            display: none;
+        }
+
+        /* Topbar Mobile (Só aparece em telas pequenas) */
+        #mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--dark-surface);
+            backdrop-filter: blur(20px);
+            z-index: 1030;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        @media (max-width: 992px) {
+            #sidebar-modern {
+                transform: translateX(-100%);
+                /* Esconde sidebar padrao em mobile */
+                width: 280px;
+                /* Largura fixa quando abrir */
+            }
+
+            #sidebar-modern.mobile-open {
+                transform: translateX(0);
+                box-shadow: 10px 0 50px rgba(0, 0, 0, 0.5);
+            }
+
+            #mobile-topbar {
+                display: flex;
+            }
+
+            #sidebar-modern:hover {
+                width: 280px;
+                /* Remove expand on hover behavior for mobile */
+            }
+
+            .sidebar-brand-text,
+            .sidebar-link span {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+
+            .sidebar-logo-container {
+                justify-content: flex-start;
+            }
+        }
+
+
+        /* --- ESTILOS PARA O NOVO LOGO ANIMADO --- */
+        #logo-container {
+            width: 48px;
+            /* Tamanho do container do logo */
+            height: 48px;
+            margin-right: 0.75rem;
+            /* Margem à direita */
+            transition: transform 0.4s ease;
+        }
+
+        #logo-container:hover {
+            transform: scale(1.1);
+            /* Efeito de zoom no hover */
+        }
+
+        #animated-logo .logo-line {
+            stroke: url(#logo-gradient);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            stroke-dasharray: 200;
+            /* Comprimento para a animação de desenho */
+            stroke-dashoffset: 200;
+            /* Começa "não desenhado" */
+            animation: draw-line 2s ease-out forwards;
+        }
+
+        #animated-logo:hover .logo-line {
+            filter: drop-shadow(0 0 8px var(--dark-primary));
+            /* Efeito de brilho no hover */
+            animation: pulse-glow 1.5s ease-in-out infinite;
+        }
+
+        /* Animação de desenho das linhas */
+        @keyframes draw-line {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Animação de pulso do brilho */
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                filter: drop-shadow(0 0 4px var(--dark-primary));
+            }
+
+            50% {
+                filter: drop-shadow(0 0 12px var(--dark-primary));
+            }
+        }
+
+        /* Atraso para cada parte do logo se desenhar em sequência */
+        #animated-logo #line-1 {
+            animation-delay: 0s;
+        }
+
+        #animated-logo #line-2 {
+            animation-delay: 0.2s;
+        }
+
+        #animated-logo #line-3 {
+            animation-delay: 0.4s;
+        }
+
+        /* --- ESTILOS OBSOLETOS DE SIDEBAR (COMENTADOS) --- */
+        /* 
+        #sidebar .nav-link .submenu-arrow {
+            transition: transform 0.3s ease;
+            float: right;
+        }
+
+        #sidebar .nav-link.collapsed .submenu-arrow {
+            transform: rotate(-90deg);
+        }
+
+        #sidebar .nav-submenu {
+            padding-left: 1.5rem;
+            background-color: transparent;
+        }
+
+        #sidebar .nav-submenu .nav-link {
+            padding: 0.45rem 1.25rem;
+        }
+
+        #sidebar hr {
+            border-color: rgba(120, 111, 255, 0.1);
+        }
+
+        #sidebar-footer {
+            border-top: 1px solid var(--dark-border);
+            padding: 0.75rem;
+            margin-top: auto;
+        }
+
+        .sidebar-collapsed #sidebar {
+            width: 88px;
+        }
+
+        .sidebar-collapsed #main-content {
+            margin-left: 88px;
+            width: calc(100% - 88px);
+        }
+
+        .sidebar-collapsed #sidebar .sidebar-header .fs-4,
+        .sidebar-collapsed #sidebar .nav-link span:not(.step-number),
+        .sidebar-collapsed #sidebar .nav-link .submenu-arrow,
+        .sidebar-collapsed #sidebar .form-label,
+        .sidebar-collapsed #sidebar .form-check-label,
+        .sidebar-collapsed #sidebar #sidebar-process-section,
+        .sidebar-collapsed #sidebar .sidebar-header .badge,
+        .sidebar-collapsed #sidebar #sidebar-header-actions,
+        .sidebar-collapsed #sidebar #sidebar-footer .btn span {
+            display: none !important;
+        }
+
+        .sidebar-collapsed #sidebar .nav-link i {
+            font-size: 1.5rem;
+            margin-right: 0 !important;
+        }
+
+        .sidebar-collapsed #sidebar .nav-link {
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        .sidebar-collapsed #sidebar #sidebar-footer .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .sidebar-collapsed #sidebar #sidebar-toggle i {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-collapsed #sidebar .sidebar-header {
+            justify-content: center;
+            padding: 1rem 0.5rem;
+        }
+
+        .sidebar-collapsed #sidebar .sidebar-header i {
+            margin-right: 0 !important;
+        }
+
+        .sidebar-collapsed #sidebar #sidebar-nav-section {
+            padding: 1rem 0;
+            overflow-y: hidden;
+        }
+        */
+
+        /* --- ESTILO DOS CARDS (COM EFEITO DE BORDA EM GRADIENTE) --- */
+        .card {
+            position: relative;
+            background-color: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            /* Borda um pouco mais visível para contraste */
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            backdrop-filter: blur(var(--backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--backdrop-blur));
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            border-radius: inherit;
+            border: 1px solid transparent;
+            background: radial-gradient(circle at top left, var(--dark-primary), var(--dark-accent)) border-box;
+            -webkit-mask:
+                linear-gradient(#fff 0 0) padding-box,
+                linear-gradient(#fff 0 0);
+            mask:
+                linear-gradient(#fff 0 0) padding-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            background-color: transparent;
+            /* Header transparente para limpeza */
+            border-bottom: 1px solid var(--dark-border);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+        }
+
+        .card-body {
+            padding: 1rem;
+        }
+
+        /* --- Ajuste para card de Pedidos Disponíveis rolável --- */
+        #pedidosDisponiveisTabsContent {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        @media (max-width: 992px) {
+            #main-content {
+                height: auto;
+            }
+        }
+
+        /* --- Ajuste para card de Pedidos Filtrados rolável --- */
+        #pedidos-filtrados-card .card-body {
+            max-height: 35vh;
+            /* Altura máxima para este card */
+            overflow-y: auto;
+        }
+
+        /* --- BOTÕES E CONTROLES --- */
+        .btn {
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease-in-out;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            /* Efeito mais sutil */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--dark-primary), var(--dark-accent));
+            border: none;
+            box-shadow: 0 0 15px var(--dark-accent-glow);
+        }
+
+        .btn-primary#processarBtn {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 20px var(--dark-primary-glow);
+        }
+
+        .form-control,
+        .form-select {
+            background-color: rgba(0, 0, 0, 0.2);
+            /* Input mais escuro */
+            border: 1px solid var(--dark-border);
+            font-size: 0.85rem;
+            color: var(--dark-text-primary);
+            border-radius: 8px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-color: var(--dark-primary);
+            box-shadow: 0 0 0 .2rem var(--dark-primary-glow);
+            color: var(--dark-text-primary);
+        }
+
+        /* --- COMPONENTES --- */
+        .modal-content {
+            /* Modal mais compacto */
+            font-size: 0.9rem;
+            background-color: var(--dark-surface);
+            backdrop-filter: blur(var(--backdrop-blur));
+            border-radius: var(--border-radius);
+            border: 1px solid var(--dark-border);
+        }
+
+        .accordion-item,
+        .accordion-button {
+            background-color: transparent;
+            border-color: var(--dark-border);
+        }
+
+        .accordion-button {
+            background-color: var(--dark-surface-secondary);
+            color: var(--dark-text-primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            border-radius: 8px;
+            -webkit-text-fill-color: currentColor;
+        }
+
+        .accordion-button:hover {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--dark-primary);
+            box-shadow: none;
+        }
+
+        .accordion-button::after {
+            /* Ícone de seta do Bootstrap */
+            transition: transform 0.3s ease-in-out;
+            /* Suaviza a rotação do ícone */
+        }
+
+        .accordion-button:focus {
+            box-shadow: 0 0 0 .2rem var(--dark-primary-glow);
+        }
+
+        .accordion-body {
+            background-color: var(--dark-surface);
+        }
+
+        .table {
+            --bs-table-bg: transparent;
+            /* Fundo transparente para herdar do card */
+            --bs-table-striped-bg: rgba(59, 130, 246, 0.03);
+            --bs-table-hover-bg: rgba(59, 130, 246, 0.08);
+        }
+
+        thead th {
+            /* Cabeçalho da tabela com a nova cor primária */
+            background-color: var(--dark-surface-secondary);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--dark-border);
+            color: var(--dark-text-secondary);
+            padding: 0.5rem 0.75rem;
+            /* Adicionado padding ao header */
+            white-space: nowrap !important;
+            text-align: left !important;
+            /* Garante cabeçalho em uma linha e à esquerda */
+        }
+
+        tbody td {
+            padding: 0.25rem 0.5rem;
+            vertical-align: middle;
+            text-align: left !important;
+            font-size: 0.8rem;
+            white-space: nowrap !important;
+        }
+
+        /* Forçado: Alinhamento à esquerda, sem quebra de linha */
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        /* NOVO: Efeito de brilho e fonte menor para a tabela de disponíveis */
+        #resultado-geral .table tbody td {
+            font-size: 0.75rem;
+            /* Fonte ainda menor para compactar */
+            padding: 0.3rem 0.5rem;
+            /* Padding reduzido */
+        }
+
+        .nav-tabs {
+            border-bottom: none;
+            background: var(--dark-surface-secondary);
+            padding: 0.5rem;
+            border-radius: 12px;
+            gap: 0.5rem;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--dark-text-secondary);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--dark-text-primary);
+        }
+
+        .nav-tabs .nav-link.active,
+        .nav-tabs .nav-item.show .nav-link {
+            color: white;
+            background: linear-gradient(135deg, var(--dark-primary), var(--dark-primary-hover));
+            box-shadow: 0 4px 12px var(--dark-primary-glow);
+        }
+
+        /* --- ESTADOS VAZIOS (EMPTY STATES) MODERNOS --- */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+            border: 2px dashed var(--dark-border);
+            border-radius: 16px;
+            color: var(--dark-text-secondary);
+            transition: all 0.3s ease;
+            margin: 1rem 0;
+        }
+
+        .empty-state:hover {
+            border-color: var(--dark-primary-glow);
+            background-color: rgba(255, 255, 255, 0.04);
+            transform: scale(1.01);
+        }
+
+        .empty-state .bi {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark-text-secondary);
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+
+        .empty-state:hover .bi {
+            opacity: 0.9;
+            color: var(--dark-primary);
+            transform: translateY(-5px) rotate(-10deg);
+            filter: drop-shadow(0 0 10px var(--dark-primary-glow));
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        tr.client-highlight>td {
+            /* Cor de destaque diferente para cada tema para garantir visibilidade */
+            background-color: rgba(139, 92, 246, 0.2) !important;
+        }
+
+        [data-bs-theme="light"] tr.client-highlight>td {
+            background-color: rgba(10, 132, 255, 0.2) !important;
+            /* Azul mais escuro e visível para o tema claro */
+        }
+
+        /* --- CORREÇÕES E PADRONIZAÇÃO PARA O TEMA CLARO --- */
+        [data-bs-theme="light"] .table {
+            --bs-table-striped-bg: #f0f2f5;
+            /* Cinza mais sutil para linhas de tabela */
+        }
+
+        [data-bs-theme="light"] .btn-outline-light {
+            --bs-btn-color: #6c757d;
+            --bs-btn-border-color: #6c757d;
+            --bs-btn-hover-bg: #6c757d;
+            --bs-btn-hover-color: #fff;
+        }
+
+        [data-bs-theme="light"] .badge.bg-light.text-dark {
+            background-color: var(--dark-surface-secondary) !important;
+            color: var(--dark-text-primary) !important;
+        }
+
+        .drop-zone-card.drag-over {
+            border: 2px dashed var(--dark-primary);
+            box-shadow: 0 0 25px var(--dark-primary-glow);
+        }
+
+        /* --- MELHORIAS DE USABILIDADE PARA DRAG & DROP --- */
+        @keyframes shake-horizontal {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-8px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(8px);
+            }
+        }
+
+        @keyframes flash-success {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 15px 5px rgba(25, 135, 84, 0.7);
+            }
+        }
+
+        @keyframes flash-danger {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 15px 5px rgba(220, 53, 69, 0.7);
+            }
+        }
+
+        .drop-invalid {
+            animation: shake-horizontal 0.5s cubic-bezier(.36, .07, .19, .97) both;
+        }
+
+        .drop-valid-target {
+            animation: flash-success 0.7s ease-out;
+        }
+
+        /* --- MELHORIA DE USABILIDADE: MENU DE CONTEXTO --- */
+        #context-menu {
+            position: absolute;
+            display: none;
+            z-index: 1056;
+            /* Acima dos modais */
+            background-color: var(--dark-surface-secondary);
+            border: 1px solid var(--dark-border);
+        }
+
+        #context-menu .dropdown-item {
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+        }
+
+        .print-only {
+            display: none;
+        }
+
+        /* --- RESPONSIVIDADE --- */
+        @media (max-width: 992px) {
+            body {
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* SIDEBAR OBSOLETA - COMENTADO
+            #sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                margin-bottom: 1.5rem;
+                border-right: none;
+                border-bottom: 1px solid var(--dark-border);
+            }
+
+            #sidebar-nav-section {
+                overflow-y: visible;
+            }
+            */
+
+            #main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        /* ESTILOS PARA AS VIEWS PRINCIPAIS */
+        .main-view {
+            display: none;
+            opacity: 0;
+            visibility: hidden;
+            /* Padding movido para o #main-content para evitar duplicação */
+            padding: 0;
+            width: 100%;
+            height: auto;
+            /* Deixe o conteúdo ditar a altura */
+            /* Remove scroll interno para usar o scroll do #main-content */
+            overflow: visible;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            flex-direction: column;
+            justify-content: flex-start !important;
+            /* Força topo */
+            align-items: stretch;
+        }
+
+        /* CLASSE PARA A VIEW ATIVA */
+        /* CLASSE PARA A VIEW ATIVA */
+        .main-view.active-view {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            opacity: 1;
+            visibility: visible;
+        }
+
+
+        /* --- ESTILOS DE IMPRESSÃO (Ajustes para tabelas mais compactas) --- */
+        @media print {
+            body {
+                background-color: #fff;
+                color: #000;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            #main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding: 0 !important;
+            }
+
+            .no-print,
+            #top-navbar {
+                /* SIDEBAR OBSOLETA - COMENTADO: #sidebar, .sidebar-step */
+                display: none !important;
+            }
+
+            .container,
+            .card,
+            .accordion-item,
+            .accordion-body,
+            .card-header,
+            .modal-content {
+                background-color: #fff !important;
+                color: #000 !important;
+                border: 1px solid #dee2e6 !important;
+                box-shadow: none !important;
+            }
+
+            button,
+            .status-message,
+            .card-subtitle,
+            .accordion-button.collapsed,
+            .accordion-collapse.collapse,
+            .nav-tabs,
+            .tab-content {
+                display: none !important;
+            }
+
+            .card,
+            .load-card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+
+            .table-responsive {
+                overflow: visible !important;
+            }
+
+            table,
+            th,
+            td {
+                border: 1px solid #dee2e6 !important;
+                color: #000 !important;
+                padding: 0.25rem 0.4rem;
+                font-size: 9pt;
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5 {
+                color: #000 !important;
+            }
+
+            .accordion-collapse,
+            .tab-pane {
+                display: block !important;
+                padding: 0 !important;
+            }
+
+            .accordion-button {
+                display: block !important;
+                background-color: #f8f9fa !important;
+                color: #000 !important;
+            }
+
+            .bg-warning {
+                background-color: #ffc107 !important;
+                color: black !important;
+            }
+
+            .bg-success,
+            .bg-primary,
+            .bg-danger {
+                color: white !important;
+            }
+
+            .text-danger {
+                color: #dc3545 !important;
+            }
+        }
+
+        /* --- NOVAS CORES PARA ROTAS DE VAREJO --- */
+        .route-fiorino {
+            border-left: 4px solid #28a745;
+        }
+
+        .route-van {
+            border-left: 4px solid var(--dark-primary);
+        }
+
+        .route-tresQuartos {
+            border-left: 4px solid #ffc107;
+        }
+
+        .route-fiorino:hover>td {
+            background-color: rgba(40, 167, 69, 0.15) !important;
+        }
+
+        .route-van:hover>td {
+            background-color: rgba(10, 132, 255, 0.15) !important;
+        }
+
+        .route-tresQuartos:hover>td {
+            background-color: rgba(255, 193, 7, 0.15) !important;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.5rem;
+            background-color: var(--dark-surface-secondary);
+            border: 1px solid var(--dark-border);
+        }
+
+        .legend-item .legend-color {
+            margin-right: 0.5rem;
+        }
+
+        /* --- NOVAS CORES PARA ACORDEÃO DE ROTAS --- */
+        .accordion-button.route-fiorino {
+            border-left: 5px solid #28a745;
+        }
+
+        .accordion-button.route-van {
+            border-left: 5px solid var(--dark-primary);
+        }
+
+        .accordion-button.route-tresQuartos {
+            border-left: 5px solid #ffc107;
+        }
+
+        @media print {
+            .print-only {
+                display: block !important;
+            }
+        }
+
+        /* --- NOVO: Estilos para impressão do mapa --- */
+        @media print {
+
+            body.print-map-active .modal-backdrop,
+            body.print-map-active>*:not(#mapModal) {
+                display: none !important;
+            }
+        }
+
+        /* --- ESTILOS MODERNOS PARA A MESA DE TRABALHO (NOVO) --- */
+        .workspace-card {
+            border: 1px solid var(--dark-border);
+            background: var(--dark-surface);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .workspace-header {
+            background: linear-gradient(to right, rgba(255, 255, 255, 0.02), transparent);
+            border-bottom: 1px solid var(--dark-border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .workspace-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--dark-text-secondary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .workspace-title i {
+            font-size: 1.1rem;
+            color: var(--dark-primary);
+            margin-right: 0.75rem;
+        }
+
+        /* Abas Modernas */
+        .nav-tabs-modern {
+            border-bottom: none;
+            background: rgba(0, 0, 0, 0.15);
+            /* Fundo sutil para agrupar as abas */
+            border-radius: 12px;
+            margin: 0.75rem 1rem 0 1rem;
+            padding: 0.5rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            /* Permite que as abas quebrem linha para exibir todas */
+            overflow-x: visible;
+            justify-content: flex-start;
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .nav-tabs-modern::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-tabs-modern .nav-link {
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            /* Estilo Card/Pill */
+            color: var(--dark-text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.6rem 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--dark-surface-secondary);
+            opacity: 1;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            flex: 0 0 auto;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-tabs-modern .nav-link:hover {
+            color: var(--dark-text-primary);
+            background: var(--dark-surface);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-color: var(--dark-primary-glow);
+        }
+
+        .nav-tabs-modern .nav-link.active {
+            color: #fff;
+            background: linear-gradient(135deg, var(--dark-primary), var(--dark-primary-hover));
+            border-color: transparent;
+            box-shadow: 0 4px 15px var(--dark-primary-glow);
+        }
+
+        .nav-tabs-modern .nav-link i {
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+
+        /* --- CORES DINÂMICAS PARA ABAS ATIVAS --- */
+        .nav-tabs-modern .nav-link.tab-fiorino.active {
+            background: linear-gradient(135deg, #28a745, #218838);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .nav-tabs-modern .nav-link.tab-van.active {
+            background: linear-gradient(135deg, var(--dark-primary), var(--dark-primary-hover));
+            box-shadow: 0 4px 15px var(--dark-primary-glow);
+        }
+
+        .nav-tabs-modern .nav-link.tab-tres-quartos.active {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #000;
+            /* Texto preto para contraste no amarelo */
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
+        }
+
+        .nav-tabs-modern .nav-link.tab-toco.active {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .nav-tabs-modern .nav-link.tab-pr.active {
+            background: linear-gradient(135deg, #17a2b8, #117a8b);
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.4);
+        }
+
+        .nav-tabs-modern .nav-link.tab-br.active {
+            background: linear-gradient(135deg, #6610f2, #520dc2);
+            box-shadow: 0 4px 15px rgba(102, 16, 242, 0.4);
+        }
+
+        .nav-tabs-modern .nav-link.tab-roteirizados.active {
+            background: linear-gradient(135deg, #d63384, #a61e63);
+            box-shadow: 0 4px 15px rgba(214, 51, 132, 0.4);
+        }
+
+        .nav-tabs-modern .nav-link .badge {
+            font-size: 0.7rem;
+            padding: 0.35em 0.6em;
+            transition: all 0.3s ease;
+        }
+
+        /* Animação de pulso no badge ao passar o mouse na aba */
+        .nav-tabs-modern .nav-link:hover .badge:not(.d-none) {
+            animation: badge-pulse 0.6s ease-in-out infinite;
+        }
+
+        @keyframes badge-pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Search Box Moderno */
+        .search-container-modern {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--dark-border);
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input-wrapper {
+            position: relative;
+        }
+
+        .search-input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dark-text-secondary);
+            pointer-events: none;
+        }
+
+        .search-input-modern {
+            width: 100%;
+            background: var(--dark-bg);
+            border: 1px solid var(--dark-border);
+            border-radius: 50px;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            color: var(--dark-text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input-modern:focus {
+            outline: none;
+            border-color: var(--dark-primary);
+            box-shadow: 0 0 0 3px var(--dark-primary-glow);
+        }
+
+        /* --- ESTILOS PARA CARDS DE CARGA (LOAD CARDS) - REDESIGN --- */
+        .load-card {
+            background: var(--dark-surface);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .load-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.3);
+            border-color: var(--dark-primary-glow);
+        }
+
+        /* Faixa lateral colorida baseada no veículo */
+        .load-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--dark-border);
+            /* Cor padrão */
+            z-index: 1;
+        }
+
+        .load-card.vehicle-fiorino::before {
+            background: #28a745;
+            box-shadow: 2px 0 10px rgba(40, 167, 69, 0.3);
+        }
+
+        .load-card.vehicle-van::before {
+            background: var(--dark-primary);
+            box-shadow: 2px 0 10px var(--dark-primary-glow);
+        }
+
+        .load-card.vehicle-tresQuartos::before {
+            background: #ffc107;
+            box-shadow: 2px 0 10px rgba(255, 193, 7, 0.3);
+        }
+
+        .load-card.vehicle-toco::before {
+            background: #6c757d;
+        }
+
+        .load-card-header {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0.03), transparent);
+            border-bottom: 1px solid var(--dark-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-left: 1.5rem;
+            /* Compensar a borda lateral */
+        }
+
+        .load-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .load-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--dark-text-secondary);
+        }
+
+        .load-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .load-meta-item i {
+            color: var(--dark-primary);
+            opacity: 0.8;
+        }
+
+        .load-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-icon-action {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: var(--dark-text-secondary);
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+        }
+
+        .btn-icon-action:hover {
+            background: var(--dark-surface-secondary);
+            color: var(--dark-primary);
+            border-color: var(--dark-border);
+        }
+        /* Correção FINAL para Layout das Abas de Relatórios e Análises */
+        #reports-view.active-view,
+        #pedidos-bloqueados-view.active-view,
+        #alteracao-rota-view.active-view {
+            display: block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+
+            /* Reseta altura e posicionamento */
+            height: auto !important;
+            min-height: 0 !important;
+            overflow-y: visible !important;
+            /* Deixa o corpo rolar, não a div */
+
+            /* Garante topo */
+            padding-top: 1rem !important;
+            margin-top: 0 !important;
+            justify-content: flex-start !important;
+        }
+
+        /* Garante que o container pai não centralize - Abordagem compatível via classe JS */
+        #main-content.force-block-layout {
+            display: block !important;
+            height: auto !important;
+            min-height: calc(100vh - 70px) !important;
+            padding-bottom: 2rem;
+            justify-content: flex-start !important;
+        }
+
+        /* Assegura que o título e card não tenham margens gigantescas */
+        #reports-view .animated-entry,
+        #pedidos-bloqueados-view .animated-entry,
+        #alteracao-rota-view .animated-entry {
+            margin-top: 0 !important;
+            margin-bottom: 1.5rem !important;
+            transform: none !important;
+            /* Remove animação de transform que pode causar espaço fantasma */
+            animation: none !important;
+            /* Temporariamente remove animação para garantir posição */
+            opacity: 1 !important;
+        }
