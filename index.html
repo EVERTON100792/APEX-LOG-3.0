@@ -2586,6 +2586,9 @@
 
             // CRITICAL FIX: Reset scroll position to top when switching views
             window.scrollTo({ top: 0, behavior: 'instant' });
+
+            // NOVO: Salva a view ativa para restaurar depois
+            localStorage.setItem('lastActiveView', viewId);
         }
     </script>
 
@@ -2877,19 +2880,19 @@
                                         data-bs-toggle="dropdown" aria-expanded="false"><i
                                             class="bi bi-file-text"></i></button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#"
+                                        <li><a class="dropdown-item" href="javascript:void(0)"
                                                 onclick="exportarRelatorioDisponiveisPDF()"><i
                                                     class="bi bi-file-pdf me-2"></i>Relatório de Fila de Pedidos
                                                 (Por Data) (PDF)</a></li>
-                                        <li><a class="dropdown-item" href="#"
+                                        <li><a class="dropdown-item" href="javascript:void(0)"
                                                 onclick="exportarRelatorioDisponiveisExcel()"><i
                                                     class="bi bi-file-spreadsheet me-2"></i>Relatório de Fila de
                                                 Pedidos (Por Data) (Excel)</a></li>
-                                        <li><a class="dropdown-item" href="#"
+                                        <li><a class="dropdown-item" href="javascript:void(0)"
                                                 onclick="exportarRelatorioCompletoPorRotaExcel()"><i
                                                     class="bi bi-file-excel me-2"></i>Relatório Completo de Pedidos
                                                 Disponíveis (Por Rota) (Excel)</a></li>
-                                        <li><a class="dropdown-item" href="#"
+                                        <li><a class="dropdown-item" href="javascript:void(0)"
                                                 onclick="exportarRelatorioCompletoPorRotaPDF()"><i
                                                     class="bi bi-file-earmark-pdf me-2"></i>Relatório Completo de
                                                 Pedidos Disponíveis (Por Rota) (PDF)</a></li>
@@ -4246,6 +4249,9 @@
                 console.error("Falha crítica ao carregar configurações, listeners ainda serão ativados.", e);
             }
 
+            // NOVO: Restaura o estado da aplicação ao iniciar
+            loadStateFromLocalStorage();
+
             document.getElementById('saveConfig').addEventListener('click', saveConfigurations);
             document.getElementById('pedidoSearchInput')?.addEventListener('keyup', (event) => {
                 // A busca em tempo real já é feita pelo onkeyup no HTML.
@@ -4882,99 +4888,124 @@
         }
 
         function highlightPedido(numPedido, viewId, tabId, collapseId, cardId = null) {
-            const scrollToTarget = () => {
+            // Função interna para executar o scroll e o destaque final
+            const executeScrollAndHighlight = () => {
                 setTimeout(() => {
-                    let targetElement;
-                    targetElement = document.getElementById(`pedido-${numPedido}`);
+                    let targetElement = document.getElementById(`pedido-${numPedido}`);
+
+                    // Se não achou na tabela (tr), tenta achar o card da carga
                     if (!targetElement && cardId) {
                         targetElement = document.getElementById(cardId);
                     }
+                    // Se não achou, tenta achar o acordeão (caso de carga fechada ou agrupamento)
                     if (!targetElement && collapseId) {
-                        const collapseEl = document.querySelector(`[data-bs-target="#${collapseId}"]`)?.closest('.accordion-item') || document.getElementById(collapseId)?.closest('.accordion-item');
-                        if (collapseEl) targetElement = collapseEl;
+                        // Tenta achar o botão do acordeão ou o container
+                        targetElement = document.querySelector(`[data-bs-target="#${collapseId}"]`) || document.getElementById(collapseId);
                     }
 
                     if (targetElement) {
+                        // Remove highlights anteriores
+                        document.querySelectorAll('.search-highlight').forEach(el => el.classList.remove('search-highlight'));
+
+                        // Adiciona classes de destaque
                         targetElement.classList.add('search-highlight');
                         if (targetElement.tagName === 'TR') {
-                            targetElement.classList.add('table-info');
-                        }
-                        // CORREÇÃO: A lógica de rolagem foi aprimorada para encontrar o container correto,
-                        // incluindo os painéis com rolagem interna como o de "Pedidos Disponíveis".
-                        const scrollableContainer = targetElement.closest('.main-view, .card-body[style*="overflow-y: auto"], #vehicleTabsContent');
-                        if (scrollableContainer) {
-                            const targetTop = targetElement.offsetTop;
-                            const containerTop = scrollableContainer.scrollTop; // Posição atual do scroll
-                            // Rola o container para que o topo do elemento alvo fique visível, com um pequeno offset.
-                            scrollableContainer.scrollTo({ top: targetTop - 100, behavior: 'smooth' });
+                            const originalClass = targetElement.className;
+                            targetElement.classList.add('table-info'); // Destaque extra para tabelas
+                            setTimeout(() => targetElement.className = originalClass, 3000); // Remove após 3s
                         } else {
-                            targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); // Fallback
+                            setTimeout(() => targetElement.classList.remove('search-highlight'), 3000);
+                        }
+
+                        // Scroll suave e centralizado
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    } else {
+                        console.warn(`Elemento alvo não encontrado para destaque: Pedido ${numPedido}, Card ${cardId}, Collapse ${collapseId}`);
+                    }
+                }, 400); // Delay aumentado para garantir renderização de abas/acordeões
+            };
+
+            // 1. Mudar de View (Se necessário)
+            if (viewId) {
+                const targetViewLink = document.querySelector(`#sidebar-nav a.nav-link[href="#${viewId}"]`) ||
+                    document.querySelector(`.sidebar-link[href="#${viewId}"]`); // Suporte à sidebar antiga e nova
+
+                if (targetViewLink && !targetViewLink.classList.contains('active')) {
+                    targetViewLink.click(); // Usa o click nativo para acionar toda a lógica de view existente
+                }
+            }
+
+            // 2. Mudar de Aba Interna (Se necessário)
+            // Envolvemos em um setTimeout para garantir que a View já trocou
+            setTimeout(() => {
+                if (tabId) {
+                    const tabButton = document.querySelector(`button[data-bs-target="#${tabId}"]`) ||
+                        document.querySelector(`a[data-bs-target="#${tabId}"]`);
+
+                    if (tabButton) {
+                        const tabInstance = bootstrap.Tab.getOrCreateInstance(tabButton);
+                        tabInstance.show();
+
+                        // 3. Expandir Acordeão (Se necessário) - Dentro do contexto da aba
+                        if (collapseId) {
+                            // Espera a aba terminar de mostrar
+                            setTimeout(() => {
+                                const collapseElement = document.getElementById(collapseId);
+                                if (collapseElement) {
+                                    const collapseInstance = bootstrap.Collapse.getOrCreateInstance(collapseElement);
+                                    if (!collapseElement.classList.contains('show')) {
+                                        collapseInstance.show();
+                                        // Aguarda a animação do collapse (padrão Bootstrap 350ms)
+                                        setTimeout(executeScrollAndHighlight, 350);
+                                    } else {
+                                        executeScrollAndHighlight();
+                                    }
+                                } else {
+                                    executeScrollAndHighlight();
+                                }
+                            }, 150);
+                        } else {
+                            executeScrollAndHighlight();
                         }
                     } else {
-                        const cardElement = document.getElementById(cardId);
-                        if (cardElement) cardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Se não tem botão de aba (ex: view única), segue para acordeão direto
+                        if (collapseId) {
+                            const collapseElement = document.getElementById(collapseId);
+                            if (collapseElement) {
+                                const collapseInstance = bootstrap.Collapse.getOrCreateInstance(collapseElement);
+                                if (!collapseElement.classList.contains('show')) {
+                                    collapseInstance.show();
+                                    setTimeout(executeScrollAndHighlight, 350);
+                                } else {
+                                    executeScrollAndHighlight();
+                                }
+                            } else {
+                                executeScrollAndHighlight();
+                            }
+                        } else {
+                            executeScrollAndHighlight();
+                        }
                     }
-                }, 350);
-            };
-
-            // 1. Navegar para a View principal (Resumo, Mesas, etc.)
-            const targetLink = document.querySelector(`#sidebar-nav a.nav-link[href="#${viewId}"]`);
-            if (targetLink && !targetLink.classList.contains('active')) {
-                // Remove active de todos os links
-                document.querySelectorAll('#sidebar-nav a.nav-link.active').forEach(l => l.classList.remove('active'));
-
-                // Ativa o link alvo
-                targetLink.classList.add('active');
-
-                // Se o link alvo está dentro de um submenu, expande o submenu e ativa o link pai
-                const parentCollapse = targetLink.closest('.collapse');
-                if (parentCollapse) {
-                    const parentCollapseInstance = bootstrap.Collapse.getOrCreateInstance(parentCollapse);
-                    parentCollapseInstance.show();
-                    const parentLink = parentCollapse.previousElementSibling;
-                    if (parentLink) {
-                        parentLink.classList.add('active');
+                } else {
+                    // Sem aba específica, verifica apenas acordeão ou vai direto
+                    if (collapseId) {
+                        const collapseElement = document.getElementById(collapseId);
+                        if (collapseElement) {
+                            const collapseInstance = bootstrap.Collapse.getOrCreateInstance(collapseElement);
+                            if (!collapseElement.classList.contains('show')) {
+                                collapseInstance.show();
+                                setTimeout(executeScrollAndHighlight, 350);
+                            } else {
+                                executeScrollAndHighlight();
+                            }
+                        } else {
+                            executeScrollAndHighlight();
+                        }
+                    } else {
+                        executeScrollAndHighlight();
                     }
                 }
-
-                // Mostra a view correta
-                document.querySelectorAll('.main-view').forEach(view => view.classList.remove('active-view'));
-                document.getElementById(viewId).classList.add('active-view');
-
-                // --- CORREÇÃO DE LAYOUT: Adiciona classe ao #main-content para views específicas ---
-                const viewsQuePrecisamDeBlock = ['reports-view', 'pedidos-bloqueados-view', 'alteracao-rota-view'];
-                const mainContent = document.getElementById('main-content');
-                if (viewsQuePrecisamDeBlock.includes(viewId)) {
-                    mainContent.classList.add('force-block-layout');
-                } else {
-                    mainContent.classList.remove('force-block-layout');
-                }
-            }
-
-            // 2. Navegar para a aba interna (se houver) e expandir o accordion
-            const expandAccordionAndScroll = () => {
-                const collapseElement = collapseId ? document.getElementById(collapseId) : null;
-                if (collapseElement && !collapseElement.classList.contains('show') && bootstrap.Collapse.getOrCreateInstance(collapseElement)) {
-                    collapseElement.addEventListener('shown.bs.collapse', scrollToTarget, { once: true });
-                    bootstrap.Collapse.getOrCreateInstance(collapseElement).show();
-                } else {
-                    scrollToTarget();
-                }
-            };
-
-            // Se houver uma aba interna (dentro de 'Mesas de Trabalho'), navega para ela primeiro
-            if (tabId) {
-                const tabEl = document.querySelector(`button[data-bs-target="#${tabId}"]`);
-                if (tabEl && !tabEl.classList.contains('active')) {
-                    const tabInstance = bootstrap.Tab.getOrCreateInstance(tabEl);
-                    tabEl.addEventListener('shown.bs.tab', expandAccordionAndScroll, { once: true });
-                    tabInstance.show();
-                } else {
-                    expandAccordionAndScroll();
-                }
-            } else {
-                expandAccordionAndScroll();
-            }
+            }, 100);
         }
 
         document.head.insertAdjacentHTML('beforeend', `<style>
@@ -6918,6 +6949,10 @@
                     buttonId: buttonElement ? buttonElement.id : null
                 };
                 saveRouteContext(routeContext);
+
+                // MOVED: Salva o estado aqui, APÓS o contexto da rota ter sido atualizado.
+                // Isso garante que ao recarregar, saibamos onde exibir esta carga.
+                saveStateToLocalStorage();
             }, 100);
 
             const vehicleInfo = {
@@ -6953,6 +6988,7 @@
             displayGerais(document.getElementById('resultado-geral'), gruposGerais);
             displayGerais(document.getElementById('resultado-geral'), pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {}));
             handlePostProcessingUI(finalLeftoverGroups, routeOrRoutes, title, divId); // CORREÇÃO: Chamada ajustada
+
         }
 
         function reprocessarRota(routesKey, event) {
@@ -10127,13 +10163,22 @@
                 statusDiv.innerHTML = `<p class="text-success">Progresso anterior restaurado com sucesso!</p>`;
                 processarBtn.disabled = false;
 
-                // 2026-01-24: Força a restauração da VIEW e da TAB ativa para evitar tela em branco
+                // Re-renderizar a UI com os dados carregados
+                statusDiv.innerHTML = `<p class="text-success">Progresso anterior restaurado com sucesso!</p>`;
+                processarBtn.disabled = false;
+
+                // 2026-01-24: Força a restauração da VIEW e da TAB ativa para evitar tela em branco e garantir UX
                 setTimeout(() => {
-                    const lastView = localStorage.getItem('lastActiveView') || '#summary-view';
-                    const viewLink = document.querySelector(`a[href="${lastView}"]`);
+                    const lastView = localStorage.getItem('lastActiveView') || 'summary-view'; // Default para summary se nao houver salvo
+                    // Remove # se existir para garantir compatibilidade
+                    const cleanViewId = lastView.replace('#', '');
+
+                    const viewLink = document.querySelector(`a[href="#${cleanViewId}"]`) || document.querySelector(`.sidebar-link[href="#${cleanViewId}"]`);
                     if (viewLink) {
+                        console.log(`Restaurando View: ${cleanViewId}`);
                         viewLink.click(); // Simula clique para ativar view e sidebar
                     } else {
+                        // Fallback seguro
                         activateView('summary-view', document.querySelector('a[href="#summary-view"]'));
                     }
 
@@ -10168,6 +10213,19 @@
                 displayPedidosMoinho(document.getElementById('resultado-moinho'), pedidosMoinho);
                 displayPedidosMarcaPropria(document.getElementById('resultado-marca-propria'), pedidosMarcaPropria);
                 reRenderManualLoads();
+
+                // NOVO: Reconstrói a UI inicial (botões e listas) a partir dos dados restaurados
+                // Isso é crucial para criar os containers onde as cargas serão renderizadas
+                if (pedidosGeraisAtuais.length > 0 || processedRoutes.size > 0) {
+                    const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => {
+                        const rota = p.Cod_Rota;
+                        if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; }
+                        acc[rota].pedidos.push(p);
+                        acc[rota].totalKg += p.Quilos_Saldo;
+                        return acc;
+                    }, {});
+                    displayGerais(document.getElementById('resultado-geral'), gruposGerais);
+                }
 
                 reRenderActiveLoads(processedRouteContexts);
                 if (Object.keys(kpiData).length > 0) updateAndRenderKPIs();
@@ -10252,49 +10310,12 @@
             }
 
             // Renderiza as sobras na última aba ativa (ou na primeira, como fallback)
+            // REMOVIDO: O card de sobras foi removido da interface conforme solicitação.
+            /*
             if (currentLeftoversForPrinting.length > 0) {
-                const lastContext = Object.values(processedRouteContexts).pop();
-                if (lastContext) {
-                    const resultadoDiv = document.getElementById(lastContext.divId);
-                    if (resultadoDiv) {
-                        const finalLeftoverKg = currentLeftoversForPrinting.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
-                        const printButtonHtml = `<button class="btn btn-info ms-2 no-print" onclick="imprimirSobras('Sobras Finais de ${lastContext.title}')"><i class="bi bi-printer-fill me-1"></i>Imprimir</button>`;
-
-                        let leftoversHtml = `<div id="leftovers-card-${lastContext.divId}" class="drop-zone-card" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event)" data-load-id="leftovers" data-vehicle-type="leftovers">
-                                             <h5 class="mt-4">Sobras Finais: ${finalLeftoverKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kg</h5>
-                                             <div class="card mb-3">
-                                                 <div class="card-header bg-danger text-white d-flex align-items-center">
-                                                     Pedidos Restantes
-                                                     <div class="ms-auto">${printButtonHtml}</div> 
-                                                 </div>
-                                                 <div class="card-body">${createTable(currentLeftoversForPrinting, ['Num_Pedido', 'Quilos_Saldo', 'Agendamento', 'Cubagem', 'Predat', 'Dat_Ped', 'Cliente', 'Nome_Cliente', 'Cidade', 'CF'], 'leftovers')}</div>
-                                             </div>
-                                         </div>`;
-                        resultadoDiv.querySelector('.resultado-container').insertAdjacentHTML('beforeend', leftoversHtml);
-
-                        // NOVO: Abre automaticamente o acordeon que contém as sobras
-                        const accordionCollapse = resultadoDiv.closest('.accordion-collapse');
-                        if (accordionCollapse) {
-                            accordionCollapse.classList.add('show');
-
-                            // Atualiza o botão do acordeon para mostrar que está aberto
-                            const accordionButton = document.querySelector(`[data-bs-target="#${accordionCollapse.id}"]`);
-                            if (accordionButton) {
-                                accordionButton.classList.remove('collapsed');
-                                accordionButton.setAttribute('aria-expanded', 'true');
-                            }
-
-                            // Scroll suave até as sobras após um pequeno delay
-                            setTimeout(() => {
-                                const leftoversCard = document.getElementById(`leftovers-card-${lastContext.divId}`);
-                                if (leftoversCard) {
-                                    leftoversCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                                }
-                            }, 300);
-                        }
-                    }
-                }
+                 ... (código removido) ...
             }
+            */
         }
 
         // --- Script para a nova animação "Holographic Nexus" (V9) ---

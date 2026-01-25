@@ -25,12 +25,13 @@ export async function login(email, password) {
 
 export async function logout() {
     // Clear application state to prevent data leaking between users
-    localStorage.removeItem('logisticsAppState');
-    localStorage.removeItem('processamentoData'); // Caso exista
-    localStorage.removeItem('currentSessionName');
-    localStorage.removeItem('lastActiveView');
-    localStorage.removeItem('lastActiveTab');
-    localStorage.removeItem('sidebarCollapsed');
+    // MODIFICADO: Comentado para permitir que o usuário continue de onde parou ao logar novamente.
+    // localStorage.removeItem('logisticsAppState');
+    // localStorage.removeItem('processamentoData'); // Caso exista
+    // localStorage.removeItem('currentSessionName');
+    // localStorage.removeItem('lastActiveView');
+    // localStorage.removeItem('lastActiveTab');
+    // localStorage.removeItem('sidebarCollapsed');
     // NOTE: We might want to keep 'configuracoes' if they are global, but safer to clear if user-specific preferences exist. 
     // For now, let's keep config or clear it? User said "perde tudo". Let's clear app state primarily.
 
