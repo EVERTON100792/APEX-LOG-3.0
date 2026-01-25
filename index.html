@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ApexLog - Dashboard de Separação de Cargas</title>
-    <!-- Ãcone principal para a aba do navegador e atalhos -->
+    <title>ApexLog - Dashboard de Separaçáo de Cargas</title>
+    <!-- Ícone principal para a aba do navegador e atalhos -->
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%230A84FF'/><stop offset='100%25' stop-color='%235E5CE6'/></linearGradient></defs><rect width='90' height='90' x='5' y='5' rx='15' fill='url(%23grad1)'/><path d='M50 20 L25 80 L37 80 L45 60 L55 60 L63 80 L75 80 Z' fill='rgba(255,255,255,0.2)'/><path d='M50 25 L35 75 L42 75 L50 55 L58 75 L65 75 Z' fill='white'/></svg>">
-    <!-- Ãcones adicionais para melhor integraÃ§Ã£o com o sistema (PWA / "Instalar como App") -->
+    <!-- Ícones adicionais para melhor integraçáo com o sistema (PWA / "Instalar como App") -->
     <link rel="apple-touch-icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'><stop offset='0%25' stop-color='%230A84FF'/><stop offset='100%25' stop-color='%235E5CE6'/></linearGradient></defs><rect width='90' height='90' x='5' y='5' rx='15' fill='url(%23grad1)'/><path d='M50 20 L25 80 L37 80 L45 60 L55 60 L63 80 L75 80 Z' fill='rgba(255,255,255,0.2)'/><path d='M50 25 L35 75 L42 75 L50 55 L58 75 L65 75 Z' fill='white'/></svg>">
     <meta name="apple-mobile-web-app-title" content="ApexLog">
@@ -31,7 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-    <!-- Bibliotecas para GeraÃ§Ã£o de PDF -->
+    <!-- Bibliotecas para Geraá§á£o de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -110,7 +110,7 @@
     }
 </style>
 <style>
-    /* --- ESTILOS PARA NOTIFICAÃ‡Ã•ES TOAST --- */
+    /* --- ESTILOS PARA NOTIFICAá‡á•ES TOAST --- */
     .toast-container {
         z-index: 1100;
         /* Acima dos modais */
@@ -171,7 +171,7 @@
         padding: 0.5rem;
     }
 
-    /* Scrollbar personalizada para o conteÃºdo das abas */
+    /* Scrollbar personalizada para o conteáºdo das abas */
     #vehicleTabsContent::-webkit-scrollbar {
         width: 6px;
     }
@@ -190,7 +190,7 @@
         background-color: var(--dark-text-secondary);
     }
 
-    /* Ajuste de padding para o conteÃºdo das abas */
+    /* Ajuste de padding para o conteáºdo das abas */
     .workspace-tab-pane {
         padding: 0.5rem 0.5rem 2rem 0.5rem;
     }
@@ -213,7 +213,7 @@
         border-color: var(--dark-primary-glow);
     }
 
-    /* CabeÃ§alho Fixo para Tabelas do Banco de Pedidos */
+    /* Cabeá§alho Fixo para Tabelas do Banco de Pedidos */
     .workspace-card .table-responsive {
         position: relative;
     }
@@ -243,7 +243,7 @@
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 
-    /* BotÃ£o Flutuante de Montagens Especiais */
+    /* Botá£o Flutuante de Montagens Especiais */
     .btn-floating-special {
         width: 60px;
         height: 60px;
@@ -450,7 +450,7 @@
 </style>
 
 <style>
-    /* --- ANIMAÃ‡ÃƒO DE CARREGAMENTO V9 - "HOLOGRAPHIC NEXUS" --- */
+    /* --- ANIMAá‡áƒO DE CARREGAMENTO V9 - "HOLOGRAPHIC NEXUS" --- */
     .loading-animation-container {
         position: relative;
         width: 100%;
@@ -634,11 +634,11 @@
 
 <body>
 
-    <!-- Script Module para AutenticaÃ§Ã£o -->
+    <!-- Script Module para Autenticaá§á£o -->
     <script type="module">
         import { logout as authLogout } from './js/auth.js';
 
-        // ExpÃµe a funÃ§Ã£o logout globalmente para ser usada em onclick
+        // Expáµe a funá§á£o logout globalmente para ser usada em onclick
         window.logout = async function () {
             try {
                 await authLogout();
@@ -853,8 +853,8 @@
         <!-- VIEW: RESUMO GERAL -->
         <!-- ======================================================================================= -->
         <div id="summary-view" class="main-view active-view">
-            <h1 class="h2 mb-4 animated-entry">Dashboard de Previsão</h1>
-            <!-- p-4 e overflow-auto removidos, agora estão em .main-view -->
+            <h1 class="h2 mb-4 animated-entry">Dashboard de Previsáo</h1>
+            <!-- p-4 e overflow-auto removidos, agora estáo em .main-view -->
 
             <!-- Container para o conteúdo do dashboard que aparece após o processamento -->
             <div id="dashboard-content-container" style="display: none;">
@@ -863,7 +863,7 @@
                     <div class="col-lg-8 animated-entry">
                         <div class="card h-100">
                             <div class="card-header d-flex justify-content-between align-items-center">
-                                <h3 class="h5 mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Previsão de
+                                <h3 class="h5 mb-0"><i class="bi bi-bar-chart-line-fill me-2"></i>Previsáo de
                                     Veículos</h3>
                                 <span id="chart-subtitle"
                                     class="badge bg-dark border border-secondary text-secondary fw-normal"></span>
@@ -906,8 +906,8 @@
                     style="min-height: 70vh;"><i class="bi bi-cloud-arrow-up-fill"
                         style="font-size: 5rem; color: var(--dark-primary);"></i>
                     <h2 class="mt-4">Bem-vindo ao ApexLog</h2>
-                    <p class="lead text-muted">Para comeÃ§ar, carregue sua planilha de pedidos na barra lateral e
-                        clique em "Processar Cargas".<br>Seu dashboard de previsÃ£o serÃ¡ gerado aqui.</p>
+                    <p class="lead text-muted">Para comeá§ar, carregue sua planilha de pedidos na barra lateral e
+                        clique em "Processar Cargas".<br>Seu dashboard de previsá£o será¡ gerado aqui.</p>
                 </div>
             </div>
         </div>
@@ -924,12 +924,12 @@
                             <h2 class="workspace-title"><i class="bi bi-layers-fill"></i>Painel de Montagem</h2>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-outline-success" onclick="montarTodasAsRotas()"
-                                    title="Montar cargas para todas as rotas disponÃ­veis automaticamente">
+                                    title="Montar cargas para todas as rotas disponá­veis automaticamente">
                                     <i class="bi bi-magic me-1"></i>Auto
                                 </button>
                                 <button id="start-manual-routing-btn" class="btn btn-sm btn-outline-secondary"
                                     data-bs-toggle="modal" data-bs-target="#manualRoutingModal"
-                                    title="RoteirizaÃ§Ã£o Manual">
+                                    title="Roteirizaá§á£o Manual">
                                     <i class="bi bi-signpost-split-fill"></i>
                                 </button>
                             </div>
@@ -991,7 +991,7 @@
                                     </div>
                                     <div class="mb-3 no-print" id="botoes-fiorino">
                                         <div class="empty-state"><i class="bi bi-box"></i>
-                                            <p>Nenhuma rota de Fiorino disponÃ­vel. Processe um arquivo para comeÃ§ar.
+                                            <p>Nenhuma rota de Fiorino disponá­vel. Processe um arquivo para comeá§ar.
                                             </p>
                                         </div>
                                     </div>
@@ -1002,7 +1002,7 @@
                                     <div
                                         class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
                                         <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
-                                            para montar as Vans ou utilize as opÃ§Ãµes de exportaÃ§Ã£o.</p>
+                                            para montar as Vans ou utilize as opá§áµes de exportaá§á£o.</p>
                                         <div class="btn-group btn-group-sm">
                                             <button id="export-sobras-sp-btn" class="btn btn-sm btn-outline-warning"
                                                 onclick="exportarSobrasSP_PDF()" disabled>
@@ -1017,7 +1017,7 @@
                                     </div>
                                     <div class="mb-3 no-print" id="botoes-van">
                                         <div class="empty-state"><i class="bi bi-truck-front-fill"></i>
-                                            <p>Nenhuma rota de Van disponÃ­vel. Processe um arquivo para comeÃ§ar.</p>
+                                            <p>Nenhuma rota de Van disponá­vel. Processe um arquivo para comeá§ar.</p>
                                         </div>
                                     </div>
                                     <hr class="no-print">
@@ -1035,7 +1035,7 @@
                                     </div>
                                     <div class="mb-3 no-print" id="botoes-34">
                                         <div class="empty-state"><i class="bi bi-truck-flatbed"></i>
-                                            <p>Nenhuma rota de 3/4 disponÃ­vel. Processe um arquivo para comeÃ§ar.</p>
+                                            <p>Nenhuma rota de 3/4 disponá­vel. Processe um arquivo para comeá§ar.</p>
                                         </div>
                                     </div>
                                     <hr class="no-print">
@@ -1051,7 +1051,7 @@
                                 <div class="tab-pane fade" id="cargas-fechadas-pr-tab-pane" role="tabpanel">
                                     <div id="resultado-cargas-fechadas-pr">
                                         <div class="empty-state"><i class="bi bi-building-fill-check"></i>
-                                            <p>Nenhuma Carga Fechada do ParanÃ¡ encontrada. Processe um arquivo.</p>
+                                            <p>Nenhuma Carga Fechada do Paraná¡ encontrada. Processe um arquivo.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1067,7 +1067,7 @@
                                     <div
                                         class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
                                         <p class="card-subtitle text-body-secondary small mb-0">Cargas geradas por
-                                            RoteirizaÃ§Ã£o de Lista.</p>
+                                            Roteirizaá§á£o de Lista.</p>
                                         <button class="btn btn-sm btn-outline-light"
                                             onclick="imprimirCargasGeneric('resultado-roteirizados', 'Cargas Roteirizadas')"><i
                                                 class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
@@ -1087,25 +1087,25 @@
                                     <hr>
                                     <div id="resultado-funcionarios" class="mb-3">
                                         <div class="empty-state"><i class="bi bi-people-fill"></i>
-                                            <p>Nenhum pedido de funcionÃ¡rio encontrado.</p>
+                                            <p>Nenhum pedido de funcioná¡rio encontrado.</p>
                                         </div>
                                     </div>
                                     <hr>
                                     <div id="resultado-transferencias" class="mb-3">
                                         <div class="empty-state"><i class="bi bi-arrow-left-right"></i>
-                                            <p>Nenhum pedido de transferÃªncia encontrado.</p>
+                                            <p>Nenhum pedido de transferáªncia encontrado.</p>
                                         </div>
                                     </div>
                                     <hr>
                                     <div id="resultado-exportacao" class="mb-3">
                                         <div class="empty-state"><i class="bi bi-box-arrow-up-right"></i>
-                                            <p>Nenhum pedido de exportaÃ§Ã£o encontrado.</p>
+                                            <p>Nenhum pedido de exportaá§á£o encontrado.</p>
                                         </div>
                                     </div>
                                     <hr>
                                     <div id="resultado-marca-propria">
                                         <div class="empty-state"><i class="bi bi-tags-fill"></i>
-                                            <p>Nenhum pedido de Marca PrÃ³pria encontrado.</p>
+                                            <p>Nenhum pedido de Marca Prá³pria encontrado.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1120,11 +1120,11 @@
                             <h2 class="workspace-title"><i class="bi bi-database-check"></i>Banco de Pedidos</h2>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-outline-warning" onclick="montarCargasPrioritarias()"
-                                    title="Montar PrioritÃ¡rios">
+                                    title="Montar Prioritá¡rios">
                                     <i class="bi bi-lightning-charge-fill"></i>
                                 </button>
                                 <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal"
-                                    data-bs-target="#bulkPriorityModal" title="Colar PrioritÃ¡rios">
+                                    data-bs-target="#bulkPriorityModal" title="Colar Prioritá¡rios">
                                     <i class="bi bi-clipboard-plus"></i>
                                 </button>
                                 <div class="btn-group btn-group-sm" role="group">
@@ -1134,20 +1134,20 @@
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="javascript:void(0)"
                                                 onclick="exportarRelatorioDisponiveisPDF()"><i
-                                                    class="bi bi-file-pdf me-2"></i>RelatÃ³rio de Fila de Pedidos
+                                                    class="bi bi-file-pdf me-2"></i>Relatá³rio de Fila de Pedidos
                                                 (Por Data) (PDF)</a></li>
                                         <li><a class="dropdown-item" href="javascript:void(0)"
                                                 onclick="exportarRelatorioDisponiveisExcel()"><i
-                                                    class="bi bi-file-spreadsheet me-2"></i>RelatÃ³rio de Fila de
+                                                    class="bi bi-file-spreadsheet me-2"></i>Relatá³rio de Fila de
                                                 Pedidos (Por Data) (Excel)</a></li>
                                         <li><a class="dropdown-item" href="javascript:void(0)"
                                                 onclick="exportarRelatorioCompletoPorRotaExcel()"><i
-                                                    class="bi bi-file-excel me-2"></i>RelatÃ³rio Completo de Pedidos
-                                                DisponÃ­veis (Por Rota) (Excel)</a></li>
+                                                    class="bi bi-file-excel me-2"></i>Relatá³rio Completo de Pedidos
+                                                Disponá­veis (Por Rota) (Excel)</a></li>
                                         <li><a class="dropdown-item" href="javascript:void(0)"
                                                 onclick="exportarRelatorioCompletoPorRotaPDF()"><i
-                                                    class="bi bi-file-earmark-pdf me-2"></i>RelatÃ³rio Completo de
-                                                Pedidos DisponÃ­veis (Por Rota) (PDF)</a></li>
+                                                    class="bi bi-file-earmark-pdf me-2"></i>Relatá³rio Completo de
+                                                Pedidos Disponá­veis (Por Rota) (PDF)</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -1170,7 +1170,7 @@
                             <ul class="nav nav-tabs-modern" id="pedidosDisponiveisTabs" role="tablist">
                                 <li class="nav-item" role="presentation"><button class="nav-link active"
                                         data-bs-toggle="tab" data-bs-target="#disponiveis-tab-pane"><i
-                                            class="bi bi-check-circle me-2"></i>DisponÃ­veis</button></li>
+                                            class="bi bi-check-circle me-2"></i>Disponá­veis</button></li>
                                 <li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="tab"
                                         data-bs-target="#bloqueados-regra-tab-pane"><i
                                             class="bi bi-slash-circle me-2"></i>Bloqueados</button></li>
@@ -1192,7 +1192,7 @@
                                     <!-- FIM DA LEGENDA -->
                                     <div id="resultado-geral">
                                         <div class="empty-state"><i class="bi bi-file-earmark-excel"></i>
-                                            <p>Nenhum pedido de varejo disponÃ­vel.</p>
+                                            <p>Nenhum pedido de varejo disponá­vel.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1210,7 +1210,7 @@
             </div>
         </div>
 
-        <!-- BotÃ£o Flutuante para Montagens Especiais -->
+        <!-- Botá£o Flutuante para Montagens Especiais -->
         <button
             class="btn btn-primary shadow-lg position-fixed bottom-0 end-0 m-4 rounded-circle d-flex align-items-center justify-content-center no-print btn-floating-special"
             type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasMontagens"
@@ -1238,7 +1238,7 @@
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label for="vendaAntecipadaInput" class="form-label small mb-0">NÃºmeros dos
+                            <label for="vendaAntecipadaInput" class="form-label small mb-0">Náºmeros dos
                                 pedidos:</label>
                             <button class="btn btn-xs btn-outline-secondary"
                                 onclick="pasteToSpecialLoad('vendaAntecipadaInput')"><i
@@ -1260,7 +1260,7 @@
                     </div>
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label for="pedidosEspeciaisInput" class="form-label small mb-0">NÃºmeros dos
+                            <label for="pedidosEspeciaisInput" class="form-label small mb-0">Náºmeros dos
                                 pedidos:</label>
                             <button class="btn btn-xs btn-outline-secondary"
                                 onclick="pasteToSpecialLoad('pedidosEspeciaisInput')"><i
@@ -1280,10 +1280,10 @@
         </div>
         </div>
         </div> <!-- Fechamento da div main-wrapper que envolve o Workspace -->
-        </div> <!-- Fechamento extra para seguranÃ§a -->
+        </div> <!-- Fechamento extra para seguraná§a -->
 
         <div id="pedidos-bloqueados-view" class="main-view">
-            <h1 class="h2 mb-4 animated-entry">AnÃ¡lise: Pedidos Bloqueados Manualmente</h1>
+            <h1 class="h2 mb-4 animated-entry">Aná¡lise: Pedidos Bloqueados Manualmente</h1>
             <div class="card border-danger animated-entry">
                 <div class="card-header bg-danger-subtle text-danger-emphasis">
                     <h2 class="card-title h5 mb-0"><i class="bi bi-slash-circle-fill me-2"></i>Pedidos Bloqueados
@@ -1296,11 +1296,11 @@
         </div>
 
         <div id="alteracao-rota-view" class="main-view">
-            <h1 class="h2 mb-4 animated-entry">AnÃ¡lise: AlteraÃ§Ã£o de Rota</h1>
+            <h1 class="h2 mb-4 animated-entry">Aná¡lise: Alteraá§á£o de Rota</h1>
             <div class="card border-warning animated-entry">
                 <div class="card-header bg-warning-subtle text-warning-emphasis">
                     <h2 class="card-title h5 mb-0"><i class="bi bi-sign-turn-right-fill me-2"></i>Pedidos da Rota 1
-                        para AlteraÃ§Ã£o</h2>
+                        para Alteraá§á£o</h2>
                 </div>
                 <div class="card-body">
                     <div id="resultado-rota1"></div>
@@ -1309,28 +1309,28 @@
         </div>
 
         <!-- ======================================================================================= -->
-        <!-- VIEW: RELATÃ“RIOS -->
+        <!-- VIEW: RELATá“RIOS -->
         <!-- ======================================================================================= -->
         <div id="reports-view" class="main-view">
             <h1 class="h2 mb-4 animated-entry">Relatórios Gerenciais</h1>
             <div class="card animated-entry">
                 <div class="card-header">
-                    <h2 class="card-title h5 mb-0"><i class="bi bi-file-earmark-pdf-fill me-2"></i>PrevisÃ£o de
-                        ExpediÃ§Ã£o</h2>
+                    <h2 class="card-title h5 mb-0"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Previsá£o de
+                        Expediá§á£o</h2>
                 </div>
                 <div class="card-body text-center">
-                    <p class="text-muted">Gere um relatÃ³rio gerencial em PDF com a previsÃ£o de expediÃ§Ã£o baseada nos
+                    <p class="text-muted">Gere um relatá³rio gerencial em PDF com a previsá£o de expediá§á£o baseada nos
                         resultados atuais.</p>
-                    <p class="text-muted small">O relatÃ³rio incluirÃ¡ um resumo geral e o detalhamento das cargas de
+                    <p class="text-muted small">O relatá³rio incluirá¡ um resumo geral e o detalhamento das cargas de
                         varejo montadas.</p>
                     <button class="btn btn-primary btn-lg mt-2" onclick="gerarRelatorioPDF()">
-                        <i class="bi bi-download me-2"></i>Gerar RelatÃ³rio PDF
+                        <i class="bi bi-download me-2"></i>Gerar Relatá³rio PDF
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Painel de AÃ§Ãµes em Massa (inicialmente oculto) -->
+        <!-- Painel de Aá§áµes em Massa (inicialmente oculto) -->
         <div id="bulk-actions-panel"
             class="card position-fixed bottom-0 start-50 translate-middle-x mb-3 shadow-lg no-print"
             style="display: none; z-index: 1050; width: auto;">
@@ -1345,7 +1345,7 @@
                     <button class="btn btn-outline-info" onclick="bulkAction('recall')"><i
                             class="bi bi-arrow-repeat me-1"></i> Marcar Recall</button>
                     <button class="btn btn-outline-secondary" onclick="bulkAction('copy')"><i
-                            class="bi bi-clipboard-check me-1"></i> Copiar NÃºmeros</button>
+                            class="bi bi-clipboard-check me-1"></i> Copiar Náºmeros</button>
                     <button class="btn btn-outline-danger" onclick="bulkAction('block')"><i
                             class="bi bi-slash-circle me-1"></i> Bloquear</button>
                 </div>
@@ -1358,13 +1358,13 @@
     <!-- </div> removed -->
 
     <!-- ======================================================================================= -->
-    <!-- NOVO: MODAL PARA VISUALIZAÃ‡ÃƒO DE ROTA NO MAPA -->
+    <!-- NOVO: MODAL PARA VISUALIZAá‡áƒO DE ROTA NO MAPA -->
     <!-- ======================================================================================= -->
     <div class="modal fade" id="mapModal" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="mapModalTitle"><i class="bi bi-map-fill me-2"></i> VisualizaÃ§Ã£o de
+                    <h5 class="modal-title" id="mapModalTitle"><i class="bi bi-map-fill me-2"></i> Visualizaá§á£o de
                         Rota
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1385,12 +1385,12 @@
         </div>
     </div>
 
-    <!-- Modal de RoteirizaÃ§Ã£o Manual -->
+    <!-- Modal de Roteirizaá§á£o Manual -->
     <div class="modal fade" id="manualRoutingModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-signpost-split-fill me-2"></i>RoteirizaÃ§Ã£o Manual</h5>
+                    <h5 class="modal-title"><i class="bi bi-signpost-split-fill me-2"></i>Roteirizaá§á£o Manual</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -1398,16 +1398,16 @@
                         partindo e retornando para a Selmi.</p>
                     <div class="mb-3">
                         <label for="manualRoutingCities" class="form-label">Cidades (e estado por extenso, ex: Cascavel,
-                            ParanÃ¡):</label>
+                            Paraná¡):</label>
                         <textarea class="form-control" id="manualRoutingCities" rows="8"
-                            placeholder="Cascavel, ParanÃ¡&#10;MaringÃ¡, ParanÃ¡&#10;SÃ£o Paulo, SÃ£o Paulo"></textarea>
+                            placeholder="Cascavel, Paraná¡&#10;Maringá¡, Paraná¡&#10;Sá£o Paulo, Sá£o Paulo"></textarea>
                     </div>
                     <button class="btn btn-primary w-100" onclick="calculateManualRoute()">
                         <i class="bi bi-geo-alt-fill me-2"></i>Roteirizar
                     </button>
                     <hr>
                     <div id="manualRoutingResult">
-                        <p class="text-center text-muted">O resultado da roteirizaÃ§Ã£o aparecerÃ¡ aqui.</p>
+                        <p class="text-center text-muted">O resultado da roteirizaá§á£o aparecerá¡ aqui.</p>
                     </div>
                 </div>
             </div>
@@ -1427,18 +1427,18 @@
                             <div class="card h-100">
                                 <div class="card-header">
                                     <h2 class="card-title h5 mb-0"><i class="bi bi-cpu-fill me-2"></i>Algoritmo de
-                                        Otimização (Varejo)</h2>
+                                        Otimizaçáo (Varejo)</h2>
                                 </div>
                                 <div class="card-body">
                                     <label for="optimizationLevelSelect" class="form-label">Nível de
-                                        Otimização:</label>
+                                        Otimizaçáo:</label>
                                     <select class="form-select" id="optimizationLevelSelect"
                                         onchange="updateOptimizationDescription()">
                                         <option value="1">Nível 1: Rápido</option>
                                         <option value="2" selected>Nível 2: Especialista</option>
                                     </select>
                                     <div id="optimization-description" class="form-text mt-3 small">
-                                        <!-- A descrição será inserida aqui pelo JavaScript -->
+                                        <!-- A descriçáo será inserida aqui pelo JavaScript -->
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -1448,7 +1448,7 @@
                                         value="6aaa58ba-e39d-447e-86b4-34cc7eb03d85"
                                         placeholder="Insira sua chave para cálculo de KM">
                                     <div class="form-text small">
-                                        <!-- A descrição será inserida aqui pelo JavaScript -->
+                                        <!-- A descriçáo será inserida aqui pelo JavaScript -->
                                     </div>
                                 </div>
                             </div>
@@ -1487,7 +1487,7 @@
                             <div class="row g-3 mb-3 border-bottom pb-3 border-secondary">
                                 <div class="col-md-12"><strong class="text-success fs-5">Fiorino</strong></div>
                                 <div class="col-md-3"><label class="form-label" data-bs-toggle="tooltip"
-                                        title="Peso mínimo para que uma carga seja considerada válida e não vire sobra.">Peso
+                                        title="Peso mínimo para que uma carga seja considerada válida e náo vire sobra.">Peso
                                         Mín (kg)</label><input type="number" class="form-control"
                                         id="fiorinoMinCapacity" value="300" step="10"></div>
                                 <div class="col-md-3"><label class="form-label" data-bs-toggle="tooltip"
@@ -1503,25 +1503,25 @@
                                 <div class="col-md-3"></div>
                                 <div class="col-md-3"><label class="form-label fw-bold" data-bs-toggle="tooltip"
                                         title="Limite máximo absoluto. Nenhuma carga, nem mesmo manualmente, poderá ultrapassar este peso.">Peso
-                                        MÃ¡x Final (kg)</label><input type="number" class="form-control"
+                                        Má¡x Final (kg)</label><input type="number" class="form-control"
                                         id="fiorinoHardMaxCapacity" value="560" step="10"></div>
                                 <div class="col-md-3"><label class="form-label fw-bold" data-bs-toggle="tooltip"
-                                        title="Limite de cubagem mÃ¡ximo absoluto.">Cubagem MÃ¡x Final
+                                        title="Limite de cubagem má¡ximo absoluto.">Cubagem Má¡x Final
                                         (m³)</label><input type="number" class="form-control" id="fiorinoHardCubage"
                                         value="1.7" step="0.1"></div>
                             </div>
                             <div class="row g-3 mb-3 border-bottom pb-3 border-secondary">
                                 <div class="col-md-12"><strong class="text-primary fs-5">Van</strong></div>
                                 <div class="col-md-3"><label class="form-label" data-bs-toggle="tooltip"
-                                        title="Peso mínimo para que uma carga seja considerada válida e não vire sobra.">Peso
-                                        MÃ­n (kg)</label><input type="number" class="form-control" id="vanMinCapacity"
+                                        title="Peso mínimo para que uma carga seja considerada válida e náo vire sobra.">Peso
+                                        Má­n (kg)</label><input type="number" class="form-control" id="vanMinCapacity"
                                         value="1100" step="10"></div>
                                 <div class="col-md-3"><label class="form-label" data-bs-toggle="tooltip"
-                                        title="O peso ideal que o algoritmo tentarÃ¡ atingir. A carga pode passar um pouco deste valor.">Peso
+                                        title="O peso ideal que o algoritmo tentará¡ atingir. A carga pode passar um pouco deste valor.">Peso
                                         Pref. (kg)</label><input type="number" class="form-control" id="vanMaxCapacity"
                                         value="1560" step="10"></div>
                                 <div class="col-md-3"><label class="form-label" data-bs-toggle="tooltip"
-                                        title="A cubagem preferencial que o algoritmo tentarÃ¡ atingir.">Cubagem Pref.
+                                        title="A cubagem preferencial que o algoritmo tentará¡ atingir.">Cubagem Pref.
                                         (m³)</label><input type="number" class="form-control" id="vanCubage" value="5.0"
                                         step="0.1"></div>
                                 <div class="col-md-3 d-flex align-items-end"><button class="btn btn-secondary w-100"
@@ -1529,10 +1529,10 @@
                                 <div class="col-md-3"></div>
                                 <div class="col-md-3"><label class="form-label fw-bold" data-bs-toggle="tooltip"
                                         title="Limite máximo absoluto. Nenhuma carga, nem mesmo manualmente, poderá ultrapassar este peso.">Peso
-                                        MÃ¡x Final (kg)</label><input type="number" class="form-control"
+                                        Má¡x Final (kg)</label><input type="number" class="form-control"
                                         id="vanHardMaxCapacity" value="1600" step="10"></div>
                                 <div class="col-md-3"><label class="form-label fw-bold" data-bs-toggle="tooltip"
-                                        title="Limite de cubagem mÃ¡ximo absoluto.">Cubagem MÃ¡x Final
+                                        title="Limite de cubagem má¡ximo absoluto.">Cubagem Má¡x Final
                                         (m³)</label><input type="number" class="form-control" id="vanHardCubage"
                                         value="5.6" step="0.1">
                                 </div>
@@ -1540,11 +1540,11 @@
                             <div class="row g-3 mb-3 border-bottom pb-3 border-secondary">
                                 <div class="col-md-12"><strong class="text-warning fs-5">3/4</strong></div>
                                 <div class="col-md-3"><label class="form-label" data-bs-toggle="tooltip"
-                                        title="Peso mínimo para que uma carga seja considerada válida e não vire sobra.">Peso
+                                        title="Peso mínimo para que uma carga seja considerada válida e náo vire sobra.">Peso
                                         Mín (kg)</label><input type="number" class="form-control"
                                         id="tresQuartosMinCapacity" value="2300" step="10"></div>
                                 <div class="col-md-3"><label class="form-label" data-bs-toggle="tooltip"
-                                        title="Peso mÃ¡ximo que o algoritmo tentarÃ¡ atingir.">Peso MÃ¡x
+                                        title="Peso má¡ximo que o algoritmo tentará¡ atingir.">Peso Má¡x
                                         (kg)</label><input type="number" class="form-control"
                                         id="tresQuartosMaxCapacity" value="4100" step="10"></div>
                                 <div class="col-md-3"><label class="form-label" data-bs-toggle="tooltip"
@@ -1614,7 +1614,7 @@
                                 <div class="card-body d-flex flex-column">
                                     <p class="text-muted small">Esta funcionalidade foi movida para a tela principal
                                         para facilitar o acesso.</p>
-                                    <p class="text-muted small">VocÃª pode encontrar os cards de "Venda Antecipada" e
+                                    <p class="text-muted small">Vocáª pode encontrar os cards de "Venda Antecipada" e
                                         "Carga Especial" logo abaixo da "Mesa de Trabalho".</p>
                                     <i class="bi bi-arrow-down-circle-fill fs-1 text-info text-center mt-3"></i>
                                 </div>
@@ -1629,18 +1629,18 @@
         </div>
     </div>
 
-    <!-- Modal de PriorizaÃ§Ã£o em Massa -->
+    <!-- Modal de Priorizaá§á£o em Massa -->
     <div class="modal fade" id="bulkPriorityModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-star-fill text-warning me-2"></i>PriorizaÃ§Ã£o em Massa</h5>
+                    <h5 class="modal-title"><i class="bi bi-star-fill text-warning me-2"></i>Priorizaá§á£o em Massa</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small">Cole abaixo os nÃºmeros dos pedidos que deseja priorizar (um por linha
+                    <p class="text-muted small">Cole abaixo os náºmeros dos pedidos que deseja priorizar (um por linha
                         ou
-                        separados por espaÃ§o/vÃ­rgula). VocÃª pode copiar esta lista do RelatÃ³rio Excel.</p>
+                        separados por espaá§o/vá­rgula). Vocáª pode copiar esta lista do Relatá³rio Excel.</p>
                     <textarea class="form-control" id="bulkPriorityInput" rows="10"
                         placeholder="Ex: 12345&#10;67890&#10;11223"></textarea>
                 </div>
@@ -1653,7 +1653,7 @@
         </div>
     </div>
 
-    <!-- Modal de RoteirizaÃ§Ã£o e Montagem por Lista -->
+    <!-- Modal de Roteirizaá§á£o e Montagem por Lista -->
     <div class="modal fade" id="roteirizacaoModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1662,16 +1662,16 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small">Cole os nÃºmeros dos pedidos. O sistema irÃ¡ roteirizar as cidades e
-                        montar as cargas sequencialmente respeitando a capacidade do veÃ­culo.</p>
+                    <p class="text-muted small">Cole os náºmeros dos pedidos. O sistema irá¡ roteirizar as cidades e
+                        montar as cargas sequencialmente respeitando a capacidade do veá­culo.</p>
                     <div class="mb-3">
                         <label for="roteiroPedidosInput" class="form-label">Pedidos:</label>
                         <textarea class="form-control" id="roteiroPedidosInput" rows="5"
-                            placeholder="Cole os nÃºmeros aqui..."></textarea>
+                            placeholder="Cole os náºmeros aqui..."></textarea>
                     </div>
                     <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox"
                             id="roteiroGeoCheck" checked><label class="form-check-label" for="roteiroGeoCheck">Usar
-                            GeolocalizaÃ§Ã£o (Agrupar cidades prÃ³ximas)</label></div>
+                            Geolocalizaá§á£o (Agrupar cidades prá³ximas)</label></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -1687,7 +1687,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="background-color: var(--dark-surface); backdrop-filter: blur(12px);">
                 <div class="modal-body text-center p-4">
-                    <!-- Nova AnimaÃ§Ã£o de Carregamento V9 - "HOLOGRAPHIC NEXUS" -->
+                    <!-- Nova Animaá§á£o de Carregamento V9 - "HOLOGRAPHIC NEXUS" -->
                     <div class="loading-animation-container">
                         <div class="nexus-system">
                             <div class="nexus-core"></div>
@@ -1711,7 +1711,7 @@
         </div>
     </div>
 
-    <!-- Modal de ConfirmaÃ§Ã£o para Limpar Dados -->
+    <!-- Modal de Confirmaá§á£o para Limpar Dados -->
     <div class="modal fade" id="confirmClearModal" tabindex="-1" aria-labelledby="confirmClearModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -1722,10 +1722,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>VocÃª tem certeza que deseja limpar todos os dados?</p>
-                    <p class="text-danger fw-bold">Todo o progresso, incluindo cargas montadas e configuraÃ§Ãµes, serÃ¡
+                    <p>Vocáª tem certeza que deseja limpar todos os dados?</p>
+                    <p class="text-danger fw-bold">Todo o progresso, incluindo cargas montadas e configuraá§áµes, será¡
                         permanentemente perdido.</p>
-                    <p class="text-muted small">Esta aÃ§Ã£o Ã© equivalente a recarregar o sistema do zero.</p>
+                    <p class="text-muted small">Esta aá§á£o á© equivalente a recarregar o sistema do zero.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -1736,7 +1736,7 @@
         </div>
     </div>
 
-    <!-- Container para as notificaÃ§Ãµes Toast -->
+    <!-- Container para as notificaá§áµes Toast -->
     <div class="toast-container position-fixed top-0 end-0 p-3"></div>
 
 
@@ -1785,7 +1785,7 @@
                             </div>
                         </div>
 
-                        <!-- Aba de ConfiguraÃ§Ã£o -->
+                        <!-- Aba de Configuraá§á£o -->
                         <div class="tab-pane fade" id="freight-config-pane" role="tabpanel">
                             <form id="freightConfigForm">
                                 <!-- Fiorino -->
@@ -1906,7 +1906,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content text-bg-dark border-secondary">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title"><i class="bi bi-cloud-fill me-2"></i>Gerenciador de SessÃµes na Nuvem</h5>
+                    <h5 class="modal-title"><i class="bi bi-cloud-fill me-2"></i>Gerenciador de Sessáµes na Nuvem</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
@@ -1914,7 +1914,7 @@
                     <ul class="nav nav-tabs border-secondary mb-3" id="cloudTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active text-light" id="my-sessions-tab" data-bs-toggle="tab"
-                                data-bs-target="#my-sessions-pane" type="button" role="tab">Minhas SessÃµes</button>
+                                data-bs-target="#my-sessions-pane" type="button" role="tab">Minhas Sessáµes</button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link text-light" id="shared-sessions-tab" data-bs-toggle="tab"
@@ -1926,9 +1926,9 @@
                         <!-- My Sessions -->
                         <div class="tab-pane fade show active" id="my-sessions-pane" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span>Gerencie suas sessÃµes salvas.</span>
+                                <span>Gerencie suas sessáµes salvas.</span>
                                 <button class="btn btn-success btn-sm" onclick="openSaveSessionModal()"><i
-                                        class="bi bi-plus-circle me-1"></i>Salvar SessÃ£o Atual</button>
+                                        class="bi bi-plus-circle me-1"></i>Salvar Sessá£o Atual</button>
                             </div>
                             <div id="my-sessions-list" class="list-group list-group-flush border-top border-secondary">
                                 <!-- Loaded dynamically -->
@@ -1938,7 +1938,7 @@
                         <!-- Shared With Me -->
                         <div class="tab-pane fade" id="shared-sessions-pane" role="tabpanel">
                             <div class="mb-3">
-                                <span>SessÃµes que outros usuÃ¡rios compartilharam com vocÃª.</span>
+                                <span>Sessáµes que outros usuá¡rios compartilharam com vocáª.</span>
                             </div>
                             <div id="shared-sessions-list"
                                 class="list-group list-group-flush border-top border-secondary">
@@ -1957,15 +1957,15 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-bg-dark border-secondary">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title">Salvar SessÃ£o na Nuvem</h5>
+                    <h5 class="modal-title">Salvar Sessá£o na Nuvem</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="sessionNameInput" class="form-label">Nome da SessÃ£o</label>
+                        <label for="sessionNameInput" class="form-label">Nome da Sessá£o</label>
                         <input type="text" class="form-control bg-dark text-light border-secondary"
-                            id="sessionNameInput" placeholder="Ex: Cargas ManhÃ£ 22/01">
+                            id="sessionNameInput" placeholder="Ex: Cargas Manhá£ 22/01">
                     </div>
                 </div>
                 <div class="modal-footer border-secondary">
@@ -1981,7 +1981,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-bg-dark border-secondary">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title">Compartilhar SessÃ£o</h5>
+                    <h5 class="modal-title">Compartilhar Sessá£o</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
@@ -1989,10 +1989,10 @@
                     <input type="hidden" id="shareSessionId">
                     <p>Compartilhar "<span id="shareSessionName" class="fw-bold"></span>" com:</p>
                     <div class="mb-3">
-                        <label for="shareEmailInput" class="form-label">E-mail do DestinatÃ¡rio</label>
+                        <label for="shareEmailInput" class="form-label">E-mail do Destinatá¡rio</label>
                         <input type="email" class="form-control bg-dark text-light border-secondary"
                             id="shareEmailInput" placeholder="colega@selmi.com.br">
-                        <div class="form-text text-light">O usuÃ¡rio deve ter uma conta no sistema.</div>
+                        <div class="form-text text-light">O usuá¡rio deve ter uma conta no sistema.</div>
                     </div>
                 </div>
                 <div class="modal-footer border-secondary">

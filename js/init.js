@@ -1,4 +1,4 @@
-import { requireAuth, logout } from './auth.js';
+﻿import { requireAuth, logout } from './auth.js';
 import { logActivity, subscribeToActivities } from './realtime.js';
 import { saveSessionToCloud, getMySessions, getSharedWithMe, loadSessionFromCloud, shareSession, deleteSession } from './sharing.js';
 import { supabase } from './supabase-client.js'; // FIX: Explicit import for initApp
@@ -335,3 +335,4 @@ window.performLoadSession = async (id) => {
 };
 
 initApp();
+

@@ -1,4 +1,4 @@
-// Assuming <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> is in index.html
+﻿// Assuming <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> is in index.html
 const createClient = window.supabase && window.supabase.createClient;
 
 if (!createClient) {
@@ -16,3 +16,4 @@ export const supabase = createClient ? createClient(SUPABASE_URL, SUPABASE_ANON_
         detectSessionInUrl: true
     }
 }) : null;
+

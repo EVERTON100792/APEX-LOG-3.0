@@ -1,4 +1,4 @@
-
+﻿
 import { supabase } from './supabase-client.js';
 
 /**
@@ -46,3 +46,4 @@ export function subscribeToActivities(onActivity) {
 
     return channel;
 }
+

@@ -1,4 +1,4 @@
-// ================================================================================================
+﻿// ================================================================================================
 //  WEB WORKER - LÓGICA DE OTIMIZAÇÃO EM SEGUNDO PLANO
 // ================================================================================================
 // Este script é executado em uma thread separada para não travar a interface do usuário.
@@ -628,3 +628,4 @@ async function processarRoteirizacaoNoWorker(pedidosEncontrados, vehicleType, us
     packingResult.sortedCities = sortedCities;
     return packingResult;
 }
+

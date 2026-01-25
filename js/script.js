@@ -39,9 +39,9 @@ function activateView(viewId, linkElement) {
     // NOVO: Salva a view ativa para restaurar depois
     localStorage.setItem('lastActiveView', viewId);
 }
-// --- NOVO: LÃ³gica de Tema (movida para o escopo global) ---
+// --- NOVO: Lá³gica de Tema (movida para o escopo global) ---
 function applyInitialTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'dark'; // PadrÃ£o para escuro
+    const savedTheme = localStorage.getItem('theme') || 'dark'; // Padrá£o para escuro
     document.documentElement.setAttribute('data-bs-theme', savedTheme);
     const themeSwitcher = document.getElementById('theme-switcher');
     if (themeSwitcher) {
@@ -53,18 +53,18 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-bs-theme', newTheme);
     localStorage.setItem('theme', newTheme);
-    // Redesenha o grÃ¡fico para se adaptar ao novo tema
+    // Redesenha o grá¡fico para se adaptar ao novo tema
     if (resumoChart) {
-        // Adiciona um pequeno delay para garantir que as variÃ¡veis CSS do tema foram aplicadas
+        // Adiciona um pequeno delay para garantir que as variá¡veis CSS do tema foram aplicadas
         setTimeout(() => { if (resumoChart) { resumoChart.destroy(); resumoChart = null; updateAndRenderChart(); } }, 100);
     }
 }
 
-// Chama a funÃ§Ã£o para aplicar o tema salvo assim que a pÃ¡gina carrega.
+// Chama a funá§á£o para aplicar o tema salvo assim que a pá¡gina carrega.
 applyInitialTheme();
 // ================================================================================================
-//  NOVO: LÃ“GICA DE PERSISTÃŠNCIA DE DADOS DA PLANILHA COM IndexedDB
-//  Isso garante que os dados brutos da planilha nÃ£o se percam ao recarregar a pÃ¡gina.
+//  NOVO: Lá“GICA DE PERSISTáŠNCIA DE DADOS DA PLANILHA COM IndexedDB
+//  Isso garante que os dados brutos da planilha ná£o se percam ao recarregar a pá¡gina.
 // ================================================================================================
 const dbName = "ApexLogDB";
 const storeName = "planilhaStore";
@@ -105,8 +105,8 @@ async function loadPlanilhaFromDb() {
     });
 }
 // ================================================================================================
-//  A LÃ“GICA DO GRÃFICO FOI ATUALIZADA PARA MELHORAR A VISUALIZAÃ‡ÃƒO DOS NÃšMEROS E A ESTÃ‰TICA.
-//  O RESTANTE DO CÃ“DIGO JAVASCRIPT PERMANECE IDÃŠNTICO E TOTALMENTE FUNCIONAL.
+//  A Lá“GICA DO GRáFICO FOI ATUALIZADA PARA MELHORAR A VISUALIZAá‡áƒO DOS NášMEROS E A ESTá‰TICA.
+//  O RESTANTE DO Cá“DIGO JAVASCRIPT PERMANECE IDáŠNTICO E TOTALMENTE FUNCIONAL.
 // ================================================================================================
 let resumoChart = null;
 
@@ -172,7 +172,7 @@ function updateAndRenderChart() {
             },
             colors: ['var(--dark-primary)', 'var(--dark-accent)'],
             stroke: {
-                width: [0, 4], // 0 para barra, 4 para a linha da Ã¡rea
+                width: [0, 4], // 0 para barra, 4 para a linha da á¡rea
                 curve: 'smooth'
             },
             plotOptions: {
@@ -189,8 +189,8 @@ function updateAndRenderChart() {
                     type: "vertical",
                     shadeIntensity: 0.5,
                     inverseColors: false,
-                    opacityFrom: [0.85, 0.4], // Opacidade alta para barra, mÃ©dia para Ã¡rea
-                    opacityTo: [0.95, 0.05],  // Opacidade alta para barra, transparente para Ã¡rea
+                    opacityFrom: [0.85, 0.4], // Opacidade alta para barra, má©dia para á¡rea
+                    opacityTo: [0.95, 0.05],  // Opacidade alta para barra, transparente para á¡rea
                     stops: [0, 100]
                 }
             },
@@ -230,10 +230,10 @@ function updateAndRenderChart() {
             yaxis: [
                 {
                     seriesName: 'Quantidade',
-                    show: false, // Oculta eixo Y da esquerda para limpar o visual (jÃ¡ tem dataLabels)
+                    show: false, // Oculta eixo Y da esquerda para limpar o visual (já¡ tem dataLabels)
                     labels: { style: { colors: 'var(--dark-text-secondary)' } },
                     title: {
-                        text: "Quantidade de VeÃ­culos",
+                        text: "Quantidade de Veá­culos",
                         style: { color: 'var(--dark-primary)', fontWeight: 600 }
                     },
                 },
@@ -260,7 +260,7 @@ function updateAndRenderChart() {
                 y: {
                     formatter: function (val, { seriesIndex }) {
                         if (seriesIndex === 0) { // Quantidade
-                            return val.toFixed(0) + " veÃ­culos";
+                            return val.toFixed(0) + " veá­culos";
                         } else { // Peso
                             return val.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + " kg";
                         }
@@ -306,10 +306,10 @@ const agendamentoClientCodes = new Set([
 const specialClientNames = ['IRMAOS MUFFATO S.A', 'IRMAOS MUFFATO & CIA LTDA', 'FINCO & FINCO', 'BOM DIA', 'CASA VISCARD S/A COM. E IMPORTACAO', 'PRIMATO COOPERATIVA AGROINDUSTRIAL'];
 
 // ================================================================================================
-//  INÃCIO DO SEU CÃ“DIGO JAVASCRIPT ORIGINAL (SEM MODIFICAÃ‡Ã•ES NA LÃ“GICA)
+//  INáCIO DO SEU Cá“DIGO JAVASCRIPT ORIGINAL (SEM MODIFICAá‡á•ES NA Lá“GICA)
 // ================================================================================================
 
-// FunÃ§Ã£o para busca em tempo real que chama a funÃ§Ã£o principal de busca
+// Funá§á£o para busca em tempo real que chama a funá§á£o principal de busca
 function liveSearch() {
     buscarPedido();
 }
@@ -338,28 +338,28 @@ function deepClone(obj) {
 }
 
 /**
- * NOVA FUNÃ‡ÃƒO CENTRALIZADA: Verifica todos os tipos de bloqueio para um pedido.
- * Isso garante que a lÃ³gica seja a mesma em todos os lugares (KPIs, impressÃ£o, etc.).
+ * NOVA FUNá‡áƒO CENTRALIZADA: Verifica todos os tipos de bloqueio para um pedido.
+ * Isso garante que a lá³gica seja a mesma em todos os lugares (KPIs, impressá£o, etc.).
  * @param {object} pedido O objeto do pedido a ser verificado.
- * @returns {boolean} Retorna true se o pedido estiver bloqueado, caso contrÃ¡rio false.
+ * @returns {boolean} Retorna true se o pedido estiver bloqueado, caso contrá¡rio false.
  */
 function isPedidoBloqueado(pedido) {
     if (!pedido) return false;
 
-    // 1. Bloqueio manual pelo usuÃ¡rio
+    // 1. Bloqueio manual pelo usuá¡rio
     if (pedidosBloqueados.has(String(pedido.Num_Pedido))) return true;
 
     // 2. Bloqueio financeiro (C) ou comercial (V) direto na planilha
     const bloqueioPlanilha = String(pedido['BLOQ.'] || '').trim().toUpperCase();
     if (bloqueioPlanilha === 'C' || bloqueioPlanilha === 'V') return true;
 
-    // 3. Bloqueio por regra de negÃ³cio (cliente tem outro pedido com CF numÃ©rico e bloqueio)
+    // 3. Bloqueio por regra de negá³cio (cliente tem outro pedido com CF numá©rico e bloqueio)
     const clientesComBloqueioRegra = new Set(pedidosComCFNumericoIsolado.map(p => normalizeClientId(p.Cliente)));
     const clienteId = normalizeClientId(pedido.Cliente);
     return clienteId && clientesComBloqueioRegra.has(clienteId);
 }
 
-// FunÃ§Ã£o centralizada para ordenar rotas de forma consistente
+// Funá§á£o centralizada para ordenar rotas de forma consistente
 function getSortedVarejoRoutes(rotas) {
     const vehicleOrder = { 'fiorino': 1, 'van': 2, 'tresQuartos': 3 };
     const numericSort = (a, b) => a.localeCompare(b, undefined, { numeric: true });
@@ -372,14 +372,14 @@ function getSortedVarejoRoutes(rotas) {
         const typeA = rotaVeiculoMap[a]?.type || 'van';
         const typeB = rotaVeiculoMap[b]?.type || 'van';
 
-        const orderA = vehicleOrder[typeA] || 99; // 99 para tipos nÃ£o definidos
+        const orderA = vehicleOrder[typeA] || 99; // 99 para tipos ná£o definidos
         const orderB = vehicleOrder[typeB] || 99;
 
         if (orderA !== orderB) {
             return orderA - orderB;
         }
 
-        // Se ambos sÃ£o 'van', ordena as do ParanÃ¡ primeiro
+        // Se ambos sá£o 'van', ordena as do Paraná¡ primeiro
         if (typeA === 'van' && typeB === 'van') {
             const isParanaA = rotaVeiculoMap[a]?.title.startsWith('Rota 1');
             const isParanaB = rotaVeiculoMap[b]?.title.startsWith('Rota 1');
@@ -387,7 +387,7 @@ function getSortedVarejoRoutes(rotas) {
             if (!isParanaA && isParanaB) return 1;
         }
 
-        // Se os tipos sÃ£o iguais, ordena numericamente pela rota
+        // Se os tipos sá£o iguais, ordena numericamente pela rota
         return numericSort(a, b);
     });
 }
@@ -402,9 +402,9 @@ function checkAgendamento(pedido) {
     const normalizedCode = normalizeClientId(pedido.Cliente);
     const nomeCliente = pedido.Nome_Cliente ? String(pedido.Nome_Cliente).trim().toUpperCase() : '';
     if (nomeCliente === 'SUPERMERCADO O KILAO LTDA') {
-        pedido.Agendamento = 'NÃ£o';
+        pedido.Agendamento = 'Não';
     } else {
-        pedido.Agendamento = (agendamentoClientCodes.has(normalizedCode) || nomeCliente === 'PRIMATO COOPERATIVA AGROINDUSTRIAL') ? 'Sim' : 'NÃ£o';
+        pedido.Agendamento = (agendamentoClientCodes.has(normalizedCode) || nomeCliente === 'PRIMATO COOPERATIVA AGROINDUSTRIAL') ? 'Sim' : 'Não';
     }
 }
 
@@ -423,14 +423,14 @@ function getVehicleConfig(vehicleType) {
 
 function changeLoadVehicleType(loadId, newVehicleType) {
     if (!activeLoads || !activeLoads[loadId]) {
-        console.error('Carga nÃ£o encontrada para alterar o tipo de veÃ­culo:', loadId);
+        console.error('Carga ná£o encontrada para alterar o tipo de veá­culo:', loadId);
         return;
     }
 
     const load = activeLoads[loadId];
     load.vehicleType = newVehicleType;
 
-    // Recalcula o frete para o novo tipo de veÃ­culo se possÃ­vel
+    // Recalcula o frete para o novo tipo de veá­culo se possá­vel
     if (typeof updateLoadFreightDisplay === 'function') {
         updateLoadFreightDisplay(loadId);
     }
@@ -491,8 +491,8 @@ let kpiData = {}; // Objeto para armazenar dados dos KPIs
 let processedRoutes = new Set();
 let processedRouteContexts = {};
 let specialLoadClipboard = []; // NOVO: Clipboard interno para montagem especial
-let currentRouteInfo = {}; // NOVO: Armazena informaÃ§Ãµes da rota atual para compartilhamento
-let origemCoords = null; // NOVO: VariÃ¡vel para armazenar as coordenadas da origem em cache
+let currentRouteInfo = {}; // NOVO: Armazena informaá§áµes da rota atual para compartilhamento
+let origemCoords = null; // NOVO: Variá¡vel para armazenar as coordenadas da origem em cache
 let manualLoadInProgress = null;
 
 const defaultConfigs = {
@@ -502,8 +502,8 @@ const defaultConfigs = {
     tocoMinCapacity: 5000, tocoMaxCapacity: 8500, tocoCubage: 30.0
 };
 
-// --- NOVO: FunÃ§Ã£o de NotificaÃ§Ã£o (Toast) ---
-// Movida para um escopo global para ser acessÃ­vel por outras funÃ§Ãµes como saveConfigurations.
+// --- NOVO: Funá§á£o de Notificaá§á£o (Toast) ---
+// Movida para um escopo global para ser acessá­vel por outras funá§áµes como saveConfigurations.
 function showToast(message, type = 'info') {
     const toastContainer = document.querySelector('.toast-container');
     if (!toastContainer) return;
@@ -525,7 +525,7 @@ function showToast(message, type = 'info') {
 }
 function saveConfigurations() {
     const configStatus = document.getElementById('configStatus');
-    configStatus.innerHTML = '<p class="text-info">Salvando configuraÃ§Ãµes no armazenamento local...</p>';
+    configStatus.innerHTML = '<p class="text-info">Salvando configuraá§áµes no armazenamento local...</p>';
     try {
         const configs = {};
         Object.keys(defaultConfigs).forEach(key => {
@@ -539,18 +539,18 @@ function saveConfigurations() {
         localStorage.setItem('graphhopperApiKey', apiKey);
 
         localStorage.setItem('vehicleConfigs', JSON.stringify(configs));
-        configStatus.innerHTML = '<p class="text-success">ConfiguraÃ§Ãµes salvas com sucesso!</p>';
+        configStatus.innerHTML = '<p class="text-success">Configuraá§áµes salvas com sucesso!</p>';
         setTimeout(() => { configStatus.innerHTML = ''; }, 3000);
-        showToast('ConfiguraÃ§Ãµes salvas com sucesso!', 'success');
+        showToast('Configuraá§áµes salvas com sucesso!', 'success');
     } catch (error) {
         console.error("Erro ao salvar no localStorage:", error);
-        configStatus.innerHTML = `<p class="text-danger">Erro ao salvar as configuraÃ§Ãµes: ${error.message}</p>`;
+        configStatus.innerHTML = `<p class="text-danger">Erro ao salvar as configuraá§áµes: ${error.message}</p>`;
     }
 }
 
 function loadConfigurations() { // prettier-ignore
     const configStatus = document.getElementById('configStatus');
-    configStatus.innerHTML = '<p class="text-info">Carregando configuraÃ§Ãµes...</p>';
+    configStatus.innerHTML = '<p class="text-info">Carregando configuraá§áµes...</p>';
     try { // prettier-ignore
         const savedConfigs = localStorage.getItem('vehicleConfigs');
         const configs = savedConfigs ? JSON.parse(savedConfigs) : defaultConfigs;
@@ -566,11 +566,11 @@ function loadConfigurations() { // prettier-ignore
                 element.value = configs[key] !== undefined ? configs[key] : defaultConfigs[key];
             }
         });
-        configStatus.innerHTML = '<p class="text-success">ConfiguraÃ§Ãµes carregadas!</p>';
+        configStatus.innerHTML = '<p class="text-success">Configuraá§áµes carregadas!</p>';
         setTimeout(() => { configStatus.innerHTML = ''; }, 2000);
     } catch (error) {
         console.error("Erro ao carregar do localStorage:", error);
-        configStatus.innerHTML = `<p class="text-warning">NÃ£o foi possÃ­vel carregar configuraÃ§Ãµes. Usando valores padrÃ£o.</p>`;
+        configStatus.innerHTML = `<p class="text-warning">Náo foi possá­vel carregar configuraá§áµes. Usando valores padrá£o.</p>`;
         Object.keys(defaultConfigs).forEach(key => {
             const element = document.getElementById(key);
             if (element) { element.value = defaultConfigs[key]; }
@@ -606,7 +606,7 @@ function resetToco() {
     document.getElementById('tocoMinCapacity').value = defaultConfigs.tocoMinCapacity;
     document.getElementById('tocoMaxCapacity').value = defaultConfigs.tocoMaxCapacity;
     document.getElementById('tocoCubage').value = defaultConfigs.tocoCubage;
-    // Adiciona os campos de peso e cubagem mÃ¡ximos absolutos para o Toco
+    // Adiciona os campos de peso e cubagem má¡ximos absolutos para o Toco
     const tocoHardMaxCapacity = document.getElementById('tocoHardMaxCapacity');
     const tocoHardCubage = document.getElementById('tocoHardCubage');
     if (tocoHardMaxCapacity) tocoHardMaxCapacity.value = defaultConfigs.tocoHardMaxCapacity;
@@ -622,11 +622,11 @@ function resetAll() {
 }
 
 /**
- * Limpa o estado atual da aplicaÃ§Ã£o, resetando variÃ¡veis e a interface do usuÃ¡rio.
+ * Limpa o estado atual da aplicaá§á£o, resetando variá¡veis e a interface do usuá¡rio.
  */
 function limparEstadoAtual() {
     try {
-        // 1. Resetar variÃ¡veis globais
+        // 1. Resetar variá¡veis globais
         planilhaData = [];
         originalColumnHeaders = [];
         pedidosGeraisAtuais = [];
@@ -660,16 +660,16 @@ function limparEstadoAtual() {
         specialLoadClipboard = [];
         origemCoords = null;
         manualLoadInProgress = null;
-        localStorage.removeItem('currentSessionName'); // Remove o nome da sessÃ£o ao limpar estado
-        console.log('VariÃ¡veis globais resetadas.');
+        localStorage.removeItem('currentSessionName'); // Remove o nome da sessá£o ao limpar estado
+        console.log('Variá¡veis globais resetadas.');
 
-        // 2. Resetar estado da UI (com verificaÃ§Ãµes)
+        // 2. Resetar estado da UI (com verificaá§áµes)
         const resetElement = (id, content = '') => {
             const el = document.getElementById(id);
             if (el) {
                 el.innerHTML = content;
             } else {
-                console.warn(`Elemento com ID "${id}" nÃ£o encontrado para resetar.`);
+                console.warn(`Elemento com ID "${id}" ná£o encontrado para resetar.`);
             }
         };
 
@@ -700,7 +700,7 @@ function limparEstadoAtual() {
         if (startManualLoadBtn) startManualLoadBtn.disabled = true;
         resetElement('status');
         hideElement('filtro-rota-container');
-        resetElement('rotaInicioSelect', '<option value="">Rota de InÃ­cio...</option>');
+        resetElement('rotaInicioSelect', '<option value="">Rota de Início...</option>');
         resetElement('rotaFimSelect', '<option value="">Rota de Fim...</option>');
 
         // Resetar Dashboard
@@ -715,33 +715,33 @@ function limparEstadoAtual() {
         resetElement('chart-subtitle');
 
         // Resetar Mesas de Trabalho
-        resetElement('botoes-fiorino', emptyStateHTML('box', 'Nenhuma rota de Fiorino disponÃ­vel.'));
+        resetElement('botoes-fiorino', emptyStateHTML('box', 'Nenhuma rota de Fiorino disponá­vel.'));
         resetElement('resultado-fiorino-geral');
-        resetElement('botoes-van', emptyStateHTML('truck-front-fill', 'Nenhuma rota de Van disponÃ­vel.'));
+        resetElement('botoes-van', emptyStateHTML('truck-front-fill', 'Nenhuma rota de Van disponá­vel.'));
         resetElement('resultado-van-geral');
-        resetElement('botoes-34', emptyStateHTML('truck-flatbed', 'Nenhuma rota de 3/4 disponÃ­vel.'));
+        resetElement('botoes-34', emptyStateHTML('truck-flatbed', 'Nenhuma rota de 3/4 disponá­vel.'));
         resetElement('resultado-34-geral');
         resetElement('resultado-toco', emptyStateHTML('inboxes-fill', 'Nenhuma carga "Toco" encontrada.'));
-        resetElement('resultado-cargas-fechadas-pr', emptyStateHTML('building-fill-check', 'Nenhuma Carga Fechada do ParanÃ¡ encontrada.'));
+        resetElement('resultado-cargas-fechadas-pr', emptyStateHTML('building-fill-check', 'Nenhuma Carga Fechada do Paraná¡ encontrada.'));
         resetElement('resultado-cargas-fechadas-rest-br', emptyStateHTML('globe-americas', 'Nenhuma Carga Fechada (Resto do Brasil) encontrada.'));
         resetElement('resultado-moinho', emptyStateHTML('gear-wide-connected', 'Nenhum pedido "Moinho" encontrado.'));
         resetElement('resultado-roteirizados', emptyStateHTML('map', 'Nenhuma carga roteirizada por lista.'));
-        resetElement('resultado-funcionarios', emptyStateHTML('people-fill', 'Nenhum pedido de funcionÃ¡rio encontrado.'));
-        resetElement('resultado-transferencias', emptyStateHTML('arrow-left-right', 'Nenhum pedido de transferÃªncia encontrado.'));
-        document.getElementById('export-sobras-sp-btn').disabled = true; // NOVO: Desabilita o botÃ£o de exportar sobras
-        resetElement('resultado-exportacao', emptyStateHTML('box-arrow-up-right', 'Nenhum pedido de exportaÃ§Ã£o encontrado.'));
-        resetElement('resultado-marca-propria', emptyStateHTML('tags-fill', 'Nenhum pedido de Marca PrÃ³pria encontrado.'));
+        resetElement('resultado-funcionarios', emptyStateHTML('people-fill', 'Nenhum pedido de funcioná¡rio encontrado.'));
+        resetElement('resultado-transferencias', emptyStateHTML('arrow-left-right', 'Nenhum pedido de transferáªncia encontrado.'));
+        document.getElementById('export-sobras-sp-btn').disabled = true; // NOVO: Desabilita o botá£o de exportar sobras
+        resetElement('resultado-exportacao', emptyStateHTML('box-arrow-up-right', 'Nenhum pedido de exportaá§á£o encontrado.'));
+        resetElement('resultado-marca-propria', emptyStateHTML('tags-fill', 'Nenhum pedido de Marca Prá³pria encontrado.'));
 
         // Adicionado: Resetar a aba "Outros Pedidos" para o estado inicial
         const outrosPedidosTab = document.getElementById('outros-pedidos-tab-pane');
         if (outrosPedidosTab) {
-            outrosPedidosTab.innerHTML = `<div id="resultado-moinho" class="mb-3"><div class="empty-state"><i class="bi bi-gear-wide-connected"></i><p>Nenhum pedido "Moinho" encontrado.</p></div></div><hr><div id="resultado-funcionarios" class="mb-3"><div class="empty-state"><i class="bi bi-people-fill"></i><p>Nenhum pedido de funcionÃ¡rio encontrado.</p></div></div><hr><div id="resultado-transferencias" class="mb-3"><div class="empty-state"><i class="bi bi-arrow-left-right"></i><p>Nenhum pedido de transferÃªncia encontrado.</p></div></div><hr><div id="resultado-exportacao" class="mb-3"><div class="empty-state"><i class="bi bi-box-arrow-up-right"></i><p>Nenhum pedido de exportaÃ§Ã£o encontrado.</p></div></div><hr><div id="resultado-marca-propria"><div class="empty-state"><i class="bi bi-tags-fill"></i><p>Nenhum pedido de Marca PrÃ³pria encontrado.</p></div></div>`;
+            outrosPedidosTab.innerHTML = `<div id="resultado-moinho" class="mb-3"><div class="empty-state"><i class="bi bi-gear-wide-connected"></i><p>Nenhum pedido "Moinho" encontrado.</p></div></div><hr><div id="resultado-funcionarios" class="mb-3"><div class="empty-state"><i class="bi bi-people-fill"></i><p>Nenhum pedido de funcioná¡rio encontrado.</p></div></div><hr><div id="resultado-transferencias" class="mb-3"><div class="empty-state"><i class="bi bi-arrow-left-right"></i><p>Nenhum pedido de transferáªncia encontrado.</p></div></div><hr><div id="resultado-exportacao" class="mb-3"><div class="empty-state"><i class="bi bi-box-arrow-up-right"></i><p>Nenhum pedido de exportaá§á£o encontrado.</p></div></div><hr><div id="resultado-marca-propria"><div class="empty-state"><i class="bi bi-tags-fill"></i><p>Nenhum pedido de Marca Prá³pria encontrado.</p></div></div>`;
         }
 
         // Resetar Pedidos & Consultas
         resetValue('pedidoSearchInput');
         resetElement('search-result');
-        resetElement('resultado-geral', emptyStateHTML('file-earmark-excel', 'Nenhum pedido de varejo disponÃ­vel.'));
+        resetElement('resultado-geral', emptyStateHTML('file-earmark-excel', 'Nenhum pedido de varejo disponá­vel.'));
         resetElement('resultado-cf-numerico', emptyStateHTML('funnel', 'Nenhum pedido bloqueado por regra.'));
 
         // Resetar Montagens Especiais
@@ -750,7 +750,7 @@ function limparEstadoAtual() {
         resetValue('pedidosEspeciaisInput');
         resetElement('resultado-carga-especial');
 
-        // Resetar AnÃ¡lises
+        // Resetar Aná¡lises
         resetElement('resultado-bloqueados');
         resetElement('resultado-rota1');
 
@@ -760,7 +760,7 @@ function limparEstadoAtual() {
         resetValue('semCorteInput');
         resetElement('lista-pedidos-sem-corte', emptyStateHTML('scissors', 'Nenhum pedido marcado.'));
 
-        // Limpar estado de persistÃªncia
+        // Limpar estado de persistáªncia
         localStorage.removeItem('logisticsAppState');
         localStorage.removeItem('logisticsRouteContexts');
         localStorage.removeItem('sidebarCollapsed');
@@ -773,26 +773,26 @@ function limparEstadoAtual() {
         if (summaryLink) summaryLink.click();
 
     } catch (e) {
-        console.error('Erro durante a execuÃ§Ã£o de limparTudo:', e);
+        console.error('Erro durante a execuá§á£o de limparTudo:', e);
         showToast('Ocorreu um erro ao tentar limpar os dados. Verifique o console.', 'error');
     }
 }
 
 /**
- * FunÃ§Ã£o principal de limpeza chamada pelo botÃ£o "Limpar Sistema".
- * Limpa o estado e recarrega a pÃ¡gina para um reset completo.
+ * Funá§á£o principal de limpeza chamada pelo botá£o "Limpar Sistema".
+ * Limpa o estado e recarrega a pá¡gina para um reset completo.
  */
 async function limparTudoCompletamente() {
-    limparEstadoAtual(); // Limpa variÃ¡veis e localStorage
+    limparEstadoAtual(); // Limpa variá¡veis e localStorage
     const db = await openDb(); // Limpa o IndexedDB
     const transaction = db.transaction([storeName], "readwrite");
     transaction.objectStore(storeName).clear();
 }
 function limparTudo() {
-    console.log('FunÃ§Ã£o "limparTudo" iniciada para reset completo.');
+    console.log('Funá§á£o "limparTudo" iniciada para reset completo.');
     limparEstadoAtual(); // Limpa o estado atual
     limparEstadoAtual(); // Limpa o estado atual
-    location.reload(); // Recarrega a pÃ¡gina
+    location.reload(); // Recarrega a pá¡gina
     if (window.triggerLogActivity) window.triggerLogActivity('LIMPEZA_SISTEMA', { tipo: 'completa' });
 }
 
@@ -801,17 +801,17 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         loadConfigurations();
     } catch (e) {
-        console.error("Falha crÃ­tica ao carregar configuraÃ§Ãµes, listeners ainda serÃ£o ativados.", e);
+        console.error("Falha crá­tica ao carregar configuraá§áµes, listeners ainda será£o ativados.", e);
     }
 
-    // NOVO: Restaura o estado da aplicaÃ§Ã£o ao iniciar
+    // NOVO: Restaura o estado da aplicaá§á£o ao iniciar
     loadStateFromLocalStorage();
 
     document.getElementById('saveConfig').addEventListener('click', saveConfigurations);
     document.getElementById('pedidoSearchInput')?.addEventListener('keyup', (event) => {
-        // A busca em tempo real jÃ¡ Ã© feita pelo onkeyup no HTML.
-        // Esta parte pode ser usada para aÃ§Ãµes especÃ­ficas do Enter, se necessÃ¡rio,
-        // mas com a busca em tempo real, geralmente nÃ£o Ã© preciso.
+        // A busca em tempo real já¡ á© feita pelo onkeyup no HTML.
+        // Esta parte pode ser usada para aá§áµes especá­ficas do Enter, se necessá¡rio,
+        // mas com a busca em tempo real, geralmente ná£o á© preciso.
         // if (event.key === 'Enter') {
         //     buscarPedido();
         // }
@@ -821,10 +821,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
-    // LÃ³gica de navegaÃ§Ã£o por abas/views no Top Navbar
+    // Lá³gica de navegaá§á£o por abas/views no Top Navbar
     document.querySelectorAll('a[href^="#"].nav-link, .dropdown-item[href^="#"]')?.forEach(link => {
         link.addEventListener('click', function (e) {
-            // Se o link clicado for um submenu toggle, nÃ£o faz nada
+            // Se o link clicado for um submenu toggle, ná£o faz nada
             if (this.classList.contains('dropdown-toggle')) return;
 
             const targetViewId = this.getAttribute('href');
@@ -832,7 +832,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             e.preventDefault();
 
-            // Remove 'active' de TODOS os links de navegaÃ§Ã£o
+            // Remove 'active' de TODOS os links de navegaá§á£o
             document.querySelectorAll('.nav-modern-top .nav-link, .dropdown-item').forEach(el => {
                 el.classList.remove('active');
             });
@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 targetView.classList.add('active-view');
             }
 
-            // Salva a Ãºltima view ativa
+            // Salva a áºltima view ativa
             localStorage.setItem('lastActiveView', targetViewId);
 
             if (targetViewId === '#summary-view' && resumoChart) {
@@ -869,16 +869,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('optimizationLevelSelect')?.addEventListener('change', updateOptimizationDescription);
     updateOptimizationDescription();
 
-    // --- LÃ³gica para Sidebar RecolhÃ­vel (REMOVIDA - Agora via CSS puro) ---
+    // --- Lá³gica para Sidebar Recolhá­vel (REMOVIDA - Agora via CSS puro) ---
     const body = document.body;
     // Removed listener logic
 
-    // Verifica o estado salvo ao carregar a pÃ¡gina (opcional, pode manter ou remover)
+    // Verifica o estado salvo ao carregar a pá¡gina (opcional, pode manter ou remover)
     if (localStorage.getItem('sidebarCollapsed') === 'true') {
         body.classList.add('sidebar-collapsed');
     }
 
-    // LÃ³gica para salvar a aba ativa da Mesa de Trabalho
+    // Lá³gica para salvar a aba ativa da Mesa de Trabalho
     const vehicleTabs = document.querySelectorAll('#vehicleTabs button[data-bs-toggle="tab"]'); // prettier-ignore
     vehicleTabs.forEach(tab => {
         tab.addEventListener('shown.bs.tab', event => {
@@ -886,11 +886,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Restaura o estado da aplicaÃ§Ã£o a partir do localStorage ao carregar a pÃ¡gina.
-    // REATIVADO: Garante persistÃªncia em F5
+    // Restaura o estado da aplicaá§á£o a partir do localStorage ao carregar a pá¡gina.
+    // REATIVADO: Garante persistáªncia em F5
     loadStateFromLocalStorage();
 
-    // Restaura a Ãºltima view e aba ativas
+    // Restaura a áºltima view e aba ativas
     const lastView = localStorage.getItem('lastActiveView');
     if (lastView) {
         document.querySelector(`a[href="${lastView}"]`)?.click();
@@ -904,33 +904,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const accordionCollapse = event.target;
         const accordionHeader = accordionCollapse.previousElementSibling;
 
-        if (!accordionHeader) return; // Sai se nÃ£o encontrar o cabeÃ§alho
+        if (!accordionHeader) return; // Sai se ná£o encontrar o cabeá§alho
 
         setTimeout(() => {
-            // Procura pelo container de rolagem mais prÃ³ximo. Pode ser um .card-body ou o #vehicleTabsContent.
+            // Procura pelo container de rolagem mais prá³ximo. Pode ser um .card-body ou o #vehicleTabsContent.
             const scrollableContainer = accordionCollapse.closest('.card-body[style*="overflow-y: auto"], #vehicleTabsContent');
 
             if (scrollableContainer) {
-                // --- NOVO: LÃ³gica para rolagem interna ---
-                // Calcula a posiÃ§Ã£o do cabeÃ§alho do acordeÃ£o em relaÃ§Ã£o ao topo do container de rolagem.
+                // --- NOVO: Lá³gica para rolagem interna ---
+                // Calcula a posiá§á£o do cabeá§alho do acordeá£o em relaá§á£o ao topo do container de rolagem.
                 const headerTop = accordionHeader.offsetTop;
-                // A posiÃ§Ã£o de rolagem do container Ã© a posiÃ§Ã£o do cabeÃ§alho menos a posiÃ§Ã£o inicial do prÃ³prio container.
+                // A posiá§á£o de rolagem do container á© a posiá§á£o do cabeá§alho menos a posiá§á£o inicial do prá³prio container.
                 const containerScrollTop = scrollableContainer.offsetTop;
 
                 scrollableContainer.scrollTo({
-                    // Rola para a posiÃ§Ã£o do cabeÃ§alho, subtraindo a posiÃ§Ã£o do container e um pequeno offset para margem.
+                    // Rola para a posiá§á£o do cabeá§alho, subtraindo a posiá§á£o do container e um pequeno offset para margem.
                     top: headerTop - containerScrollTop - 10,
                     behavior: 'smooth'
                 });
             } else {
-                // --- Comportamento antigo (padrÃ£o) ---
-                // Se nÃ£o estiver dentro de um container com rolagem, usa a rolagem da pÃ¡gina principal.
+                // --- Comportamento antigo (padrá£o) ---
+                // Se ná£o estiver dentro de um container com rolagem, usa a rolagem da pá¡gina principal.
                 accordionHeader.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
-        }, 150); // Delay para garantir que a animaÃ§Ã£o de abertura nÃ£o interfira na rolagem.
+        }, 150); // Delay para garantir que a animaá§á£o de abertura ná£o interfira na rolagem.
     });
 
-    // --- LÃ³gica para Menu de Contexto ---
+    // --- Lá³gica para Menu de Contexto ---
     const contextMenu = document.getElementById('context-menu');
 
     document.addEventListener('contextmenu', function (e) { // prettier-ignore
@@ -942,7 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         e.preventDefault();
 
-        // Verifica se hÃ¡ mÃºltiplos pedidos selecionados (via checkbox)
+        // Verifica se há¡ máºltiplos pedidos selecionados (via checkbox)
         const selectedCheckboxes = Array.from(document.querySelectorAll('.row-checkbox:checked'));
         const isMultiSelect = selectedCheckboxes.length > 0;
         const pedidoId = targetRow.dataset.pedidoId; // Pega o ID da linha clicada
@@ -969,7 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
         contextMenu.style.display = 'none';
     });
 
-    // NOVO: Adiciona os event listeners para os botÃµes do modal do mapa
+    // NOVO: Adiciona os event listeners para os botáµes do modal do mapa
     const printMapBtn = document.getElementById('printMapBtn');
     const shareWhatsAppBtn = document.getElementById('shareWhatsAppBtn');
     if (printMapBtn) printMapBtn.addEventListener('click', printMap);
@@ -977,7 +977,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * NOVO: Copia os nÃºmeros de pedido selecionados para o clipboard de montagem especial.
+ * NOVO: Copia os náºmeros de pedido selecionados para o clipboard de montagem especial.
  * @param {string|null} singlePedidoId - Se fornecido, copia apenas este pedido.
  */
 function copyForSpecialLoad(singlePedidoId = null) {
@@ -990,19 +990,19 @@ function copyForSpecialLoad(singlePedidoId = null) {
 
     if (pedidosACopiar.length === 0) return;
 
-    specialLoadClipboard = [...pedidosACopiar]; // Substitui o clipboard com a nova seleÃ§Ã£o
+    specialLoadClipboard = [...pedidosACopiar]; // Substitui o clipboard com a nova seleá§á£o
     showToast(`${specialLoadClipboard.length} pedido(s) copiado(s) para a montagem especial.`, 'success');
 }
 
 function pasteToSpecialLoad(inputId) {
-    if (specialLoadClipboard.length === 0) { showToast("Nenhum pedido na Ã¡rea de transferÃªncia especial.", 'warning'); return; }
+    if (specialLoadClipboard.length === 0) { showToast("Nenhum pedido na á¡rea de transferáªncia especial.", 'warning'); return; }
     document.getElementById(inputId).value = specialLoadClipboard.join('\n');
 };
 
 function copiarParaClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-        // Opcional: mostrar uma notificaÃ§Ã£o de sucesso
-        // alert(`'${text}' copiado para a Ã¡rea de transferÃªncia!`);
+        // Opcional: mostrar uma notificaá§á£o de sucesso
+        // alert(`'${text}' copiado para a á¡rea de transferáªncia!`);
     }).catch(err => {
         console.error('Erro ao copiar texto: ', err);
     });
@@ -1012,20 +1012,20 @@ function updateOptimizationDescription() {
     const level = document.getElementById('optimizationLevelSelect').value;
     const descriptionDiv = document.getElementById('optimization-description');
     if (level === '1') {
-        descriptionDiv.innerHTML = `<p class="mb-1"><strong>RÃ¡pido:</strong> Usa uma abordagem direta para agrupar pedidos. Ideal para resultados imediatos com boa qualidade.</p>`;
+        descriptionDiv.innerHTML = `<p class="mb-1"><strong>Rá¡pido:</strong> Usa uma abordagem direta para agrupar pedidos. Ideal para resultados imediatos com boa qualidade.</p>`;
     } else {
-        descriptionDiv.innerHTML = `<p class="mb-1"><strong>Especialista (Recomendado):</strong> Simula um profissional experiente. Utiliza mÃºltiplas estratÃ©gias, otimizaÃ§Ã£o profunda e reconstruÃ§Ã£o inteligente para minimizar as sobras ao mÃ¡ximo, respeitando todas as regras.</p>`;
+        descriptionDiv.innerHTML = `<p class="mb-1"><strong>Especialista (Recomendado):</strong> Simula um profissional experiente. Utiliza máºltiplas estratá©gias, otimizaá§á£o profunda e reconstruá§á£o inteligente para minimizar as sobras ao má¡ximo, respeitando todas as regras.</p>`;
     }
 }
 
 
 const rotaVeiculoMap = {
-    // Novas rotas de SÃ£o Paulo (Varejo - Van/3/4)
-    '2555': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2555' }, '2560': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2560' }, '2561': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2561' },
-    '2565': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2565' }, '2566': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2566' },
-    '2571': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2571' }, '2575': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2575' },
-    '2705': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2705' }, '2735': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2735' }, '2745': { type: 'van', title: 'Van / 3/4 SÃ£o Paulo - Rota 2745' },
-    // Rotas do ParanÃ¡ (Varejo)
+    // Novas rotas de Sá£o Paulo (Varejo - Van/3/4)
+    '2555': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2555' }, '2560': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2560' }, '2561': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2561' },
+    '2565': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2565' }, '2566': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2566' },
+    '2571': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2571' }, '2575': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2575' },
+    '2705': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2705' }, '2735': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2735' }, '2745': { type: 'van', title: 'Van / 3/4 Sá£o Paulo - Rota 2745' },
+    // Rotas do Paraná¡ (Varejo)
     '11101': { type: 'fiorino', title: 'Rota 11101' }, '11301': { type: 'fiorino', title: 'Rota 11301' }, '11311': { type: 'fiorino', title: 'Rota 11311' }, '11561': { type: 'fiorino', title: 'Rota 11561' }, '11721': { type: 'fiorino', title: 'Rotas 11721 & 11731', combined: ['11731'] }, '11731': { type: 'fiorino', title: 'Rotas 11721 & 11731', combined: ['11721'] },
     '11102': { type: 'fiorino', title: 'Rota 11102' }, '11331': { type: 'fiorino', title: 'Rota 11331' }, '11341': { type: 'van', title: 'Rota 11341' }, '11342': { type: 'van', title: 'Rota 11342' }, '11351': { type: 'van', title: 'Rota 11351' }, '11521': { type: 'van', title: 'Rota 11521' }, '11531': { type: 'van', title: 'Rota 11531' }, '11551': { type: 'fiorino', title: 'Rota 11551' }, '11571': { type: 'fiorino', title: 'Rota 11571' }, '11701': { type: 'van', title: 'Rota 11701' }, '11711': { type: 'fiorino', title: 'Rota 11711' },
     '11361': { type: 'tresQuartos', title: 'Rota 11361' }, '11501': { type: 'tresQuartos', title: 'Rotas 11501, 11502 & 11511', combined: ['11502', '11511'] }, '11502': { type: 'tresQuartos', title: 'Rotas 11501, 11502 & 11511', combined: ['11501', '11511'] }, '11511': { type: 'tresQuartos', title: 'Rotas 11501, 11502 & 11511', combined: ['11501', '11502'] }, '11541': { type: 'tresQuartos', title: 'Rota 11541' }
@@ -1066,8 +1066,8 @@ fileInput.addEventListener('change', (event) => { handleFile(event.target.files[
 function handleFile(file, isReload = false) {
     if (!file) return;
 
-    // Se for recarregamento e jÃ¡ tivermos dados (do IndexedDB/LocalStorage),
-    // apenas atualizamos a UI e saÃ­mos para evitar ler o arquivo vazio simulado.
+    // Se for recarregamento e já¡ tivermos dados (do IndexedDB/LocalStorage),
+    // apenas atualizamos a UI e saá­mos para evitar ler o arquivo vazio simulado.
     if (isReload && typeof planilhaData !== 'undefined' && planilhaData.length > 0) {
         statusDiv.innerHTML = `<p class="text-success">Planilha "${file.name}" restaurada.</p>`;
         processarBtn.disabled = false;
@@ -1075,8 +1075,8 @@ function handleFile(file, isReload = false) {
         return;
     }
 
-    // CORREÃ‡ÃƒO: A limpeza agora sÃ³ ocorre se um arquivo for selecionado manualmente,
-    // e nÃ£o durante um recarregamento de pÃ¡gina (isReload = false).
+    // CORREá‡áƒO: A limpeza agora sá³ ocorre se um arquivo for selecionado manualmente,
+    // e ná£o durante um recarregamento de pá¡gina (isReload = false).
     if (!isReload) {
         console.log("Novo arquivo selecionado. Limpando estado anterior.");
         limparEstadoAtual();
@@ -1107,7 +1107,7 @@ function handleFile(file, isReload = false) {
                 }
             }
 
-            if (headerRowIndex === -1) throw new Error("NÃ£o foi possÃ­vel encontrar a linha de cabeÃ§alho com 'Cod_Rota'. Verifique o arquivo.");
+            if (headerRowIndex === -1) throw new Error("Náo foi possá­vel encontrar a linha de cabeá§alho com 'Cod_Rota'. Verifique o arquivo.");
 
             const dataRows = rawData.slice(headerRowIndex + 1);
             planilhaData = dataRows.map(row => {
@@ -1145,7 +1145,7 @@ function handleFile(file, isReload = false) {
             });
             planilhaData.forEach(checkAgendamento);
 
-            // NOVO: Salva os dados da planilha no IndexedDB para persistÃªncia
+            // NOVO: Salva os dados da planilha no IndexedDB para persistáªncia
             savePlanilhaToDb(planilhaData).then(() => {
                 console.log("Dados da planilha salvos no IndexedDB com sucesso.");
             }).catch(err => {
@@ -1182,14 +1182,14 @@ function popularFiltrosDeRota() {
     const rotaInicioSelect = document.getElementById('rotaInicioSelect');
     const rotaFimSelect = document.getElementById('rotaFimSelect');
 
-    // VerificaÃ§Ã£o de seguranÃ§a: se os elementos nÃ£o existem, retorna silenciosamente
+    // Verificaá§á£o de seguraná§a: se os elementos ná£o existem, retorna silenciosamente
     if (!rotaInicioSelect || !rotaFimSelect) {
-        console.warn('Elementos de filtro de rota nÃ£o encontrados no DOM. Funcionalidade desabilitada.');
+        console.warn('Elementos de filtro de rota ná£o encontrados no DOM. Funcionalidade desabilitada.');
         if (container) container.style.display = 'none';
         return;
     }
 
-    rotaInicioSelect.innerHTML = '<option value="">Rota de InÃ­cio...</option>';
+    rotaInicioSelect.innerHTML = '<option value="">Rota de Início...</option>';
     rotaFimSelect.innerHTML = '<option value="">Rota de Fim...</option>';
 
     if (planilhaData.length === 0) {
@@ -1221,9 +1221,9 @@ function buscarPedido() {
     const searchInput = document.getElementById('pedidoSearchInput');
     const searchResultDiv = document.getElementById('search-result');
 
-    // VerificaÃ§Ã£o de seguranÃ§a
+    // Verificaá§á£o de seguraná§a
     if (!searchInput || !searchResultDiv) {
-        console.warn('Elementos de busca de pedido nÃ£o encontrados no DOM.');
+        console.warn('Elementos de busca de pedido ná£o encontrados no DOM.');
         return;
     }
 
@@ -1237,7 +1237,7 @@ function buscarPedido() {
         return;
     }
 
-    // --- LÃ“GICA DE BUSCA REFEITA ---
+    // --- Lá“GICA DE BUSCA REFEITA ---
     const searchPredicate = p => p && (String(p.Num_Pedido).toLowerCase().includes(searchTerm) || String(p.Nome_Cliente).toLowerCase().includes(searchTerm) || String(p.Cidade).toLowerCase().includes(searchTerm) || String(p.CF).toLowerCase().includes(searchTerm));
     const foundInPlanilha = planilhaData.filter(searchPredicate);
 
@@ -1248,7 +1248,7 @@ function buscarPedido() {
 
     const resultados = foundInPlanilha.map(pedido => {
         const numPedido = String(pedido.Num_Pedido);
-        let local = "NÃ£o processado / Planilha Original";
+        let local = "Náo processado / Planilha Original";
         let viewId = null, tabId = null, accordionId = null, cardId = null;
 
         // 1. Verificar em Cargas Ativas (Varejo, Toco, Manuais)
@@ -1272,12 +1272,12 @@ function buscarPedido() {
             }
         }
 
-        // 2. Verificar em Pedidos DisponÃ­veis (Varejo)
+        // 2. Verificar em Pedidos Disponá­veis (Varejo)
         if (pedidosGeraisAtuais.some(p => String(p.Num_Pedido) === numPedido)) {
-            local = `Pedidos DisponÃ­veis (Rota ${pedido.Cod_Rota})`;
+            local = `Pedidos Disponá­veis (Rota ${pedido.Cod_Rota})`;
             viewId = 'workspace-view';
             tabId = 'disponiveis-tab-pane'; // Aba correta
-            accordionId = `collapseGeral-${pedido.Cod_Rota}`; // ID correto e estÃ¡vel do acordeÃ£o
+            accordionId = `collapseGeral-${pedido.Cod_Rota}`; // ID correto e está¡vel do acordeá£o
             return { pedido, local, viewId, tabId, accordionId, cardId };
         }
 
@@ -1291,15 +1291,15 @@ function buscarPedido() {
             return { pedido, local, viewId, tabId, accordionId, cardId };
         }
 
-        // 4. Verificar em outras seÃ§Ãµes
+        // 4. Verificar em outras seá§áµes
         const otherSectionsMap = {
             'Bloqueado Manualmente': { list: pedidosManualmenteBloqueadosAtuais, viewId: 'pedidos-bloqueados-view', cardId: 'card-bloqueados', accordionId: 'collapseBloqueados' },
-            'Pedidos da Rota 1 para AlteraÃ§Ã£o': { list: rota1SemCarga, viewId: 'alteracao-rota-view', cardId: 'resultado-rota1' }, 'Bloqueados Varejo (Regra)': { list: pedidosComCFNumericoIsolado, viewId: 'workspace-view', tabId: 'bloqueados-regra-tab-pane', accordionId: `collapseCF-${pedido.Cod_Rota}` },
+            'Pedidos da Rota 1 para Alteraá§á£o': { list: rota1SemCarga, viewId: 'alteracao-rota-view', cardId: 'resultado-rota1' }, 'Bloqueados Varejo (Regra)': { list: pedidosComCFNumericoIsolado, viewId: 'workspace-view', tabId: 'bloqueados-regra-tab-pane', accordionId: `collapseCF-${pedido.Cod_Rota}` },
             'Outros Pedidos (Moinho)': { list: pedidosMoinho, viewId: 'workspace-view', tabId: 'outros-pedidos-tab-pane', accordionId: 'collapseMoinho' },
-            'Outros Pedidos (FuncionÃ¡rios)': { list: pedidosFuncionarios, viewId: 'workspace-view', tabId: 'outros-pedidos-tab-pane', accordionId: 'collapseFuncionarios' },
-            'Outros Pedidos (TransferÃªncia)': { list: pedidosTransferencias, viewId: 'workspace-view', tabId: 'outros-pedidos-tab-pane', accordionId: 'collapseTransferencias' },
-            'Outros Pedidos (ExportaÃ§Ã£o)': { list: pedidosExportacao, viewId: 'workspace-view', tabId: 'outros-pedidos-tab-pane', accordionId: 'collapseExportacao' },
-            'Outros Pedidos (Marca PrÃ³pria)': { list: pedidosMarcaPropria, viewId: 'workspace-view', tabId: 'outros-pedidos-tab-pane', accordionId: 'collapseMarcaPropria' },
+            'Outros Pedidos (Funcioná¡rios)': { list: pedidosFuncionarios, viewId: 'workspace-view', tabId: 'outros-pedidos-tab-pane', accordionId: 'collapseFuncionarios' },
+            'Outros Pedidos (Transferáªncia)': { list: pedidosTransferencias, viewId: 'workspace-view', tabId: 'outros-pedidos-tab-pane', accordionId: 'collapseTransferencias' },
+            'Outros Pedidos (Exportaá§á£o)': { list: pedidosExportacao, viewId: 'workspace-view', tabId: 'outros-pedidos-tab-pane', accordionId: 'collapseExportacao' },
+            'Outros Pedidos (Marca Prá³pria)': { list: pedidosMarcaPropria, viewId: 'workspace-view', tabId: 'outros-pedidos-tab-pane', accordionId: 'collapseMarcaPropria' },
         };
 
         for (const [sectionName, sectionData] of Object.entries(otherSectionsMap)) {
@@ -1333,7 +1333,7 @@ function buscarPedido() {
             }
         }
 
-        // Se nÃ£o encontrou em nenhuma categoria processada, retorna o status padrÃ£o
+        // Se ná£o encontrou em nenhuma categoria processada, retorna o status padrá£o
         return { pedido, local, viewId, tabId, accordionId, cardId };
     });
 
@@ -1365,7 +1365,7 @@ function buscarPedido() {
             else if (blockType === 'V') blockInfoHtml = '<span class="badge bg-danger ms-2">Bloqueado: Comercial</span>';
 
             const params = `\'${pedido.Num_Pedido}\', \'${viewId}\', ${tabId ? `'${tabId}'` : 'null'}, ${accordionId ? `'${accordionId}'` : 'null'}, ${cardId ? `'${cardId}'` : 'null'}`;
-            // A Ã¡rea sÃ³ Ã© clicÃ¡vel se houver um viewId para navegar
+            // A á¡rea sá³ á© clicá¡vel se houver um viewId para navegar
             const clickableAreaStyle = viewId ? 'cursor: pointer;' : '';
             const onClickHandler = viewId ? `onclick="highlightPedido(${params})"` : '';
 
@@ -1392,7 +1392,7 @@ function buscarPedido() {
     }
 }
 
-// ... (resto do cÃ³digo)
+// ... (resto do cá³digo)
 
 
 
@@ -1427,7 +1427,7 @@ function despriorizarRecall(numPedido) {
         console.log(`Removendo prioridade de Recall: ${numPedido}`);
         pedidosRecall.splice(index, 1);
         saveStateToLocalStorage();
-        atualizarUIAposAcao(`MarcaÃ§Ã£o de Recall removida do pedido ${numPedido}.`);
+        atualizarUIAposAcao(`Marcaá§á£o de Recall removida do pedido ${numPedido}.`);
     }
 }
 
@@ -1443,18 +1443,18 @@ function despriorizarPedido(numPedido) {
 }
 
 function highlightPedido(numPedido, viewId, tabId, collapseId, cardId = null) {
-    // FunÃ§Ã£o interna para executar o scroll e o destaque final
+    // Funá§á£o interna para executar o scroll e o destaque final
     const executeScrollAndHighlight = () => {
         setTimeout(() => {
             let targetElement = document.getElementById(`pedido-${numPedido}`);
 
-            // Se nÃ£o achou na tabela (tr), tenta achar o card da carga
+            // Se ná£o achou na tabela (tr), tenta achar o card da carga
             if (!targetElement && cardId) {
                 targetElement = document.getElementById(cardId);
             }
-            // Se nÃ£o achou, tenta achar o acordeÃ£o (caso de carga fechada ou agrupamento)
+            // Se ná£o achou, tenta achar o acordeá£o (caso de carga fechada ou agrupamento)
             if (!targetElement && collapseId) {
-                // Tenta achar o botÃ£o do acordeÃ£o ou o container
+                // Tenta achar o botá£o do acordeá£o ou o container
                 targetElement = document.querySelector(`[data-bs-target="#${collapseId}"]`) || document.getElementById(collapseId);
             }
 
@@ -1467,7 +1467,7 @@ function highlightPedido(numPedido, viewId, tabId, collapseId, cardId = null) {
                 if (targetElement.tagName === 'TR') {
                     const originalClass = targetElement.className;
                     targetElement.classList.add('table-info'); // Destaque extra para tabelas
-                    setTimeout(() => targetElement.className = originalClass, 3000); // Remove apÃ³s 3s
+                    setTimeout(() => targetElement.className = originalClass, 3000); // Remove apá³s 3s
                 } else {
                     setTimeout(() => targetElement.classList.remove('search-highlight'), 3000);
                 }
@@ -1475,23 +1475,23 @@ function highlightPedido(numPedido, viewId, tabId, collapseId, cardId = null) {
                 // Scroll suave e centralizado
                 targetElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
             } else {
-                console.warn(`Elemento alvo nÃ£o encontrado para destaque: Pedido ${numPedido}, Card ${cardId}, Collapse ${collapseId}`);
+                console.warn(`Elemento alvo ná£o encontrado para destaque: Pedido ${numPedido}, Card ${cardId}, Collapse ${collapseId}`);
             }
-        }, 400); // Delay aumentado para garantir renderizaÃ§Ã£o de abas/acordeÃµes
+        }, 400); // Delay aumentado para garantir renderizaá§á£o de abas/acordeáµes
     };
 
-    // 1. Mudar de View (Se necessÃ¡rio)
+    // 1. Mudar de View (Se necessá¡rio)
     if (viewId) {
         const targetViewLink = document.querySelector(`#sidebar-nav a.nav-link[href="#${viewId}"]`) ||
-            document.querySelector(`.sidebar-link[href="#${viewId}"]`); // Suporte Ã  sidebar antiga e nova
+            document.querySelector(`.sidebar-link[href="#${viewId}"]`); // Suporte á  sidebar antiga e nova
 
         if (targetViewLink && !targetViewLink.classList.contains('active')) {
-            targetViewLink.click(); // Usa o click nativo para acionar toda a lÃ³gica de view existente
+            targetViewLink.click(); // Usa o click nativo para acionar toda a lá³gica de view existente
         }
     }
 
-    // 2. Mudar de Aba Interna (Se necessÃ¡rio)
-    // Envolvemos em um setTimeout para garantir que a View jÃ¡ trocou
+    // 2. Mudar de Aba Interna (Se necessá¡rio)
+    // Envolvemos em um setTimeout para garantir que a View já¡ trocou
     setTimeout(() => {
         if (tabId) {
             const tabButton = document.querySelector(`button[data-bs-target="#${tabId}"]`) ||
@@ -1501,7 +1501,7 @@ function highlightPedido(numPedido, viewId, tabId, collapseId, cardId = null) {
                 const tabInstance = bootstrap.Tab.getOrCreateInstance(tabButton);
                 tabInstance.show();
 
-                // 3. Expandir AcordeÃ£o (Se necessÃ¡rio) - Dentro do contexto da aba
+                // 3. Expandir Acordeá£o (Se necessá¡rio) - Dentro do contexto da aba
                 if (collapseId) {
                     // Espera a aba terminar de mostrar
                     setTimeout(() => {
@@ -1510,7 +1510,7 @@ function highlightPedido(numPedido, viewId, tabId, collapseId, cardId = null) {
                             const collapseInstance = bootstrap.Collapse.getOrCreateInstance(collapseElement);
                             if (!collapseElement.classList.contains('show')) {
                                 collapseInstance.show();
-                                // Aguarda a animaÃ§Ã£o do collapse (padrÃ£o Bootstrap 350ms)
+                                // Aguarda a animaá§á£o do collapse (padrá£o Bootstrap 350ms)
                                 setTimeout(executeScrollAndHighlight, 350);
                             } else {
                                 executeScrollAndHighlight();
@@ -1523,7 +1523,7 @@ function highlightPedido(numPedido, viewId, tabId, collapseId, cardId = null) {
                     executeScrollAndHighlight();
                 }
             } else {
-                // Se nÃ£o tem botÃ£o de aba (ex: view Ãºnica), segue para acordeÃ£o direto
+                // Se ná£o tem botá£o de aba (ex: view áºnica), segue para acordeá£o direto
                 if (collapseId) {
                     const collapseElement = document.getElementById(collapseId);
                     if (collapseElement) {
@@ -1542,7 +1542,7 @@ function highlightPedido(numPedido, viewId, tabId, collapseId, cardId = null) {
                 }
             }
         } else {
-            // Sem aba especÃ­fica, verifica apenas acordeÃ£o ou vai direto
+            // Sem aba especá­fica, verifica apenas acordeá£o ou vai direto
             if (collapseId) {
                 const collapseElement = document.getElementById(collapseId);
                 if (collapseElement) {
@@ -1602,11 +1602,11 @@ function bloquearPedido(numPedido) {
         pedidosBloqueados.add(String(pedidoParaBloquear));
 
         // NOVO: Move o pedido da sua lista atual para a lista de bloqueados manualmente.
-        // Isso garante que ele suma da lista de disponÃ­veis/cargas e apareÃ§a na tela de anÃ¡lise.
+        // Isso garante que ele suma da lista de disponá­veis/cargas e apareá§a na tela de aná¡lise.
         let pedidoMovido = false;
         let affectedLoadId = null; // NOVO: Rastreia a carga afetada
 
-        // FunÃ§Ã£o auxiliar para encontrar e mover o pedido de uma lista
+        // Funá§á£o auxiliar para encontrar e mover o pedido de uma lista
         const moverDeLista = (lista) => {
             const index = lista.findIndex(p => String(p.Num_Pedido) === pedidoParaBloquear);
             if (index > -1) {
@@ -1616,7 +1616,7 @@ function bloquearPedido(numPedido) {
             }
         };
 
-        // Procura em todas as listas possÃ­veis
+        // Procura em todas as listas possá­veis
         moverDeLista(pedidosGeraisAtuais);
 
         if (!pedidoMovido) {
@@ -1645,8 +1645,8 @@ function bloquearPedido(numPedido) {
             }
         }
 
-        // Se o pedido nÃ£o foi encontrado em nenhuma lista, mas existe na planilha original,
-        // adiciona-o Ã  lista de bloqueados (caso de um pedido que ainda nÃ£o foi processado/exibido).
+        // Se o pedido ná£o foi encontrado em nenhuma lista, mas existe na planilha original,
+        // adiciona-o á  lista de bloqueados (caso de um pedido que ainda ná£o foi processado/exibido).
         if (!pedidoMovido) {
             const pedidoOriginal = planilhaData.find(p => String(p.Num_Pedido) === pedidoParaBloquear);
             if (pedidoOriginal) {
@@ -1654,7 +1654,7 @@ function bloquearPedido(numPedido) {
             }
         }
 
-        // MODIFICADO: Chama a funÃ§Ã£o de atualizaÃ§Ã£o com o ID da carga afetada
+        // MODIFICADO: Chama a funá§á£o de atualizaá§á£o com o ID da carga afetada
         atualizarUIAposAcao(`Pedido ${pedidoParaBloquear} bloqueado.`, affectedLoadId);
     }
 }
@@ -1662,12 +1662,12 @@ function bloquearPedido(numPedido) {
 function desbloquearPedido(numPedido) {
     pedidosBloqueados.delete(numPedido);
 
-    // NOVO: Move o pedido da lista de bloqueados de volta para a lista de disponÃ­veis.
+    // NOVO: Move o pedido da lista de bloqueados de volta para a lista de disponá­veis.
     const indexBloqueado = pedidosManualmenteBloqueadosAtuais.findIndex(p => String(p.Num_Pedido) === numPedido);
     if (indexBloqueado > -1) {
         const pedidoDesbloqueado = pedidosManualmenteBloqueadosAtuais.splice(indexBloqueado, 1)[0];
-        // Adiciona de volta Ã  lista principal de pedidos de varejo disponÃ­veis.
-        // O sistema o colocarÃ¡ no grupo de rota correto na prÃ³xima renderizaÃ§Ã£o.
+        // Adiciona de volta á  lista principal de pedidos de varejo disponá­veis.
+        // O sistema o colocará¡ no grupo de rota correto na prá³xima renderizaá§á£o.
         if (pedidoDesbloqueado) {
             pedidosGeraisAtuais.push(pedidoDesbloqueado);
         }
@@ -1707,28 +1707,28 @@ function marcarPedidosSemCorte() {
 function removerMarcacaoSemCorte(numPedido) {
     pedidosSemCorte.delete(numPedido);
     saveStateToLocalStorage();
-    atualizarUIAposAcao(`MarcaÃ§Ã£o 'Sem Corte' removida do pedido ${numPedido}.`);
+    atualizarUIAposAcao(`Marcaá§á£o 'Sem Corte' removida do pedido ${numPedido}.`);
 }
 
 /**
- * NOVO: Atualiza a UI de forma inteligente apÃ³s uma aÃ§Ã£o (bloquear, priorizar, etc.)
- * sem reprocessar tudo. Apenas redesenha as seÃ§Ãµes afetadas.
+ * NOVO: Atualiza a UI de forma inteligente apá³s uma aá§á£o (bloquear, priorizar, etc.)
+ * sem reprocessar tudo. Apenas redesenha as seá§áµes afetadas.
  */
 function atualizarUIAposAcao(mensagemToast, affectedLoadId = null) {
-    // Se nÃ£o houver dados carregados, nÃ£o faz nada.
+    // Se ná£o houver dados carregados, ná£o faz nada.
     if (planilhaData.length === 0) {
-        // Apenas atualiza as listas nos modais, se aplicÃ¡vel
+        // Apenas atualiza as listas nos modais, se aplicá¡vel
         atualizarListaBloqueados();
         atualizarListaSemCorte();
         return;
     }
 
-    // 1. Atualiza a lista de pedidos disponÃ­veis (de onde o pedido bloqueado pode ter vindo)
-    // Isso tambÃ©m redesenha os botÃµes de rota, o que Ã© aceitÃ¡vel.
+    // 1. Atualiza a lista de pedidos disponá­veis (de onde o pedido bloqueado pode ter vindo)
+    // Isso tambá©m redesenha os botáµes de rota, o que á© aceitá¡vel.
     const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
     displayGerais(document.getElementById('resultado-geral'), gruposGerais);
 
-    // 2. Atualiza as listas de pedidos bloqueados (na view de anÃ¡lise e no modal)
+    // 2. Atualiza as listas de pedidos bloqueados (na view de aná¡lise e no modal)
     displayPedidosBloqueados(document.getElementById('resultado-bloqueados'), pedidosManualmenteBloqueadosAtuais);
     atualizarListaBloqueados();
 
@@ -1753,14 +1753,14 @@ function atualizarUIAposAcao(mensagemToast, affectedLoadId = null) {
         }
     }
 
-    // 4. Atualiza os KPIs e o grÃ¡fico
+    // 4. Atualiza os KPIs e o grá¡fico
     updateAndRenderKPIs();
     updateAndRenderChart();
 
     // 5. Salva o estado atual
     saveStateToLocalStorage();
 
-    // 6. Mostra a notificaÃ§Ã£o para o usuÃ¡rio
+    // 6. Mostra a notificaá§á£o para o usuá¡rio
     showToast(mensagemToast, 'info');
 }
 
@@ -1808,7 +1808,7 @@ function processar() {
 
             resetarEstadoGlobal();
 
-            // VerificaÃ§Ã£o de seguranÃ§a para elementos de filtro de rota
+            // Verificaá§á£o de seguraná§a para elementos de filtro de rota
             const rotaInicioSelect = document.getElementById('rotaInicioSelect');
             const rotaFimSelect = document.getElementById('rotaFimSelect');
             const rotaInicio = rotaInicioSelect ? rotaInicioSelect.value : '';
@@ -1908,7 +1908,7 @@ function processar() {
             let pedidosParaProcessamentoGeral = pedidosAindaNaoProcessados;
 
             // CORRIGIDO: Separa Cargas Toco por peso (>= 4500 kg por cliente) APENAS de pedidos de VAREJO.
-            // Um pedido de varejo Ã© aquele que NÃƒO tem um CF numÃ©rico.
+            // Um pedido de varejo á© aquele que NáƒO tem um CF numá©rico.
             const pedidosDeVarejo = pedidosParaProcessamentoGeral.filter(p => !isNumeric(p.CF));
             const outrosPedidos = pedidosParaProcessamentoGeral.filter(p => isNumeric(p.CF));
 
@@ -1928,8 +1928,8 @@ function processar() {
             tocoPedidoIds = new Set();
 
             Object.entries(gruposDeClientesVarejo).forEach(([clienteId, grupo]) => {
-                // CONDIÃ‡ÃƒO ATUALIZADA: Verifica se o grupo de cliente tem o peso necessÃ¡rio E se NENHUM de seus pedidos
-                // contÃ©m as palavras-chave de exclusÃ£o na Coluna5.
+                // CONDIá‡áƒO ATUALIZADA: Verifica se o grupo de cliente tem o peso necessá¡rio E se NENHUM de seus pedidos
+                // contá©m as palavras-chave de exclusá£o na Coluna5.
                 const deveSerExcluido = grupo.pedidos.some(p => {
                     const coluna5Upper = String(p.Coluna5 || '').toUpperCase();
                     return coluna5Upper.includes('TBL ESP CARRETA') || coluna5Upper.includes('TRUCK') || coluna5Upper.includes('CARRETA');
@@ -1942,7 +1942,7 @@ function processar() {
                 }
             });
 
-            // Remonta a lista de processamento geral com os pedidos que nÃ£o viraram Toco por peso.
+            // Remonta a lista de processamento geral com os pedidos que ná£o viraram Toco por peso.
             pedidosParaProcessamentoGeral = [...outrosPedidos, ...pedidosDeVarejo.filter(p => !tocoPedidoIds.has(p.Num_Pedido))];
 
             // Adiciona os grupos toco antigos (baseados em flag) se existirem
@@ -1956,7 +1956,7 @@ function processar() {
                 acc[cf].totalKg += p.Quilos_Saldo;
                 acc[cf].totalCubagem += p.Cubagem;
                 return acc;
-            }, gruposToco); // Inicia o reduce com os gruposToco jÃ¡ existentes (do peso >= 4500kg)
+            }, gruposToco); // Inicia o reduce com os gruposToco já¡ existentes (do peso >= 4500kg)
 
             pedidosParaProcessamentoGeral = pedidosParaProcessamentoGeral.filter(p => !pedidosTocoPorFlagIds.has(String(p.Num_Pedido)));
             displayToco(resultadoTocoDiv, gruposToco);
@@ -1969,7 +1969,7 @@ function processar() {
                 }
             });
 
-            // Separa Cargas Fechadas PR (Condor e CFs numÃ©ricos do PR)
+            // Separa Cargas Fechadas PR (Condor e CFs numá©ricos do PR)
             cargasFechadasPR = pedidosParaProcessamentoGeral.filter(p => {
                 const coluna5 = String(p.Coluna5 || '').toUpperCase();
                 const isCondor = coluna5.includes('CONDOR (TRUCK)') || coluna5.includes('CONDOR TOD TRUC');
@@ -1995,7 +1995,7 @@ function processar() {
 
 
             pedidosParaProcessamentoGeral.forEach(p => {
-                if (isNumeric(p.CF)) { // CF numÃ©rico (fora do PR) -> Carga Fechada Resto BR
+                if (isNumeric(p.CF)) { // CF numá©rico (fora do PR) -> Carga Fechada Resto BR
                     const cf = String(p.CF).trim();
                     if (!gruposPorCFGlobais[cf]) gruposPorCFGlobais[cf] = { pedidos: [], totalKg: 0, totalCubagem: 0 };
                     gruposPorCFGlobais[cf].pedidos.push(p);
@@ -2004,7 +2004,7 @@ function processar() {
                 } else {
                     if (clientesComBloqueio.has(normalizeClientId(p.Cliente))) { // Cliente com bloqueio -> Bloqueados por Regra
                         pedidosComCFNumericoIsolado.push(p);
-                    } else { // O que sobra Ã© Varejo
+                    } else { // O que sobra á© Varejo
                         pedidosParaProcessamentoVarejo.push(p);
                     }
                 }
@@ -2014,9 +2014,9 @@ function processar() {
             displayCargasFechadasRestBrasil(resultadoCargasFechadasRestBrDiv, gruposPorCFGlobais, pedidosCarretaSemCF);
 
             pedidosGeraisAtuais = [...pedidosParaProcessamentoVarejo];
-            renderAllUI(); // NOVO: Chama a funÃ§Ã£o de renderizaÃ§Ã£o centralizada
+            renderAllUI(); // NOVO: Chama a funá§á£o de renderizaá§á£o centralizada
 
-            statusDiv.innerHTML = `<p class="text-success">Processamento concluÃ­do!</p>`;
+            statusDiv.innerHTML = `<p class="text-success">Processamento concluá­do!</p>`;
         } catch (error) {
             // Garante que a lista de bloqueados seja exibida mesmo em caso de erro parcial
             const resultadoBloqueadosDiv = document.getElementById('resultado-bloqueados');
@@ -2031,7 +2031,7 @@ function processar() {
 
 /**
  * NOVO: Renderiza os cards para todas as cargas ativas (Fiorino, Van, 3/4, Manuais).
- * Esta funÃ§Ã£o Ã© crucial para manter a UI sincronizada apÃ³s operaÃ§Ãµes de arrastar e soltar.
+ * Esta funá§á£o á© crucial para manter a UI sincronizada apá³s operaá§áµes de arrastar e soltar.
  */
 function renderActiveLoadCards() {
     const vehicleInfo = {
@@ -2047,7 +2047,7 @@ function renderActiveLoadCards() {
 
     for (const loadId in activeLoads) {
         const load = activeLoads[loadId];
-        // Ignora cargas 'Toco', pois sÃ£o tratadas por displayToco()
+        // Ignora cargas 'Toco', pois sá£o tratadas por displayToco()
         if (load.vehicleType === 'toco' || load.id.startsWith('roteiro-')) continue;
 
         const vInfo = vehicleInfo[load.vehicleType];
@@ -2091,33 +2091,33 @@ function renderRoteiroLoads() {
 }
 
 /**
- * NOVO: FunÃ§Ã£o central para renderizar toda a interface do usuÃ¡rio.
+ * NOVO: Funá§á£o central para renderizar toda a interface do usuá¡rio.
  * Garante que todas as partes da tela estejam sempre sincronizadas com o estado atual dos dados.
- * Esta Ã© a "fonte Ãºnica da verdade" para a renderizaÃ§Ã£o, eliminando bugs de inconsistÃªncia.
+ * Esta á© a "fonte áºnica da verdade" para a renderizaá§á£o, eliminando bugs de inconsistáªncia.
  */
 function renderAllUI() {
     console.log("Central UI Render Triggered: Redesenhando a interface...");
 
-    // 1. Renderiza a lista de Pedidos DisponÃ­veis e os botÃµes de rota
+    // 1. Renderiza a lista de Pedidos Disponá­veis e os botáµes de rota
     const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
     displayGerais(document.getElementById('resultado-geral'), gruposGerais);
 
     renderActiveLoadCards(); // NOVO: Renderiza os cards de cargas ativas (Fiorino, Van, 3/4)
     renderRoteiroLoads(); // Renderiza cargas da aba Roteirizados
-    // 2. Renderiza as outras seÃ§Ãµes da Mesa de Trabalho
+    // 2. Renderiza as outras seá§áµes da Mesa de Trabalho
     displayToco(document.getElementById('resultado-toco'), gruposToco);
     displayCargasFechadasPR(document.getElementById('resultado-cargas-fechadas-pr'), cargasFechadasPR);
     displayCargasFechadasRestBrasil(document.getElementById('resultado-cargas-fechadas-rest-br'), gruposPorCFGlobais, pedidosCarretaSemCF);
 
-    // 3. Renderiza as seÃ§Ãµes de AnÃ¡lise
+    // 3. Renderiza as seá§áµes de Aná¡lise
     displayPedidosBloqueados(document.getElementById('resultado-bloqueados'), pedidosManualmenteBloqueadosAtuais);
     displayRota1(document.getElementById('resultado-rota1'), rota1SemCarga);
     displayPedidosCFNumerico(document.getElementById('resultado-cf-numerico'), pedidosComCFNumericoIsolado);
 
-    // 4. Atualiza os KPIs e o GrÃ¡fico no Dashboard de Resumo
+    // 4. Atualiza os KPIs e o Grá¡fico no Dashboard de Resumo
     const hasData = planilhaData && planilhaData.length > 0;
     if (!hasData) {
-        return; // NÃ£o renderiza KPIs se nÃ£o houver dados
+        return; // Náo renderiza KPIs se ná£o houver dados
     }
 
     updateAndRenderKPIs();
@@ -2180,7 +2180,7 @@ function navigateToSection(viewId, tabId, elementId) {
         }, 100);
     }
 
-    // 3. Rolar para o elemento especÃ­fico (se houver)
+    // 3. Rolar para o elemento especá­fico (se houver)
     if (elementId) {
         setTimeout(() => {
             const element = document.getElementById(elementId);
@@ -2201,25 +2201,25 @@ function updateAndRenderKPIs() {
         const bloqueio = String(p['BLOQ.'] || '').trim().toUpperCase(); return isOverdue(p.Predat) && (bloqueio === '' || bloqueio === 'C');
     });
 
-    // 2. Separa os grupos de Toco em disponÃ­veis e bloqueados
+    // 2. Separa os grupos de Toco em disponá­veis e bloqueados
     const { pesoTocoDisponivel, pedidosTocoDisponiveis, pesoTocoBloqueado, pedidosTocoBloqueados } = Object.values(gruposToco).reduce((acc, grupo) => { const isGrupoBloqueado = grupo.pedidos.some(p => isPedidoBloqueado(p)); if (isGrupoBloqueado) { acc.pesoTocoBloqueado += grupo.totalKg; acc.pedidosTocoBloqueados += grupo.pedidos.length; } else { acc.pesoTocoDisponivel += grupo.totalKg; acc.pedidosTocoDisponiveis += grupo.pedidos.length; } return acc; }, { pesoTocoDisponivel: 0, pedidosTocoDisponiveis: 0, pesoTocoBloqueado: 0, pedidosTocoBloqueados: 0 });
     // 3. Consolida os dados para os novos KPIs
     const kpis = {
         varejoDisponivel: {
-            // CORREÃ‡ÃƒO: A lÃ³gica agora soma os pedidos de varejo gerais (Fiorino, Van, 3/4)
-            // com os pedidos dos grupos de Toco que estÃ£o totalmente desbloqueados.
-            pedidos: pedidosGeraisAtuais.length + pedidosTocoDisponiveis, // Usa o valor jÃ¡ calculado
-            peso: pedidosGeraisAtuais.reduce((s, p) => s + p.Quilos_Saldo, 0) + pesoTocoDisponivel // Usa o valor jÃ¡ calculado
+            // CORREá‡áƒO: A lá³gica agora soma os pedidos de varejo gerais (Fiorino, Van, 3/4)
+            // com os pedidos dos grupos de Toco que está£o totalmente desbloqueados.
+            pedidos: pedidosGeraisAtuais.length + pedidosTocoDisponiveis, // Usa o valor já¡ calculado
+            peso: pedidosGeraisAtuais.reduce((s, p) => s + p.Quilos_Saldo, 0) + pesoTocoDisponivel // Usa o valor já¡ calculado
         },
         varejoBloqueado: {
-            // CORREÃ‡ÃƒO: A lÃ³gica agora soma os bloqueios de varejo com os pedidos
-            // dos grupos de Toco que contÃªm pelo menos um pedido bloqueado.
+            // CORREá‡áƒO: A lá³gica agora soma os bloqueios de varejo com os pedidos
+            // dos grupos de Toco que contáªm pelo menos um pedido bloqueado.
             pedidos: pedidosComCFNumericoIsolado.length +
                 pedidosManualmenteBloqueadosAtuais.length +
-                pedidosTocoBloqueados, // Usa o valor jÃ¡ calculado
+                pedidosTocoBloqueados, // Usa o valor já¡ calculado
             peso: pedidosComCFNumericoIsolado.reduce((s, p) => s + p.Quilos_Saldo, 0) +
                 pedidosManualmenteBloqueadosAtuais.reduce((s, p) => s + p.Quilos_Saldo, 0) +
-                pesoTocoBloqueado // Usa o valor jÃ¡ calculado
+                pesoTocoBloqueado // Usa o valor já¡ calculado
         },
         cargasFechadasPR: {
             pedidos: cargasFechadasPR.length,
@@ -2252,7 +2252,7 @@ function updateAndRenderKPIs() {
                     <!-- Alerta (Se houver) -->
                     ${kpiData.pedidosAPredatar.length > 0 ? `<div class="col-12 animated-entry">${renderKpiCard('Pedidos a Predatar', null, kpiData.pedidosAPredatar.length, 'bi-calendar-x', 'danger', true)}</div>` : ''}
                     <!-- KPIs Principais -->
-                    <div class="col-12 animated-entry">${renderMainKpiCard('Varejo DisponÃ­vel', kpis.varejoDisponivel.peso, kpis.varejoDisponivel.pedidos, 'available', 'bi-check-circle-fill', "navigateToSection('workspace-view', 'disponiveis-tab-pane')")}</div>
+                    <div class="col-12 animated-entry">${renderMainKpiCard('Varejo Disponá­vel', kpis.varejoDisponivel.peso, kpis.varejoDisponivel.pedidos, 'available', 'bi-check-circle-fill', "navigateToSection('workspace-view', 'disponiveis-tab-pane')")}</div>
                     <div class="col-12 animated-entry">${renderMainKpiCard('Varejo Bloqueado', kpis.varejoBloqueado.peso, kpis.varejoBloqueado.pedidos, 'blocked', 'bi-shield-lock-fill', "navigateToSection('workspace-view', 'bloqueados-regra-tab-pane')")}</div>
                 `;
     }
@@ -2262,9 +2262,9 @@ function updateAndRenderKPIs() {
         const categories = [
             { label: 'Cargas Fechadas PR', data: kpis.cargasFechadasPR, icon: 'bi-building-fill-check', action: "navigateToSection('workspace-view', 'cargas-fechadas-pr-tab-pane')" },
             { label: 'Cargas Fechadas Resto BR', data: kpis.cargasFechadasRestBR, icon: 'bi-globe-americas', action: "navigateToSection('workspace-view', 'cargas-fechadas-rest-br-tab-pane')" },
-            { label: 'TransferÃªncias', data: kpis.transferencias, icon: 'bi-arrow-left-right', action: "navigateToSection('workspace-view', 'outros-pedidos-tab-pane', 'resultado-transferencias')" },
-            { label: 'ExportaÃ§Ã£o', data: kpis.exportacao, icon: 'bi-box-arrow-up-right', action: "navigateToSection('workspace-view', 'outros-pedidos-tab-pane', 'resultado-exportacao')" },
-            { label: 'FuncionÃ¡rios', data: kpis.funcionarios, icon: 'bi-people-fill', action: "navigateToSection('workspace-view', 'outros-pedidos-tab-pane', 'resultado-funcionarios')" }
+            { label: 'Transferáªncias', data: kpis.transferencias, icon: 'bi-arrow-left-right', action: "navigateToSection('workspace-view', 'outros-pedidos-tab-pane', 'resultado-transferencias')" },
+            { label: 'Exportaá§á£o', data: kpis.exportacao, icon: 'bi-box-arrow-up-right', action: "navigateToSection('workspace-view', 'outros-pedidos-tab-pane', 'resultado-exportacao')" },
+            { label: 'Funcioná¡rios', data: kpis.funcionarios, icon: 'bi-people-fill', action: "navigateToSection('workspace-view', 'outros-pedidos-tab-pane', 'resultado-funcionarios')" }
         ];
 
         kpiOtherContainer.innerHTML = categories.map(cat => `
@@ -2280,10 +2280,10 @@ function updateAndRenderKPIs() {
                     </div>`).join('');
     }
 
-    // Renderiza o subtÃ­tulo do grÃ¡fico
+    // Renderiza o subtá­tulo do grá¡fico
     const totalVeiculosMontados = Object.keys(activeLoads).length;
     const pesoTotalMontado = Object.values(activeLoads).reduce((s, l) => s + (l.totalKg || 0), 0);
-    document.getElementById('chart-subtitle').innerHTML = `<i class="bi bi-truck me-1"></i> ${totalVeiculosMontados} veÃ­culos &nbsp;|&nbsp; <i class="bi bi-database me-1"></i> ${(pesoTotalMontado / 1000).toFixed(2)} ton`;
+    document.getElementById('chart-subtitle').innerHTML = `<i class="bi bi-truck me-1"></i> ${totalVeiculosMontados} veá­culos &nbsp;|&nbsp; <i class="bi bi-database me-1"></i> ${(pesoTotalMontado / 1000).toFixed(2)} ton`;
 
 }
 
@@ -2310,7 +2310,7 @@ function renderMainKpiCard(title, weight, count, type, icon, onClickAction) {
 function renderKpiCard(title, weight, count, icon, colorClass, isClickable = false) {
     const weightText = weight !== null ? `${(weight / 1000).toFixed(2)}` : `${count}`;
     const unitText = weight !== null ? 'ton' : 'pedidos';
-    const subText = weight !== null ? `${count} pedidos` : 'AÃ§Ã£o NecessÃ¡ria';
+    const subText = weight !== null ? `${count} pedidos` : 'Aá§á£o Necessá¡ria';
     const clickableClass = isClickable ? 'stat-card-clickable' : '';
     const onClickAction = isClickable ? 'onclick="exportarPedidosAtrasados()"' : '';
     const titleAttr = isClickable ? 'title="Clique para exportar a lista"' : '';
@@ -2342,7 +2342,7 @@ function isOverdue(predat) {
 }
 
 function exportarPedidosAtrasados() {
-    // Usa a lista de pedidos a predatar jÃ¡ calculada para o KPI do dashboard
+    // Usa a lista de pedidos a predatar já¡ calculada para o KPI do dashboard
     const pedidosAtrasados = kpiData.pedidosAPredatar || [];
 
     if (planilhaData.length === 0) {
@@ -2355,7 +2355,7 @@ function exportarPedidosAtrasados() {
         return;
     }
 
-    alert(`${pedidosAtrasados.length} pedidos em atraso serÃ£o exportados.`);
+    alert(`${pedidosAtrasados.length} pedidos em atraso será£o exportados.`);
 
     const header = ['Cliente', 'Nome_Cliente', 'Cidade', 'UF', 'Num_Pedido', 'Quilos_Saldo', 'Predat', 'Dat_Ped', 'Coluna5'];
 
@@ -2363,26 +2363,26 @@ function exportarPedidosAtrasados() {
         let filteredP = {};
         header.forEach(col => {
             // Passa o objeto Date diretamente para a biblioteca, sem converter para string.
-            // A biblioteca se encarregarÃ¡ de formatar como data no Excel.
+            // A biblioteca se encarregará¡ de formatar como data no Excel.
             filteredP[col] = p[col];
         });
         return filteredP;
     });
 
-    // A opÃ§Ã£o cellDates:true informa Ã  biblioteca para tratar objetos Date como datas.
+    // A opá§á£o cellDates:true informa á  biblioteca para tratar objetos Date como datas.
     const worksheet = XLSX.utils.json_to_sheet(dataToExport, { header: header, cellDates: true });
 
-    // Aplica o formato de data 'dd/mm/yyyy' Ã s colunas de data
+    // Aplica o formato de data 'dd/mm/yyyy' á s colunas de data
     const range = XLSX.utils.decode_range(worksheet['!ref']);
     const predatColIndex = header.indexOf('Predat');
     const datPedColIndex = header.indexOf('Dat_Ped');
 
-    for (let R = range.s.r + 1; R <= range.e.r; ++R) { // Pula o cabeÃ§alho (r + 1)
+    for (let R = range.s.r + 1; R <= range.e.r; ++R) { // Pula o cabeá§alho (r + 1)
         [predatColIndex, datPedColIndex].forEach(colIndex => {
             if (colIndex === -1) return;
             const cell_address = { c: colIndex, r: R };
             const cell_ref = XLSX.utils.encode_cell(cell_address);
-            if (worksheet[cell_ref] && worksheet[cell_ref].t === 'd') { // Verifica se a cÃ©lula Ã© do tipo data
+            if (worksheet[cell_ref] && worksheet[cell_ref].t === 'd') { // Verifica se a cá©lula á© do tipo data
                 worksheet[cell_ref].z = 'dd/mm/yyyy'; // Define o formato
             }
         });
@@ -2401,7 +2401,7 @@ function createTable(pedidos, columnsToDisplay, sourceId = '') {
     colunasExibir.forEach(c => table += `<th>${c.replace('_', ' ')}</th>`);
     table += '</tr></thead><tbody>';
     pedidos.forEach(p => {
-        // LÃ³gica para aplicar a cor da rota
+        // Lá³gica para aplicar a cor da rota
         const isPriorityRow = pedidosPrioritarios.includes(String(p.Num_Pedido));
         const isRecallRow = pedidosRecall.includes(String(p.Num_Pedido));
         let rowClass = '';
@@ -2413,7 +2413,7 @@ function createTable(pedidos, columnsToDisplay, sourceId = '') {
             else if (vehicleType === 'tresQuartos') rowClass = 'route-tresQuartos';
         }
 
-        const isDraggable = sourceId !== ''; // SÃ³ permite arrastar se tiver um sourceId
+        const isDraggable = sourceId !== ''; // Sá³ permite arrastar se tiver um sourceId
         const clienteIdNormalizado = normalizeClientId(p.Cliente);
         table += `<tr id="pedido-${p.Num_Pedido}"
                                      class="${rowClass}"
@@ -2462,8 +2462,8 @@ function createTable(pedidos, columnsToDisplay, sourceId = '') {
 }
 
 function displayGerais(div, grupos) {
-    // MODIFICADO: Agora considera tambÃ©m as rotas jÃ¡ processadas para exibir os botÃµes,
-    // mesmo que nÃ£o tenham pedidos pendentes (caso de alocaÃ§Ã£o total sem sobras).
+    // MODIFICADO: Agora considera tambá©m as rotas já¡ processadas para exibir os botáµes,
+    // mesmo que ná£o tenham pedidos pendentes (caso de alocaá§á£o total sem sobras).
     const rotasPendentes = Object.keys(grupos);
     const rotasProcessadas = [];
     processedRoutes.forEach(key => {
@@ -2473,22 +2473,22 @@ function displayGerais(div, grupos) {
     const todasRotas = new Set([...rotasPendentes, ...rotasProcessadas]);
 
     if (todasRotas.size === 0) {
-        div.innerHTML = '<div class="empty-state"><i class="bi bi-file-earmark-excel"></i><p>Nenhum pedido de varejo disponÃ­vel.</p></div>';
-        document.getElementById('botoes-fiorino').innerHTML = '<div class="empty-state"><i class="bi bi-box"></i><p>Nenhuma rota de Fiorino disponÃ­vel. Processe um arquivo para comeÃ§ar.</p></div>';
-        document.getElementById('botoes-van').innerHTML = '<div class="empty-state"><i class="bi bi-truck-front-fill"></i><p>Nenhuma rota de Van disponÃ­vel. Processe um arquivo para comeÃ§ar.</p></div>';
-        document.getElementById('botoes-34').innerHTML = '<div class="empty-state"><i class="bi bi-truck-flatbed"></i><p>Nenhuma rota de 3/4 disponÃ­vel. Processe um arquivo para comeÃ§ar.</p></div>';
+        div.innerHTML = '<div class="empty-state"><i class="bi bi-file-earmark-excel"></i><p>Nenhum pedido de varejo disponá­vel.</p></div>';
+        document.getElementById('botoes-fiorino').innerHTML = '<div class="empty-state"><i class="bi bi-box"></i><p>Nenhuma rota de Fiorino disponá­vel. Processe um arquivo para comeá§ar.</p></div>';
+        document.getElementById('botoes-van').innerHTML = '<div class="empty-state"><i class="bi bi-truck-front-fill"></i><p>Nenhuma rota de Van disponá­vel. Processe um arquivo para comeá§ar.</p></div>';
+        document.getElementById('botoes-34').innerHTML = '<div class="empty-state"><i class="bi bi-truck-flatbed"></i><p>Nenhuma rota de 3/4 disponá­vel. Processe um arquivo para comeá§ar.</p></div>';
         return;
     }
 
-    // --- CORREÃ‡ÃƒO DE UX (Manter AcordeÃ£o Aberto) ---
-    // Salva o ID do acordeÃ£o que estÃ¡ aberto. O ID agora Ã© baseado na rota (ex: 'collapseGeral-11101'),
-    // que Ã© um identificador estÃ¡vel, ao contrÃ¡rio do Ã­ndice que mudava a cada redesenho.
-    // Isso garante que o acordeÃ£o correto permaneÃ§a aberto apÃ³s arrastar e soltar pedidos.
+    // --- CORREá‡áƒO DE UX (Manter Acordeá£o Aberto) ---
+    // Salva o ID do acordeá£o que está¡ aberto. O ID agora á© baseado na rota (ex: 'collapseGeral-11101'),
+    // que á© um identificador está¡vel, ao contrá¡rio do á­ndice que mudava a cada redesenho.
+    // Isso garante que o acordeá£o correto permaneá§a aberto apá³s arrastar e soltar pedidos.
     const openAccordionItem = div.querySelector('.accordion-collapse.show');
     const openAccordionId = openAccordionItem ? openAccordionItem.id : null;
     // --- FIM DA MELHORIA ---
 
-    // Usa a funÃ§Ã£o centralizada para garantir a mesma ordem da busca
+    // Usa a funá§á£o centralizada para garantir a mesma ordem da busca
     const rotasOrdenadas = getSortedVarejoRoutes(Array.from(todasRotas));
 
     const botoes = { fiorino: '', van: '', tresQuartos: '' };
@@ -2496,9 +2496,9 @@ function displayGerais(div, grupos) {
 
     rotasOrdenadas.forEach(rota => {
         let config = rotaVeiculoMap[rota];
-        // LÃ³gica para tratar rotas nÃ£o mapeadas como rotas de SÃ£o Paulo (Van/3/4)
+        // Lá³gica para tratar rotas ná£o mapeadas como rotas de Sá£o Paulo (Van/3/4)
         if (!config) {
-            config = { type: 'van', title: `Van / 3/4 SÃ£o Paulo - Rota ${rota}` };
+            config = { type: 'van', title: `Van / 3/4 Sá£o Paulo - Rota ${rota}` };
         }
 
         if (config && !addedButtons.has(rota)) {
@@ -2510,9 +2510,9 @@ function displayGerais(div, grupos) {
                 combinedRoutes.forEach(r => addedButtons.add(r));
             }
 
-            // Define o tÃ­tulo do botÃ£o dinamicamente
+            // Define o tá­tulo do botá£o dinamicamente
             let buttonTitle = config.title; // prettier-ignore
-            if (config.type === 'van' && !config.title.startsWith('Rota 1')) { // Se for van e nÃ£o for do ParanÃ¡
+            if (config.type === 'van' && !config.title.startsWith('Rota 1')) { // Se for van e ná£o for do Paraná¡
                 buttonTitle = `${rota} (VAN-3/4- SP)`;
             }
 
@@ -2520,9 +2520,9 @@ function displayGerais(div, grupos) {
             const colorClass = vehicleType === 'fiorino' ? 'success' : (vehicleType === 'van' ? 'primary' : 'warning');
             const divId = vehicleType === 'fiorino' ? 'resultado-fiorino-geral' : (vehicleType === 'van' ? 'resultado-van-geral' : 'resultado-34-geral');
             const btnId = `btn-${vehicleType}-${rota}`;
-            const routesKeyString = rotaValue.replace(/\[|\]|'|\s/g, ''); // Transforma ['1', '2'] em 1,2 (sem espaÃ§os)
+            const routesKeyString = rotaValue.replace(/\[|\]|'|\s/g, ''); // Transforma ['1', '2'] em 1,2 (sem espaá§os)
 
-            // Verifica se a rota jÃ¡ foi processada para renderizar o botÃ£o no estado correto
+            // Verifica se a rota já¡ foi processada para renderizar o botá£o no estado correto
             if (processedRoutes.has(routesKeyString)) {
                 botoes[vehicleType] += `
                             <div class="btn-group mt-2 me-2" role="group">
@@ -2543,10 +2543,10 @@ function displayGerais(div, grupos) {
 
     rotasOrdenadas.forEach((rota, index) => {
         const grupo = grupos[rota];
-        if (!grupo) return; // Pula se nÃ£o houver pedidos pendentes para esta rota
+        if (!grupo) return; // Pula se ná£o houver pedidos pendentes para esta rota
         hasPendingItems = true;
         const totalKgFormatado = grupo.totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const veiculo = rotaVeiculoMap[rota]?.type || 'van'; // Assume 'van' para rotas nÃ£o mapeadas
+        const veiculo = rotaVeiculoMap[rota]?.type || 'van'; // Assume 'van' para rotas ná£o mapeadas
         let veiculoClass = '';
         if (veiculo === 'fiorino') veiculoClass = 'route-fiorino';
         else if (veiculo === 'van') veiculoClass = 'route-van';
@@ -2560,7 +2560,7 @@ function displayGerais(div, grupos) {
             const veiculoNome = veiculo.replace('tresQuartos', '3/4').replace(/^\w/, c => c.toUpperCase());
             rotaDisplay = `Rota: ${rota} (${veiculoNome})`;
         }
-        // CORREÃ‡ÃƒO: O ID do collapse agora usa a rota, que Ã© um identificador estÃ¡vel.
+        // CORREá‡áƒO: O ID do collapse agora usa a rota, que á© um identificador está¡vel.
         const collapseId = `collapseGeral-${rota}`;
         accordionHtml += `<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed ${veiculoClass}" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}"><strong>${rotaDisplay}</strong> &nbsp; <span class="badge bg-secondary ms-2"><i class="bi bi-box me-1"></i>${grupo.pedidos.length}</span> <span class="badge bg-light text-dark ms-2"><i class="bi bi-database me-1"></i>${totalKgFormatado} kg</span></button></h2>
                                   <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionGeral">
@@ -2569,13 +2569,13 @@ function displayGerais(div, grupos) {
     accordionHtml += '</div>';
 
     if (!hasPendingItems) {
-        div.innerHTML = '<div class="empty-state"><i class="bi bi-check-circle-fill"></i><p>Todos os pedidos disponÃ­veis foram alocados.</p></div>';
+        div.innerHTML = '<div class="empty-state"><i class="bi bi-check-circle-fill"></i><p>Todos os pedidos disponá­veis foram alocados.</p></div>';
     } else {
         div.innerHTML = accordionHtml;
     }
 
-    // --- CORREÃ‡ÃƒO DE UX (Manter AcordeÃ£o Aberto) ---
-    // Reabre o acordeÃ£o que estava aberto antes da atualizaÃ§Ã£o, usando o ID estÃ¡vel salvo.
+    // --- CORREá‡áƒO DE UX (Manter Acordeá£o Aberto) ---
+    // Reabre o acordeá£o que estava aberto antes da atualizaá§á£o, usando o ID está¡vel salvo.
     if (openAccordionId) {
         const newAccordionItem = document.getElementById(openAccordionId);
         if (newAccordionItem) {
@@ -2589,7 +2589,7 @@ function displayAccordionGerais(div, grupos) {
     if (!div) return;
 
     if (Object.keys(grupos).length === 0) {
-        div.innerHTML = '<div class="empty-state"><i class="bi bi-file-earmark-excel"></i><p>Nenhum pedido de varejo disponÃ­vel.</p></div>';
+        div.innerHTML = '<div class="empty-state"><i class="bi bi-file-earmark-excel"></i><p>Nenhum pedido de varejo disponá­vel.</p></div>';
         return;
     }
 
@@ -2599,7 +2599,7 @@ function displayAccordionGerais(div, grupos) {
     rotasOrdenadas.forEach((rota, index) => {
         const grupo = grupos[rota];
         const totalKgFormatado = grupo.totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const config = rotaVeiculoMap[rota] || { type: 'van' }; // Fallback para rotas nÃ£o mapeadas (SP)
+        const config = rotaVeiculoMap[rota] || { type: 'van' }; // Fallback para rotas ná£o mapeadas (SP)
         const veiculo = config.type;
 
         let rotaDisplay;
@@ -2646,12 +2646,12 @@ function displayPedidosCFNumerico(div, pedidos) {
     }, {});
     let accordionHtml = '<div class="accordion accordion-flush" id="accordionCF">';
 
-    // Usa a mesma funÃ§Ã£o de ordenaÃ§Ã£o da lista de disponÃ­veis para manter a consistÃªncia
+    // Usa a mesma funá§á£o de ordenaá§á£o da lista de disponá­veis para manter a consistáªncia
     const rotasOrdenadas = getSortedVarejoRoutes(Object.keys(grupos));
     rotasOrdenadas.forEach((rota, index) => {
         const grupo = grupos[rota];
         const totalKgFormatado = grupo.totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        const veiculo = rotaVeiculoMap[rota]?.type || 'van'; // Assume 'van' para rotas nÃ£o mapeadas
+        const veiculo = rotaVeiculoMap[rota]?.type || 'van'; // Assume 'van' para rotas ná£o mapeadas
         let veiculoClass = '';
         if (veiculo === 'fiorino') veiculoClass = 'route-fiorino';
         else if (veiculo === 'van') veiculoClass = 'route-van';
@@ -2666,7 +2666,7 @@ function displayPedidosCFNumerico(div, pedidos) {
             rotaDisplay = `Rota: ${rota} (${veiculoNome})`;
         }
 
-        const collapseId = `collapseCF-${rota}`; // ID estÃ¡vel usando a rota
+        const collapseId = `collapseCF-${rota}`; // ID está¡vel usando a rota
         accordionHtml += `<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed ${veiculoClass}" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}"><strong>${rotaDisplay}</strong> &nbsp; <span class="badge bg-secondary ms-2"><i class="bi bi-box me-1"></i>${grupo.pedidos.length}</span> <span class="badge bg-light text-dark ms-2"><i class="bi bi-database me-1"></i>${totalKgFormatado} kg</span></button></h2>
                                   <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionCF">
                                     <div class="accordion-body p-0">${createTable(grupo.pedidos, null, 'bloqueados-regra')}</div></div></div>`;
@@ -2680,13 +2680,13 @@ function displayTresQuartos(div, loads) {
 
 function displayRota1(div, pedidos) {
     if (!pedidos || pedidos.length === 0) {
-        div.innerHTML = '<div class="empty-state"><i class="bi bi-check-circle"></i><p>Nenhum pedido da Rota 1 para alteraÃ§Ã£o encontrado.</p></div>';
+        div.innerHTML = '<div class="empty-state"><i class="bi bi-check-circle"></i><p>Nenhum pedido da Rota 1 para alteraá§á£o encontrado.</p></div>';
         return;
     }
 
     let html = `
                 <div class="d-flex justify-content-end mb-2 no-print">
-                    <button class="btn btn-sm btn-outline-warning" onclick="imprimirGeneric(document.getElementById('resultado-rota1'), 'Pedidos Rota 1 para AlteraÃ§Ã£o')">
+                    <button class="btn btn-sm btn-outline-warning" onclick="imprimirGeneric(document.getElementById('resultado-rota1'), 'Pedidos Rota 1 para Alteraá§á£o')">
                         <i class="bi bi-printer-fill me-1"></i>Imprimir Lista
                     </button>
                 </div>
@@ -2717,7 +2717,7 @@ function createPrintWindow(title) {
                 table, th, td { border: 1px solid #dee2e6 !important; padding: 2px 4px !important; font-size: 8pt !important; } 
                 .table-primary, .table-primary > th, .table-primary > td { --bs-table-bg: #cfe2ff !important; color: #000 !important; } 
                 h1, h2, h3, h4, h5 { margin-top: 0.5rem; margin-bottom: 0.5rem; }
-                .progress { display: none !important; } /* Esconde barra de progresso na impressÃ£o */
+                .progress { display: none !important; } /* Esconde barra de progresso na impressá£o */
                 .card-body { padding: 5px !important; }
                 .px-3 { padding-left: 5px !important; padding-right: 5px !important; }
                 .pt-2 { padding-top: 5px !important; }
@@ -2744,7 +2744,7 @@ function imprimirGeneric(source, title) {
     if (elementToPrint) {
         const clone = elementToPrint.cloneNode(true);
 
-        // Lógica para buscar o texto da observação salva e colocar na área de impressão
+        // Lógica para buscar o texto da observaçáo salva e colocar na área de impressáo
         const allCardsInClone = clone.querySelectorAll('div[data-load-id]');
         allCardsInClone.forEach(cardClone => {
             const loadId = cardClone.dataset.loadId;
@@ -2791,30 +2791,30 @@ function imprimirCargasGeneric(divId, title) {
     const containerDiv = document.getElementById(divId);
     if (!containerDiv) return;
 
-    // CORREÃ‡ÃƒO: Busca todos os cards de carga dentro do container geral da aba (ex: 'resultado-fiorino-geral'),
+    // CORREá‡áƒO: Busca todos os cards de carga dentro do container geral da aba (ex: 'resultado-fiorino-geral'),
     // incluindo tanto os gerados pelo sistema quanto os manuais.
     const cardsParaImprimir = containerDiv.querySelectorAll('div[data-load-id]');
 
-    if (cardsParaImprimir.length === 0) { alert(`Nenhuma carga montada para imprimir na seÃ§Ã£o "${title}".`); return; }
+    if (cardsParaImprimir.length === 0) { alert(`Nenhuma carga montada para imprimir na seá§á£o "${title}".`); return; }
 
     const containerClone = document.createElement('div');
 
-    let finalTitle = title; // ComeÃ§a com o tÃ­tulo padrÃ£o
+    let finalTitle = title; // Comeá§a com o tá­tulo padrá£o
 
-    // LÃ“GICA APRIMORADA: Verifica se QUALQUER carga a ser impressa contÃ©m rotas de SP, independentemente da aba.
+    // Lá“GICA APRIMORADA: Verifica se QUALQUER carga a ser impressa contá©m rotas de SP, independentemente da aba.
     let isSaoPauloRoute = false;
     const spRoutes = new Set(['2555', '2560', '2561', '2571', '2575', '2705', '2735', '2745']);
     for (const card of cardsParaImprimir) {
         const loadId = card.dataset.loadId;
         if (activeLoads[loadId] && activeLoads[loadId].pedidos.some(p => spRoutes.has(String(p.Cod_Rota)))) {
             isSaoPauloRoute = true;
-            break; // Encontrou uma, jÃ¡ pode parar
+            break; // Encontrou uma, já¡ pode parar
         }
     }
 
-    // Se for uma rota de SP, altera o tÃ­tulo para refletir isso.
+    // Se for uma rota de SP, altera o tá­tulo para refletir isso.
     if (isSaoPauloRoute) {
-        finalTitle = `${title} (SÃ£o Paulo)`;
+        finalTitle = `${title} (Sá£o Paulo)`;
     }
 
     cardsParaImprimir.forEach(originalCard => {
@@ -2825,15 +2825,15 @@ function imprimirCargasGeneric(divId, title) {
         if (clonePrintDiv) {
             const printParagraph = clonePrintDiv.querySelector('p');
             if (printParagraph && observationText) {
-                printParagraph.innerHTML = `<strong>ObservaÃ§Ãµes:</strong><br>${observationText.replace(/\n/g, '<br>')}`;
+                printParagraph.innerHTML = `<strong>Observaá§áµes:</strong><br>${observationText.replace(/\n/g, '<br>')}`;
                 clonePrintDiv.style.display = 'block';
             }
         }
         containerClone.appendChild(cardClone);
     });
 
-    const printWindow = createPrintWindow(finalTitle); // Usa o tÃ­tulo final
-    printWindow.document.body.innerHTML = `<h3>${finalTitle}</h3>` + containerClone.innerHTML; // Usa o tÃ­tulo final
+    const printWindow = createPrintWindow(finalTitle); // Usa o tá­tulo final
+    printWindow.document.body.innerHTML = `<h3>${finalTitle}</h3>` + containerClone.innerHTML; // Usa o tá­tulo final
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
@@ -2843,10 +2843,10 @@ function imprimirTocoIndividual(cf) {
     if (!gruposToco[cf]) { showToast(`Nenhuma carga Toco encontrada para o CF: ${cf}`, 'warning'); return; }
     const grupo = gruposToco[cf];
 
-    // VERIFICAÃ‡ÃƒO: Impede a impressÃ£o e montagem se houver qualquer pedido bloqueado no grupo.
+    // VERIFICAá‡áƒO: Impede a impressá£o e montagem se houver qualquer pedido bloqueado no grupo.
     const hasBlockedOrder = grupo.pedidos.some(p => isPedidoBloqueado(p));
     if (hasBlockedOrder) {
-        showToast(`NÃ£o Ã© possÃ­vel montar a carga Toco (CF: ${cf}) pois ela contÃ©m pedidos bloqueados.`, 'danger');
+        showToast(`Náo á© possá­vel montar a carga Toco (CF: ${cf}) pois ela contá©m pedidos bloqueados.`, 'danger');
         return;
     }
 
@@ -2862,25 +2862,25 @@ function imprimirTocoIndividual(cf) {
         printWindow.close();
     }, 500);
 
-    // Remove o grupo Toco da lista de disponÃ­veis e atualiza a UI
+    // Remove o grupo Toco da lista de disponá­veis e atualiza a UI
     delete gruposToco[cf];
     renderAllUI();
     showToast(`Carga Toco (CF: ${cf}) impressa e considerada montada.`, 'success');
 }
 function imprimirCargaManualIndividual(loadId) {
-    const load = activeLoads[loadId]; const cardToPrint = document.getElementById(loadId); if (!load || !cardToPrint) { showToast(`Erro: Carga com ID ${loadId} nÃ£o encontrada.`, 'error'); return; }
+    const load = activeLoads[loadId]; const cardToPrint = document.getElementById(loadId); if (!load || !cardToPrint) { showToast(`Erro: Carga com ID ${loadId} ná£o encontrada.`, 'error'); return; }
     const cardClone = cardToPrint.cloneNode(true);
     const observationText = load?.observation || '';
     const clonePrintDiv = cardClone.querySelector('.print-only-observation');
     if (clonePrintDiv) {
         const printParagraph = clonePrintDiv.querySelector('p');
         if (printParagraph && observationText) {
-            printParagraph.innerHTML = `<strong>ObservaÃ§Ãµes:</strong><br>${observationText.replace(/\n/g, '<br>')}`;
+            printParagraph.innerHTML = `<strong>Observaá§áµes:</strong><br>${observationText.replace(/\n/g, '<br>')}`;
             clonePrintDiv.style.display = 'block';
         }
     }
 
-    const title = `ImpressÃ£o - Carga Manual ${load.numero} (${load.vehicleType})`;
+    const title = `Impressá£o - Carga Manual ${load.numero} (${load.vehicleType})`;
     const printWindow = createPrintWindow(title);
 
     printWindow.document.body.innerHTML = `<h3>${title}</h3>` + cardClone.outerHTML;
@@ -2901,7 +2901,7 @@ function imprimirCargaIndividual(loadId) {
     const cardToPrint = document.getElementById(loadId);
 
     if (!load || !cardToPrint) {
-        showToast(`Erro: Carga com ID ${loadId} não encontrada para impressão.`, 'error');
+        showToast(`Erro: Carga com ID ${loadId} náo encontrada para impressáo.`, 'error');
         return;
     }
 
@@ -2914,7 +2914,7 @@ function imprimirCargaIndividual(loadId) {
         clonePrintDiv.style.display = 'block';
     }
 
-    imprimirGeneric(cardClone.outerHTML, `Impressão - Carga ${load.numero} (${load.vehicleType})`);
+    imprimirGeneric(cardClone.outerHTML, `Impressáo - Carga ${load.numero} (${load.vehicleType})`);
 }
 
 
@@ -2932,7 +2932,7 @@ function isMoveValid(load, groupToAdd, vehicleType) {
                 .map(p => normalizeClientId(p.Cliente))
         );
         const groupToAddClientId = normalizeClientId(groupToAdd.pedidos[0].Cliente);
-        // REGRA: Permite no mÃ¡ximo 2 clientes especiais por carga (Volta ao padrÃ£o anterior).
+        // REGRA: Permite no má¡ximo 2 clientes especiais por carga (Volta ao padrá£o anterior).
         if (!specialClientIdsInLoad.has(groupToAddClientId) && specialClientIdsInLoad.size >= 2) {
             return false;
         }
@@ -2947,14 +2947,14 @@ function runHeuristicOptimization(packableGroups, vehicleType) {
     const strategies = [
         {
             name: 'priority-weight-desc', sorter: (a, b) => {
-                // 1. Prioriza por data mais antiga (CritÃ©rio Principal)
+                // 1. Prioriza por data mais antiga (Critá©rio Principal)
                 if (a.oldestDate && b.oldestDate) {
                     if (a.oldestDate < b.oldestDate) return -1;
                     if (a.oldestDate > b.oldestDate) return 1;
                 } else if (a.oldestDate) { return -1; }
                 else if (b.oldestDate) { return 1; }
 
-                // 2. Prioridade Manual (CritÃ©rio SecundÃ¡rio)
+                // 2. Prioridade Manual (Critá©rio Secundá¡rio)
                 const aHasPrio = a.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido).trim()) || pedidosRecall.includes(String(p.Num_Pedido).trim()));
                 const bHasPrio = b.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido).trim()) || pedidosRecall.includes(String(p.Num_Pedido).trim()));
                 if (aHasPrio && !bHasPrio) return -1;
@@ -3008,7 +3008,7 @@ function runHeuristicOptimization(packableGroups, vehicleType) {
         }
     }
 
-    console.log(`NÃ­vel 1: Melhor estratÃ©gia para ${vehicleType} foi ${bestResult.strategy} com ${bestResult.leftoverWeight.toFixed(2)}kg de sobra.`);
+    console.log(`Ná­vel 1: Melhor estratá©gia para ${vehicleType} foi ${bestResult.strategy} com ${bestResult.leftoverWeight.toFixed(2)}kg de sobra.`);
     return bestResult;
 }
 
@@ -3089,26 +3089,26 @@ function getSolutionEnergy(solution, vehicleType) {
         const weights = solution.loads.map(l => l.totalKg);
         const averageWeight = weights.reduce((sum, w) => sum + w, 0) / weights.length;
 
-        // A variÃ¢ncia mede o quÃ£o espalhados os pesos estÃ£o em relaÃ§Ã£o Ã  mÃ©dia.
+        // A variá¢ncia mede o quá£o espalhados os pesos está£o em relaá§á£o á  má©dia.
         const variance = weights.reduce((sum, w) => sum + Math.pow(w - averageWeight, 2), 0) / weights.length;
         balancePenalty = variance * balancingFactor;
     }
 
-    // A energia total Ã© a soma do peso das sobras e das penalidades.
+    // A energia total á© a soma do peso das sobras e das penalidades.
     return leftoverWeight + loadPenalty + balancePenalty;
 }
 
 let thinkingInterval = null;
 function startThinkingText() {
     const phrases = [
-        "Analisando combinaÃ§Ãµes...",
-        "Testando cenÃ¡rios de encaixe...",
+        "Analisando combinações...",
+        "Testando cenários de encaixe...",
         "Calculando a melhor rota...",
-        "Verificando restriÃ§Ãµes de peso e cubagem...",
+        "Verificando restrições de peso e cubagem...",
         "Buscando o melhor aproveitamento...",
         "Simulando trocas entre cargas...",
-        "Otimizando a distribuiÃ§Ã£o...",
-        "Refinando a soluÃ§Ã£o encontrada..."
+        "Otimizando a distribuição...",
+        "Refinando a solução encontrada..."
     ];
     let currentIndex = 0;
     const thinkingTextElement = document.getElementById('thinking-text');
@@ -3184,7 +3184,7 @@ function refinarCargasComTrocas(initialLoads, initialLeftovers, vehicleType) {
                         leftovers.splice(i, 1);
                         leftovers.push(groupToSwapOut);
 
-                        console.log(`POLIMENTO (NÃ­vel 3): Encaixou grupo de ${leftoverGroup.totalKg.toFixed(2)}kg trocando por um de ${groupToSwapOut.totalKg.toFixed(2)}kg.`);
+                        console.log(`POLIMENTO (Ná­vel 3): Encaixou grupo de ${leftoverGroup.totalKg.toFixed(2)}kg trocando por um de ${groupToSwapOut.totalKg.toFixed(2)}kg.`);
                         improvementMade = true;
                         break;
                     }
@@ -3195,7 +3195,7 @@ function refinarCargasComTrocas(initialLoads, initialLeftovers, vehicleType) {
         }
     } while (improvementMade && leftovers.length > 0 && attempts < maxAttempts);
 
-    if (attempts >= maxAttempts) console.warn("Polimento (NÃ­vel 3) interrompido para evitar loop infinito.");
+    if (attempts >= maxAttempts) console.warn("Polimento (Ná­vel 3) interrompido para evitar loop infinito.");
 
     return { refinedLoads: loads, remainingLeftovers: leftovers };
 }
@@ -3215,7 +3215,7 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
 
     processedRoutes.add(routesKey);
 
-    // CORREÃ‡ÃƒO: Limpa a Ã¡rea de resultado antes de processar uma nova rota.
+    // CORREá‡áƒO: Limpa a á¡rea de resultado antes de processar uma nova rota.
     // Isso garante que apenas as cargas da rota atual sejam exibidas.
     const resultadoDiv = document.getElementById(divId);
     if (!isBatchMode) {
@@ -3225,7 +3225,7 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
         const emptyState = resultadoDiv.querySelector('.empty-state');
         if (emptyState) emptyState.remove();
     }
-    // Restaura o feedback visual no botÃ£o da rota processada
+    // Restaura o feedback visual no botá£o da rota processada
 
     if (planilhaData.length === 0) {
         resultadoDiv.innerHTML = '<p class="text-danger">Nenhum dado de planilha carregado.</p>';
@@ -3247,7 +3247,7 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
     let packableGroups = Object.values(clientGroupsMap);
 
     // NOVO: Calcula a data de pedido mais antiga para cada grupo de cliente.
-    // (Movido para antes da lÃ³gica da rota 11711 para garantir que os grupos excluÃ­dos tambÃ©m tenham a data calculada para a cascata)
+    // (Movido para antes da lá³gica da rota 11711 para garantir que os grupos excluá­dos tambá©m tenham a data calculada para a cascata)
     packableGroups.forEach(group => {
         group.oldestDate = group.pedidos.reduce((oldest, p) => {
             // Prioridade: Dat_Ped (Data do Pedido) para FIFO. Fallback para Predat se Dat_Ped estiver vazio.
@@ -3266,10 +3266,10 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
         }, null);
     });
 
-    // --- LÃ“GICA ESPECIAL PARA PRIORIZAR FIORINO EM ROTAS MISTAS ---
+    // --- Lá“GICA ESPECIAL PARA PRIORIZAR FIORINO EM ROTAS MISTAS ---
     let groupsExcludedFromFiorino = [];
 
-    // Verifica se alguma das rotas atuais estÃ¡ no mapa especial
+    // Verifica se alguma das rotas atuais está¡ no mapa especial
     const rotaEspecialEncontrada = routes.find(r => rotasEspeciaisFiorino[r]);
 
     if (rotaEspecialEncontrada) {
@@ -3307,24 +3307,24 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
     const optimizationLevel = document.getElementById('optimizationLevelSelect').value;
     let optimizationResult;
 
-    // --- LÃ“GICA DE PROCESSAMENTO COM WEB WORKER ---
+    // --- Lá“GICA DE PROCESSAMENTO COM WEB WORKER ---
     const processingWorker = new Worker('worker.js');
     const modalElement = document.getElementById('processing-modal');
     const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
     const progressBar = document.getElementById('processing-progress-bar');
     const statusText = document.getElementById('processing-status-text');
 
-    // Mostra o modal de processamento para otimizaÃ§Ãµes que demoram
+    // Mostra o modal de processamento para otimizaá§áµes que demoram
     if (optimizationLevel !== '1') {
         progressBar.style.width = '0%';
         statusText.textContent = `Otimizando ${title}...`;
         startThinkingText();
         modal.show();
     } else {
-        resultadoDiv.insertAdjacentHTML('beforeend', '<div id="spinner-temp-container" class="d-flex align-items-center justify-content-center p-5"><div class="spinner-border text-primary" role="status"></div><span class="ms-3">Analisando estratÃ©gias e montando cargas...</span></div>');
+        resultadoDiv.insertAdjacentHTML('beforeend', '<div id="spinner-temp-container" class="d-flex align-items-center justify-content-center p-5"><div class="spinner-border text-primary" role="status"></div><span class="ms-3">Analisando estratá©gias e montando cargas...</span></div>');
     }
 
-    // Coleta as configuraÃ§Ãµes atuais dos veÃ­culos
+    // Coleta as configuraá§áµes atuais dos veá­culos
     const vehicleConfigs = {
         fiorinoMinCapacity: parseFloat(document.getElementById('fiorinoMinCapacity').value), fiorinoMaxCapacity: parseFloat(document.getElementById('fiorinoMaxCapacity').value), fiorinoCubage: parseFloat(document.getElementById('fiorinoCubage').value), fiorinoHardMaxCapacity: parseFloat(document.getElementById('fiorinoHardMaxCapacity').value), fiorinoHardCubage: parseFloat(document.getElementById('fiorinoHardCubage').value),
         vanMinCapacity: parseFloat(document.getElementById('vanMinCapacity').value), vanMaxCapacity: parseFloat(document.getElementById('vanMaxCapacity').value), vanCubage: parseFloat(document.getElementById('vanCubage').value), vanHardMaxCapacity: parseFloat(document.getElementById('vanHardMaxCapacity').value), vanHardCubage: parseFloat(document.getElementById('vanHardCubage').value),
@@ -3361,7 +3361,7 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
         };
     });
 
-    // Limpeza apÃ³s o tÃ©rmino
+    // Limpeza apá³s o tá©rmino
     allRouteButtons.forEach(btn => { if (!btn.classList.contains('active')) btn.disabled = false; });
     if (optimizationLevel !== '1') {
         stopThinkingText();
@@ -3371,18 +3371,18 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
         if (spinner) spinner.remove();
     }
     processingWorker.terminate();
-    // --- FIM DA LÃ“GICA DO WORKER ---
+    // --- FIM DA Lá“GICA DO WORKER ---
 
-    // Tenta encaixar sobras em cargas existentes que ainda tÃªm espaÃ§o.
+    // Tenta encaixar sobras em cargas existentes que ainda táªm espaá§o.
     const { refinedLoads: initialRefinedLoads, remainingLeftovers: initialLeftovers } = refineLoadsWithSimpleFit(optimizationResult.loads, optimizationResult.leftovers);
 
-    // Reintegra os grupos excluÃ­dos da otimizaÃ§Ã£o inicial (Rota 11711) para serem processados na cascata (Van)
+    // Reintegra os grupos excluá­dos da otimizaá§á£o inicial (Rota 11711) para serem processados na cascata (Van)
     if (groupsExcludedFromFiorino.length > 0) {
         initialLeftovers.push(...groupsExcludedFromFiorino);
     }
 
     // ========================================================================
-    // INÃCIO DA NOVA LÃ“GICA DE CASCATA (Fiorino -> Van -> 3/4 -> Toco)
+    // INáCIO DA NOVA Lá“GICA DE CASCATA (Fiorino -> Van -> 3/4 -> Toco)
     // ========================================================================
     let primaryLoads = initialRefinedLoads;
     let leftoverGroups = initialLeftovers;
@@ -3392,11 +3392,11 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
 
     primaryLoads.forEach(l => l.vehicleType = vehicleType);
 
-    // FunÃ§Ã£o auxiliar para chamar a otimizaÃ§Ã£o (usando a heurÃ­stica rÃ¡pida para as cascatas)
+    // Funá§á£o auxiliar para chamar a otimizaá§á£o (usando a heurá­stica rá¡pida para as cascatas)
     const runCascadeOptimization = (groups, cascadeVehicleType) => {
         if (groups.length === 0) return { loads: [], leftovers: [] };
         console.log(`CASCATA: Tentando montar ${cascadeVehicleType} com ${groups.length} grupos de sobras.`);
-        // Usamos a heurÃ­stica simples (NÃ­vel 1) para as etapas da cascata para manter a velocidade.
+        // Usamos a heurá­stica simples (Ná­vel 1) para as etapas da cascata para manter a velocidade.
         return runHeuristicOptimization(groups, cascadeVehicleType);
     };
 
@@ -3439,7 +3439,7 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
     }
 
     // ========================================================================
-    // FIM DA NOVA LÃ“GICA DE CASCATA
+    // FIM DA NOVA Lá“GICA DE CASCATA
     // ========================================================================
 
     const allPotentialLoads = [...primaryLoads, ...secondaryLoads, ...tertiaryLoads, ...quaternaryLoads];
@@ -3448,8 +3448,8 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
 
     allPotentialLoads.forEach(load => {
         const config = getVehicleConfig(load.vehicleType);
-        if (!config) { // Adiciona uma verificaÃ§Ã£o para o caso de um tipo de veÃ­culo invÃ¡lido
-            console.warn(`ConfiguraÃ§Ã£o nÃ£o encontrada para o tipo de veÃ­culo: ${load.vehicleType}. Descartando carga.`);
+        if (!config) { // Adiciona uma verificaá§á£o para o caso de um tipo de veá­culo invá¡lido
+            console.warn(`Configuraá§á£o ná£o encontrada para o tipo de veá­culo: ${load.vehicleType}. Descartando carga.`);
             const clientGroupsInFailedLoad = Object.values(load.pedidos.reduce((acc, p) => {
                 const clienteId = normalizeClientId(p.Cliente);
                 if (!acc[clienteId]) { acc[clienteId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) }; }
@@ -3462,7 +3462,7 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
             return;
         }
 
-        // A condiÃ§Ã£o volta a ser estrita para garantir que tentamos encher a carga primeiro
+        // A condiá§á£o volta a ser estrita para garantir que tentamos encher a carga primeiro
         if (load.totalKg >= config.minKg) {
             finalValidLoads.push(load);
         } else {
@@ -3486,15 +3486,15 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
         activeLoads[loadId] = load;
     });
 
-    // CORREÃ‡ÃƒO: Isola as cargas geradas nesta execuÃ§Ã£o especÃ­fica para renderizaÃ§Ã£o.
+    // CORREá‡áƒO: Isola as cargas geradas nesta execuá§á£o especá­fica para renderizaá§á£o.
     // Isso impede que cargas de processamentos anteriores sejam redesenhadas.
     const loadsGeneratedInThisRun = finalValidLoads;
 
-    // Atualiza a lista de pedidos disponÃ­veis, removendo os que acabaram de ser alocados.
+    // Atualiza a lista de pedidos disponá­veis, removendo os que acabaram de ser alocados.
     const alocatedOrderIds = new Set(finalValidLoads.flatMap(load => load.pedidos.map(p => p.Num_Pedido)));
     pedidosGeraisAtuais = pedidosGeraisAtuais.filter(p => !alocatedOrderIds.has(p.Num_Pedido));
 
-    // ATUALIZADO: A renderizaÃ§Ã£o agora Ã© centralizada, mas a lÃ³gica de foco na UI permanece.
+    // ATUALIZADO: A renderizaá§á£o agora á© centralizada, mas a lá³gica de foco na UI permanece.
     const gruposGeraisRestantes = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
     setTimeout(() => { // Adicionado um pequeno atraso para garantir que a UI esteja pronta
         const routeContext = {
@@ -3505,7 +3505,7 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
         };
         saveRouteContext(routeContext);
 
-        // MOVED: Salva o estado aqui, APÃ“S o contexto da rota ter sido atualizado.
+        // MOVED: Salva o estado aqui, APá“S o contexto da rota ter sido atualizado.
         // Isso garante que ao recarregar, saibamos onde exibir esta carga.
         saveStateToLocalStorage();
     }, 100);
@@ -3519,7 +3519,7 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
 
     let html = `<h5 class="mt-3">Cargas para <strong>${title}</strong></h5>`;
 
-    // CORREÃ‡ÃƒO: Renderiza apenas as cargas geradas nesta execuÃ§Ã£o.
+    // CORREá‡áƒO: Renderiza apenas as cargas geradas nesta execuá§á£o.
     if (loadsGeneratedInThisRun.length === 0) {
         html += `<div class="alert alert-secondary">Nenhuma carga foi formada para esta rota.</div>`;
     } else {
@@ -3533,34 +3533,34 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
         resultadoDiv.insertAdjacentHTML('beforeend', `<div class="resultado-container">${html}</div>`);
     }
 
-    // CORREÃ‡ÃƒO: As chamadas de atualizaÃ§Ã£o da UI foram movidas para o final,
+    // CORREá‡áƒO: As chamadas de atualizaá§á£o da UI foram movidas para o final,
     // e a chamada para `handlePostProcessingUI` foi ajustada para lidar com as sobras
-    // desta execuÃ§Ã£o especÃ­fica.
+    // desta execuá§á£o especá­fica.
     updateAndRenderKPIs();
     updateAndRenderChart();
-    // CORREÃ‡ÃƒO: ForÃ§a a re-renderizaÃ§Ã£o dos botÃµes para garantir que o botÃ£o de reprocessar apareÃ§a.
+    // CORREá‡áƒO: Forá§a a re-renderizaá§á£o dos botáµes para garantir que o botá£o de reprocessar apareá§a.
     const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
     displayGerais(document.getElementById('resultado-geral'), gruposGerais);
     displayGerais(document.getElementById('resultado-geral'), pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {}));
-    handlePostProcessingUI(finalLeftoverGroups, routeOrRoutes, title, divId); // CORREÃ‡ÃƒO: Chamada ajustada
+    handlePostProcessingUI(finalLeftoverGroups, routeOrRoutes, title, divId); // CORREá‡áƒO: Chamada ajustada
 
 }
 
 function reprocessarRota(routesKey, event) {
-    event.stopPropagation(); // Impede que o clique dispare a exibiÃ§Ã£o da rota
+    event.stopPropagation(); // Impede que o clique dispare a exibiá§á£o da rota
 
-    if (!confirm(`Tem certeza que deseja reprocessar a rota ${routesKey}? As cargas atuais para esta rota serÃ£o desfeitas.`)) {
+    if (!confirm(`Tem certeza que deseja reprocessar a rota ${routesKey}? As cargas atuais para esta rota será£o desfeitas.`)) {
         return;
     }
 
     // 1. Encontrar as cargas associadas a esta rota
-    // CORREÃ‡ÃƒO: Filtra apenas as cargas criadas por este processamento especÃ­fico (routesKey)
+    // CORREá‡áƒO: Filtra apenas as cargas criadas por este processamento especá­fico (routesKey)
     const loadsToUndo = Object.values(activeLoads).filter(load =>
         load.routesKey === routesKey
     );
 
     if (loadsToUndo.length === 0) {
-        showToast("Nenhuma carga encontrada para esta rota. Resetando o botÃ£o.", "info");
+        showToast("Nenhuma carga encontrada para esta rota. Resetando o botá£o.", "info");
     }
 
     // 2. Coletar todos os pedidos das cargas a serem desfeitas
@@ -3572,7 +3572,7 @@ function reprocessarRota(routesKey, event) {
     });
 
     // 4. Devolver os pedidos para a lista de `pedidosGeraisAtuais`
-    // CORREÃ‡ÃƒO: Evita duplicatas ao devolver pedidos para a lista de disponÃ­veis
+    // CORREá‡áƒO: Evita duplicatas ao devolver pedidos para a lista de disponá­veis
     const currentIds = new Set(pedidosGeraisAtuais.map(p => String(p.Num_Pedido)));
     const uniquePedidos = pedidosParaDevolver.filter(p => !currentIds.has(String(p.Num_Pedido)));
     pedidosGeraisAtuais.push(...uniquePedidos);
@@ -3582,7 +3582,7 @@ function reprocessarRota(routesKey, event) {
     delete processedRouteContexts[routesKey];
 
     // 6. Redesenhar a UI para refletir o estado atualizado
-    // Limpa a visualizaÃ§Ã£o da rota se ela estiver sendo mostrada no momento
+    // Limpa a visualizaá§á£o da rota se ela estiver sendo mostrada no momento
     const context = processedRouteContexts[routesKey];
     if (context) {
         const resultadoDiv = document.getElementById(context.divId);
@@ -3598,7 +3598,7 @@ function exibirCargasDaRota(routesKey) {
     if (!context) return;
 
     const resultadoDiv = document.getElementById(context.divId);
-    resultadoDiv.innerHTML = ''; // Limpa a Ã¡rea de resultado
+    resultadoDiv.innerHTML = ''; // Limpa a á¡rea de resultado
 
     const vehicleInfo = {
         fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
@@ -3608,7 +3608,7 @@ function exibirCargasDaRota(routesKey) {
     };
 
     // Encontra as cargas salvas para esta rota
-    // CORREÃ‡ÃƒO: Filtra estritamente pelo routesKey para evitar mostrar Tocos ou cargas de outras rotas que compartilhem pedidos
+    // CORREá‡áƒO: Filtra estritamente pelo routesKey para evitar mostrar Tocos ou cargas de outras rotas que compartilhem pedidos
     const loadsParaExibir = Object.values(activeLoads).filter(load =>
         load.routesKey === routesKey
     );
@@ -3624,7 +3624,7 @@ function exibirCargasDaRota(routesKey) {
 
 function roteirizarSobrasSP(leftoverPedidos) {
     if (!leftoverPedidos || leftoverPedidos.length === 0) {
-        showToast("NÃ£o hÃ¡ sobras para roteirizar.", 'info');
+        showToast("Náo há¡ sobras para roteirizar.", 'info');
         return;
     }
 
@@ -3639,11 +3639,11 @@ function roteirizarSobrasSP(leftoverPedidos) {
 
     const cidadesComEstado = Array.from(cidadesMap.entries());
     if (cidadesComEstado.length === 0) {
-        showToast("Nenhuma cidade vÃ¡lida encontrada nas sobras para roteirizar.", 'warning');
+        showToast("Nenhuma cidade vá¡lida encontrada nas sobras para roteirizar.", 'warning');
         return;
     }
 
-    const origem = "Empresa Selmi, BR-369, 86181-570 RolÃ¢ndia, ParanÃ¡, Brasil";
+    const origem = "Empresa Selmi, BR-369, 86181-570 Rolá¢ndia, Paraná¡, Brasil";
     const baseUrl = "https://graphhopper.com/maps/";
     const params = new URLSearchParams();
     params.append('point', origem);
@@ -3668,22 +3668,22 @@ function handlePostProcessingUI(sobras, rotasProcessadas, tituloRota, divId) {
     if (oldLeftoversCard) oldLeftoversCard.remove();
 
     // NOVO: Verifica se alguma carga foi realmente criada para esta rota.
-    // Se nenhuma carga foi criada, nÃ£o mostra o card de sobras, apenas abre o acordeÃ£o.
+    // Se nenhuma carga foi criada, ná£o mostra o card de sobras, apenas abre o acordeá£o.
     const loadsForThisRoute = Object.values(activeLoads).filter(load =>
         load.pedidos.some(p => rotasProcessadas.includes(String(p.Cod_Rota)))
     );
     const noLoadsCreated = loadsForThisRoute.length === 0;
 
     if (allSobrasPedidos.length > 0) {
-        currentLeftoversForPrinting = allSobrasPedidos; // Atualiza a variÃ¡vel global de sobras
+        currentLeftoversForPrinting = allSobrasPedidos; // Atualiza a variá¡vel global de sobras
         const rotas = Array.isArray(rotasProcessadas) ? rotasProcessadas : [String(rotasProcessadas)];
 
-        // CORREÃ‡ÃƒO DEFINITIVA: Identifica uma rota de SP se ela comeÃ§ar com '25', '26' ou '27'.
+        // CORREá‡áƒO DEFINITIVA: Identifica uma rota de SP se ela comeá§ar com '25', '26' ou '27'.
         // Isso garante que todas as rotas de varejo de SP, incluindo as novas, sejam capturadas.
         const isSaoPauloRoute = rotas.some(r =>
             String(r).startsWith('25') || String(r).startsWith('26') || String(r).startsWith('27'));
 
-        // NOVO: Acumula as sobras de SP e habilita o botÃ£o de exportaÃ§Ã£o
+        // NOVO: Acumula as sobras de SP e habilita o botá£o de exportaá§á£o
         if (isSaoPauloRoute) {
             allSaoPauloLeftovers.push(...allSobrasPedidos);
             document.getElementById('export-sobras-sp-btn').disabled = false;
@@ -3691,9 +3691,9 @@ function handlePostProcessingUI(sobras, rotasProcessadas, tituloRota, divId) {
         const finalLeftoverKg = allSobrasPedidos.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
         const printButtonHtml = `<button class="btn btn-info ms-2 no-print" onclick="imprimirSobras('Sobras Finais de ${tituloRota}')"><i class="bi bi-printer-fill me-1"></i>Imprimir Sobras</button>`;
 
-        // O card de sobras foi removido conforme solicitado. As sobras jÃ¡ estÃ£o visÃ­veis na lista de "DisponÃ­veis Varejo".
+        // O card de sobras foi removido conforme solicitado. As sobras já¡ está£o visá­veis na lista de "Disponá­veis Varejo".
 
-        // Se sobrou, encontra o acordeÃ£o da primeira rota processada e o abre
+        // Se sobrou, encontra o acordeá£o da primeira rota processada e o abre
         const rotaPrincipal = rotas[0];
         const collapseElement = document.getElementById(`collapseGeral-${rotaPrincipal}`);
         if (collapseElement) {
@@ -3702,7 +3702,7 @@ function handlePostProcessingUI(sobras, rotasProcessadas, tituloRota, divId) {
         }
 
     } else {
-        // Se nÃ£o sobrou nada, significa que todos os pedidos foram alocados.
+        // Se ná£o sobrou nada, significa que todos os pedidos foram alocados.
         // Mostra a mensagem de sucesso apenas se alguma carga foi criada.
         if (!noLoadsCreated) {
             const resultContainer = document.getElementById(divId);
@@ -3720,14 +3720,14 @@ function handlePostProcessingUI(sobras, rotasProcessadas, tituloRota, divId) {
 
 function exportarSobrasSP_PDF() {
     if (allSaoPauloLeftovers.length === 0) {
-        showToast("NÃ£o hÃ¡ sobras de rotas de SÃ£o Paulo para exportar.", 'info');
+        showToast("Náo há¡ sobras de rotas de Sá£o Paulo para exportar.", 'info');
         return;
     }
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    const title = "RelatÃ³rio de Sobras - Vans SÃ£o Paulo";
+    const title = "Relatá³rio de Sobras - Vans Sá£o Paulo";
     const today = new Date().toLocaleDateString('pt-BR');
 
     doc.setFontSize(18);
@@ -3736,7 +3736,7 @@ function exportarSobrasSP_PDF() {
     doc.setTextColor(100);
     doc.text(`Gerado em: ${today}`, 14, 30);
 
-    const tableColumn = ["Cod Rota", "NÃºmero do Pedido", "Peso (kg)", "Cidade"];
+    const tableColumn = ["Cod Rota", "Náºmero do Pedido", "Peso (kg)", "Cidade"];
     const tableRows = [];
     let totalWeight = 0;
 
@@ -3752,7 +3752,7 @@ function exportarSobrasSP_PDF() {
         tableRows.push(pedidoData);
     });
 
-    // Adiciona a linha de rodapÃ© com os totais
+    // Adiciona a linha de rodapá© com os totais
     const footerRow = [
         { content: `Total de Pedidos: ${allSaoPauloLeftovers.length}`, colSpan: 2, styles: { fontStyle: 'bold', halign: 'right' } },
         { content: totalWeight.toLocaleString('pt-BR', { minimumFractionDigits: 2 }), styles: { fontStyle: 'bold' } },
@@ -3765,19 +3765,19 @@ function exportarSobrasSP_PDF() {
 }
 
 async function runExpertOptimizer(packableGroups, vehicleType) {
-    console.log(`Executando NÃ­vel 2: OtimizaÃ§Ã£o Especialista para ${vehicleType}...`);
+    console.log(`Executando Ná­vel 2: Otimizaá§á£o Especialista para ${vehicleType}...`);
 
-    // Fase 1: OtimizaÃ§Ã£o principal com Recozimento Simulado
-    const saResult = await runSimulatedAnnealing(packableGroups, vehicleType, 'Otimizando... (Fase 1/3: AnÃ¡lise Profunda)');
+    // Fase 1: Otimizaá§á£o principal com Recozimento Simulado
+    const saResult = await runSimulatedAnnealing(packableGroups, vehicleType, 'Otimizando... (Fase 1/3: Aná¡lise Profunda)');
 
-    // Fase 2: Tenta reconstruir a pior carga para melhorar a soluÃ§Ã£o
-    document.getElementById('processing-status-text').textContent = 'Otimizando... (Fase 2/3: ReconstruÃ§Ã£o)';
+    // Fase 2: Tenta reconstruir a pior carga para melhorar a soluá§á£o
+    document.getElementById('processing-status-text').textContent = 'Otimizando... (Fase 2/3: Reconstruá§á£o)';
     document.getElementById('thinking-text').textContent = 'Analisando e reestruturando cargas ineficientes.';
     const reconstructed = await refinarComReconstrucao(saResult.loads, saResult.leftovers, vehicleType);
 
     // Fase 3: Faz um polimento final, tentando trocar sobras com itens de menor peso nas cargas
     document.getElementById('processing-status-text').textContent = 'Otimizando... (Fase 3/3: Polimento Final)';
-    document.getElementById('thinking-text').textContent = 'Buscando Ãºltimas oportunidades de encaixe.';
+    document.getElementById('thinking-text').textContent = 'Buscando áºltimas oportunidades de encaixe.';
     return refinarCargasComTrocas(reconstructed.refinedLoads, reconstructed.remainingLeftovers, vehicleType);
 }
 
@@ -3810,7 +3810,7 @@ async function refinarComReconstrucao(initialLoads, initialLeftovers, vehicleTyp
     let leftovers = deepClone(initialLeftovers);
 
     if (loads.length < 2) {
-        console.log("POLIMENTO (NÃ­vel 4): Poucas cargas para reconstruir. Pulando etapa.");
+        console.log("POLIMENTO (Ná­vel 4): Poucas cargas para reconstruir. Pulando etapa.");
         return { refinedLoads: loads, remainingLeftovers: leftovers };
     }
 
@@ -3820,7 +3820,7 @@ async function refinarComReconstrucao(initialLoads, initialLeftovers, vehicleTyp
 
     const config = getVehicleConfig(vehicleType);
     if (worstLoad.totalKg >= config.softMaxKg) {
-        console.log("POLIMENTO (NÃ­vel 4): A carga menos cheia jÃ¡ estÃ¡ bem otimizada. Pulando etapa.");
+        console.log("POLIMENTO (Ná­vel 4): A carga menos cheia já¡ está¡ bem otimizada. Pulando etapa.");
         return { refinedLoads: initialLoads, remainingLeftovers: initialLeftovers };
     }
 
@@ -3844,10 +3844,10 @@ async function refinarComReconstrucao(initialLoads, initialLeftovers, vehicleTyp
     const newSobras = finalLeftovers.reduce((sum, g) => sum + g.totalKg, 0);
 
     if (newSobras < originalSobras) {
-        console.log(`POLIMENTO (NÃ­vel 4): ReconstruÃ§Ã£o bem-sucedida! Sobra reduzida de ${originalSobras.toFixed(2)}kg para ${newSobras.toFixed(2)}kg.`);
+        console.log(`POLIMENTO (Ná­vel 4): Reconstruá§á£o bem-sucedida! Sobra reduzida de ${originalSobras.toFixed(2)}kg para ${newSobras.toFixed(2)}kg.`);
         return { refinedLoads: reconstructedLoads, remainingLeftovers: finalLeftovers };
     } else {
-        console.log("POLIMENTO (NÃ­vel 4): ReconstruÃ§Ã£o nÃ£o melhorou o resultado. Revertendo.");
+        console.log("POLIMENTO (Ná­vel 4): Reconstruá§á£o ná£o melhorou o resultado. Revertendo.");
         return { refinedLoads: initialLoads, remainingLeftovers: initialLeftovers };
     }
 }
@@ -3885,13 +3885,13 @@ function toggleObservationEdit(loadId, editMode) {
                         </div>
                     `;
         } else {
-            container.innerHTML = `<button class="btn btn-sm btn-outline-info" onclick="toggleObservationEdit('${loadId}', true)"><i class="bi bi-plus-circle me-1"></i>Adicionar ObservaÃ§Ã£o</button>`;
+            container.innerHTML = `<button class="btn btn-sm btn-outline-info" onclick="toggleObservationEdit('${loadId}', true)"><i class="bi bi-plus-circle me-1"></i>Adicionar Observaá§á£o</button>`;
         }
     }
 }
 
 function deleteObservation(loadId) {
-    if (activeLoads[loadId] && confirm('Tem certeza que deseja excluir esta observaÃ§Ã£o?')) {
+    if (activeLoads[loadId] && confirm('Tem certeza que deseja excluir esta observaá§á£o?')) {
         activeLoads[loadId].observation = '';
         saveStateToLocalStorage();
         toggleObservationEdit(loadId, false);
@@ -3967,7 +3967,7 @@ function renderLoadCard(load, vehicleType, vInfo) {
     else if (vehicleType === 'van') titleColorClass = 'text-primary';
     else if (vehicleType === 'tresQuartos') titleColorClass = 'text-warning';
 
-    // --- NOVA LÃ“GICA: Identificar Data Mais Antiga (Predat) ---
+    // --- NOVA Lá“GICA: Identificar Data Mais Antiga (Predat) ---
     let oldestDate = null;
     let oldestOrders = [];
 
@@ -3991,7 +3991,7 @@ function renderLoadCard(load, vehicleType, vInfo) {
     if (oldestDate) {
         const dateStr = oldestDate.toLocaleDateString('pt-BR');
         const ordersStr = oldestOrders.join(', ');
-        // Estilo destacado para chamar atenÃ§Ã£o do motorista/expediÃ§Ã£o
+        // Estilo destacado para chamar atená§á£o do motorista/expediá§á£o
         oldestDateHtml = `
                     <div class="mt-2 pt-2 border-top border-secondary-subtle">
                         <div class="d-flex align-items-center text-warning-emphasis">
@@ -4003,9 +4003,9 @@ function renderLoadCard(load, vehicleType, vInfo) {
                         </div>
                     </div>`;
     }
-    // --- FIM NOVA LÃ“GICA ---
+    // --- FIM NOVA Lá“GICA ---
 
-    // --- NOVO: BotÃ£o de aÃ§Ã£o modificado para toggle de mapa e container oculto ---
+    // --- NOVO: Botá£o de aá§á£o modificado para toggle de mapa e container oculto ---
     return `<div id="${load.id}" class="load-card vehicle-${vehicleType} drop-zone-card ${isPriorityLoad ? 'shadow-lg' : ''}" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event)" data-load-id="${load.id}" data-vehicle-type="${vehicleType}">
                         <div class="load-card-header">
                             <div class="d-flex flex-column">
@@ -4055,7 +4055,7 @@ async function calculateManualRoute() {
         return;
     }
 
-    const origem = "Empresa Selmi, BR-369, 86181-570 RolÃ¢ndia, ParanÃ¡, Brasil";
+    const origem = "Empresa Selmi, BR-369, 86181-570 Rolá¢ndia, Paraná¡, Brasil";
     const destino = origem; // A rota retorna para a origem
     const baseUrl = "https://graphhopper.com/maps/";
     const params = new URLSearchParams();
@@ -4074,7 +4074,7 @@ async function calculateManualRoute() {
     // Abre a URL em uma nova aba
     window.open(url, '_blank');
 
-    // Fecha o modal apÃ³s abrir a nova aba
+    // Fecha o modal apá³s abrir a nova aba
     const manualRoutingModalEl = document.getElementById('manualRoutingModal');
     const manualRoutingModal = bootstrap.Modal.getInstance(manualRoutingModalEl);
     if (manualRoutingModal) {
@@ -4085,8 +4085,8 @@ async function calculateManualRoute() {
 async function calcularDistanciaCarga(loadId, retries = 2) {
     const apiKey = document.getElementById('graphhopperApiKey').value;
     if (!apiKey) {
-        showToast("Insira sua chave da API do GraphHopper nas ConfiguraÃ§Ãµes.", 'warning');
-        // Abre o modal de configuraÃ§Ãµes
+        showToast("Insira sua chave da API do GraphHopper nas Configuraá§áµes.", 'warning');
+        // Abre o modal de configuraá§áµes
         const configModal = new bootstrap.Modal(document.getElementById('configModal'));
         configModal.show();
         return;
@@ -4094,7 +4094,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
 
     const load = activeLoads[loadId];
     if (!load) {
-        showToast("Carga nÃ£o encontrada.", 'error');
+        showToast("Carga ná£o encontrada.", 'error');
         return;
     }
 
@@ -4108,7 +4108,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
     }
     if (distanciaSpan) distanciaSpan.innerHTML = '';
 
-    // Extrai cidades Ãºnicas com seus respectivos estados (UF) para maior precisÃ£o,
+    // Extrai cidades áºnicas com seus respectivos estados (UF) para maior precisá£o,
     // buscando os dados completos na planilha original para garantir que 'Cidade' e 'UF' existam.
     const cidadesMap = new Map();
     const pedidoIdsNaCarga = new Set(load.pedidos.map(p => String(p.Num_Pedido)));
@@ -4120,7 +4120,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
 
             if (cidade && uf) {
                 // Usa a cidade como chave para evitar duplicatas.
-                // Assume que uma carga nÃ£o terÃ¡ a mesma cidade em estados diferentes.
+                // Assume que uma carga ná£o terá¡ a mesma cidade em estados diferentes.
                 if (!cidadesMap.has(cidade)) {
                     cidadesMap.set(cidade, uf);
                 }
@@ -4134,12 +4134,12 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
             kmBtn.disabled = false;
             kmBtn.innerHTML = `<i class="bi bi-calculator-fill me-1"></i>Calcular KM`;
         }
-        showToast("Nenhuma cidade vÃ¡lida encontrada para roteirizar.", 'warning');
+        showToast("Nenhuma cidade vá¡lida encontrada para roteirizar.", 'warning');
         return;
     }
 
     // Ponto de partida e chegada fixo
-    const origem = "Empresa Selmi, BR-369, 86181-570 RolÃ¢ndia, ParanÃ¡, Brasil";
+    const origem = "Empresa Selmi, BR-369, 86181-570 Rolá¢ndia, Paraná¡, Brasil";
 
     try {
         // 1. Geocodificar a origem (com cache)
@@ -4155,7 +4155,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
             }
             const origemData = await origemResponse.json();
             if (!origemData.hits || origemData.hits.length === 0) {
-                throw new Error("NÃ£o foi possÃ­vel encontrar as coordenadas da origem (Empresa Selmi). Verifique o endereÃ§o ou a chave da API.");
+                throw new Error("Náo foi possá­vel encontrar as coordenadas da origem (Empresa Selmi). Verifique o endereá§o ou a chave da API.");
             }
             origemPoint = origemData.hits[0].point;
             origemCoords = origemPoint; // Salva em cache para uso futuro
@@ -4172,7 +4172,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
             }
         }
 
-        // 3. Montar e chamar a API de OtimizaÃ§Ã£o de Rota
+        // 3. Montar e chamar a API de Otimizaá§á£o de Rota
         const requestBody = {
             vehicles: [{ vehicle_id: 'veiculo_1', start_address: { location_id: 'start', lon: origemPoint.lng, lat: origemPoint.lat } }],
             services: locations.slice(1).map(loc => ({
@@ -4190,12 +4190,12 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
         });
 
         const routeData = await routeResponse.json();
-        if (routeData.status !== 'finished') throw new Error(`O cÃ¡lculo da rota falhou: ${routeData.message || 'Erro desconhecido'}`);
+        if (routeData.status !== 'finished') throw new Error(`O cá¡lculo da rota falhou: ${routeData.message || 'Erro desconhecido'}`);
 
         const totalDistanceMeters = routeData.solution.distance;
         const totalDistanceKm = (totalDistanceMeters / 1000).toFixed(1);
 
-        // 4. Atualizar o card com a distÃ¢ncia
+        // 4. Atualizar o card com a distá¢ncia
         if (distanciaSpan) {
             distanciaSpan.innerHTML = `<i class="bi bi-geo-alt-fill me-1"></i><strong>${totalDistanceKm} km</strong> (ida e volta)`;
         }
@@ -4210,13 +4210,13 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
         // Se a falha foi na origem e ainda temos tentativas, limpa o cache e tenta de novo.
         if (error.message.includes("origem") && retries > 0) {
             console.warn(`Falha na origem. Limpando cache e tentando novamente... (${retries} tentativas restantes)`);
-            origemCoords = null; // Limpa o cache para forÃ§ar uma nova busca
+            origemCoords = null; // Limpa o cache para forá§ar uma nova busca
             return calcularDistanciaCarga(loadId, retries - 1);
         }
         showToast(`Falha ao calcular a rota: ${error.message}`, 'error');
-        if (distanciaSpan) distanciaSpan.innerHTML = `<span class="text-danger small">Falha no cÃ¡lculo</span>`;
+        if (distanciaSpan) distanciaSpan.innerHTML = `<span class="text-danger small">Falha no cá¡lculo</span>`;
     } finally {
-        // Restaura o botÃ£o
+        // Restaura o botá£o
         if (kmBtn) {
             kmBtn.disabled = false;
             kmBtn.innerHTML = `<i class="bi bi-calculator-fill me-1"></i>Calcular KM`;
@@ -4226,7 +4226,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
 
 
 
-// VariÃ¡vel global para a instÃ¢ncia do mapa no modal
+// Variá¡vel global para a instá¢ncia do mapa no modal
 let mapInstance = null;
 
 async function showRouteOnMap(loadId) {
@@ -4239,7 +4239,7 @@ async function showRouteOnMap(loadId) {
     // Limpa estado anterior
     currentRouteInfo = {};
     mapStatus.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Carregando...';
-    // NÃ£o limpe o innerHTML do container para nÃ£o destruir o elemento que o Leaflet usa, se possÃ­vel, ou recrie
+    // Náo limpe o innerHTML do container para ná£o destruir o elemento que o Leaflet usa, se possá­vel, ou recrie
     if (mapInstance) {
         mapInstance.remove();
         mapInstance = null;
@@ -4255,8 +4255,8 @@ async function showRouteOnMap(loadId) {
 
     const apiKey = document.getElementById('graphhopperApiKey').value;
     if (!apiKey) {
-        mapStatus.innerHTML = '<span class="text-danger">API Key nÃ£o configurada.</span>';
-        mapContainer.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-danger">API Key do GraphHopper necessÃ¡ria.</div>';
+        mapStatus.innerHTML = '<span class="text-danger">API Key ná£o configurada.</span>';
+        mapContainer.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-danger">API Key do GraphHopper necessá¡ria.</div>';
         return;
     }
 
@@ -4268,9 +4268,9 @@ async function showRouteOnMap(loadId) {
     try {
         // 1. Origem
         if (!origemCoords) {
-            const origemResponse = await fetch(`https://graphhopper.com/api/1/geocode?q=${encodeURIComponent("Empresa Selmi, RolÃ¢ndia, ParanÃ¡")}&key=${apiKey}`);
+            const origemResponse = await fetch(`https://graphhopper.com/api/1/geocode?q=${encodeURIComponent("Empresa Selmi, Rolá¢ndia, Paraná¡")}&key=${apiKey}`);
             const origemData = await origemResponse.json();
-            if (!origemData.hits || origemData.hits.length === 0) throw new Error("Origem nÃ£o encontrada.");
+            if (!origemData.hits || origemData.hits.length === 0) throw new Error("Origem ná£o encontrada.");
             origemCoords = { lat: origemData.hits[0].point.lat, lng: origemData.hits[0].point.lng };
         }
 
@@ -4290,7 +4290,7 @@ async function showRouteOnMap(loadId) {
         }
 
         if (locations.length <= 1) {
-            mapStatus.innerHTML = '<span class="text-warning">Destinos nÃ£o encontrados.</span>';
+            mapStatus.innerHTML = '<span class="text-warning">Destinos ná£o encontrados.</span>';
             return;
         }
 
@@ -4335,7 +4335,7 @@ async function showRouteOnMap(loadId) {
 
             const distKm = (path.distance / 1000).toFixed(1);
             const timeStr = formatTime(path.time);
-            mapStatus.innerHTML = `<span class="text-success fw-bold">DistÃ¢ncia: ${distKm} km | Tempo: ${timeStr}</span>`;
+            mapStatus.innerHTML = `<span class="text-success fw-bold">Distá¢ncia: ${distKm} km | Tempo: ${timeStr}</span>`;
 
             // Info para WhatsApp
             const allPoints = orderedLocations.map(l => `${l.coords.lat},${l.coords.lng}`);
@@ -4353,10 +4353,10 @@ async function showRouteOnMap(loadId) {
                 updateLoadFreightDisplay(loadId, distKm);
             }
         } else {
-            mapStatus.innerHTML = '<span class="text-danger">NÃ£o foi possÃ­vel traÃ§ar a rota.</span>';
+            mapStatus.innerHTML = '<span class="text-danger">Náo foi possá­vel traá§ar a rota.</span>';
         }
 
-        // ForÃ§a resize do mapa apÃ³s modal abrir totalmente
+        // Forá§a resize do mapa apá³s modal abrir totalmente
         setTimeout(() => { mapInstance.invalidateSize(); }, 500);
 
     } catch (e) {
@@ -4369,7 +4369,7 @@ async function showRouteOnMap(loadId) {
 function abrirMapaCarga(loadId) {
     const load = activeLoads[loadId];
     if (!load) {
-        showToast("Carga nÃ£o encontrada.", 'error');
+        showToast("Carga ná£o encontrada.", 'error');
         return;
     }
 
@@ -4388,18 +4388,18 @@ function abrirMapaCarga(loadId) {
     const cidadesComEstado = Array.from(cidadesMap.entries());
 
     if (cidadesComEstado.length === 0) {
-        showToast("Nenhuma cidade vÃ¡lida encontrada para roteirizar.", 'warning');
+        showToast("Nenhuma cidade vá¡lida encontrada para roteirizar.", 'warning');
         return;
     }
 
-    const origem = "Empresa Selmi, BR-369, 86181-570 RolÃ¢ndia, ParanÃ¡, Brasil";
+    const origem = "Empresa Selmi, BR-369, 86181-570 Rolá¢ndia, Paraná¡, Brasil";
     const destino = origem;
     const baseUrl = "https://graphhopper.com/maps/";
     const params = new URLSearchParams();
     params.append('point', origem);
-    cidadesComEstado.forEach(([cidade, uf]) => { let pontoParada = `${cidade}, ${uf}, Brasil`; if (cidade.toLowerCase().trim() === 'rolÃ¢ndia') { pontoParada = `Centro, RolÃ¢ndia, ${uf}, Brasil`; } params.append('point', pontoParada); });
+    cidadesComEstado.forEach(([cidade, uf]) => { let pontoParada = `${cidade}, ${uf}, Brasil`; if (cidade.toLowerCase().trim() === 'rolá¢ndia') { pontoParada = `Centro, Rolá¢ndia, ${uf}, Brasil`; } params.append('point', pontoParada); });
     params.append('point', destino);
-    // Usa 'car' como perfil de veÃ­culo padrÃ£o para roteirizaÃ§Ã£o.
+    // Usa 'car' como perfil de veá­culo padrá£o para roteirizaá§á£o.
     const url = `${baseUrl}?${params.toString()}&profile=car&layer=OpenStreetMap`;
 
     // Abre a URL em uma nova aba
@@ -4443,7 +4443,7 @@ function decodePolyline(str) {
 }
 
 /**
- * Formata milissegundos em uma string legÃ­vel de horas e minutos.
+ * Formata milissegundos em uma string legá­vel de horas e minutos.
  * @param {number} millis - O tempo em milissegundos.
  * @returns {string} O tempo formatado (ex: "2h 30min").
  */
@@ -4459,19 +4459,19 @@ function formatTime(millis) {
 }
 
 /**
- * NOVO: Prepara e imprime o conteÃºdo do modal do mapa.
+ * NOVO: Prepara e imprime o conteáºdo do modal do mapa.
  */
 function printMap() {
     const mapModal = document.getElementById('mapModal');
     if (!mapModal) return;
 
-    // Adiciona uma classe ao body para controlar a visibilidade na impressÃ£o
+    // Adiciona uma classe ao body para controlar a visibilidade na impressá£o
     document.body.classList.add('print-map-active');
 
-    // Usa um pequeno timeout para garantir que o CSS seja aplicado antes da impressÃ£o
+    // Usa um pequeno timeout para garantir que o CSS seja aplicado antes da impressá£o
     setTimeout(() => {
         window.print();
-        // Remove a classe apÃ³s a impressÃ£o ser acionada
+        // Remove a classe apá³s a impressá£o ser acionada
         document.body.classList.remove('print-map-active');
     }, 250);
 }
@@ -4481,18 +4481,18 @@ function printMap() {
  */
 function shareRouteOnWhatsApp() {
     if (!currentRouteInfo || !currentRouteInfo.loadName) {
-        showToast("Nenhuma informaÃ§Ã£o de rota para compartilhar. Calcule a rota primeiro.", 'warning');
+        showToast("Nenhuma informaá§á£o de rota para compartilhar. Calcule a rota primeiro.", 'warning');
         return;
     }
 
     const { loadName, stops, googleMapsUrl, distancia, tempo } = currentRouteInfo;
 
-    let message = `*PrevisÃ£o de Rota - ${loadName}*\n\n`;
+    let message = `*Previsá£o de Rota - ${loadName}*\n\n`;
     message += `*Paradas:*\n`;
     stops.forEach((stop, index) => {
         message += `${index + 1}. ${stop}\n`;
     });
-    message += `\n*DistÃ¢ncia Total:* ${distancia} km`;
+    message += `\n*Distá¢ncia Total:* ${distancia} km`;
     message += `\n*Tempo Estimado:* ${tempo}`;
     message += `\n\n*Ver no Mapa:*\n${googleMapsUrl}`;
 
@@ -4505,7 +4505,7 @@ function shareRouteOnWhatsApp() {
 
 
 
-// ... (cÃ³digo existente) ...
+// ... (cá³digo existente) ...
 
 function displayToco(div, grupos) {
     if (Object.keys(grupos).length === 0) { div.innerHTML = '<div class="empty-state"><i class="bi bi-inboxes-fill"></i><p>Nenhuma carga "Toco" encontrada.</p></div>'; return; }
@@ -4520,7 +4520,7 @@ function displayToco(div, grupos) {
         const loadId = `toco-${cf}`;
         grupo.id = loadId;
         grupo.vehicleType = 'toco';
-        grupo.numero = cf; // Garante que o nÃºmero seja o CF para exibiÃ§Ã£o correta
+        grupo.numero = cf; // Garante que o náºmero seja o CF para exibiá§á£o correta
         activeLoads[loadId] = grupo;
 
         const pedidos = grupo.pedidos;
@@ -4626,7 +4626,7 @@ function displayTruck(div, grupos, pedidosCarreta) {
 function displayCargasFechadasPR(div, pedidos) {
     if (!div) return;
     if (pedidos.length === 0) {
-        div.innerHTML = '<div class="empty-state"><i class="bi bi-building-fill-check"></i><p>Nenhuma Carga Fechada do ParanÃ¡ encontrada.</p></div>';
+        div.innerHTML = '<div class="empty-state"><i class="bi bi-building-fill-check"></i><p>Nenhuma Carga Fechada do Paraná¡ encontrada.</p></div>';
         return;
     }
 
@@ -4665,7 +4665,7 @@ function displayCargasFechadasPR(div, pedidos) {
         const totalCubagemFormatado = grupo.totalCubagem.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const rotas = [...new Set(grupo.pedidos.map(p => p.Cod_Rota))].filter(Boolean).join(', ');
         const collapseId = `collapseCargasFechadasPR-${index}`;
-        const printAreaId = `print-area-pr-${index}`; // ID Ãºnico para a Ã¡rea de impressÃ£o
+        const printAreaId = `print-area-pr-${index}`; // ID áºnico para a á¡rea de impressá£o
 
         accordionHtml += `
                     <div class="accordion-item" id="${printAreaId}">
@@ -4692,7 +4692,7 @@ function displayCargasFechadasPR(div, pedidos) {
 function displayCargasFechadasRestBrasil(div, grupos, pedidosCarreta) {
     if (!div) return;
 
-    let todosOsGrupos = JSON.parse(JSON.stringify(grupos)); // Clona para nÃ£o modificar o original
+    let todosOsGrupos = JSON.parse(JSON.stringify(grupos)); // Clona para ná£o modificar o original
     const chaveCarreta = "Pedidos de Carreta/Truck sem CF";
     const chaveTblEspecial = "TBL ESPECIAL SEM CF";
 
@@ -4779,7 +4779,7 @@ function startManualLoadBuilder() {
 
     const activeTabPane = document.querySelector('.tab-pane.active');
     if (!activeTabPane) {
-        showToast("Erro: Nenhuma aba de trabalho estÃ¡ ativa.", 'error');
+        showToast("Erro: Nenhuma aba de trabalho está¡ ativa.", 'error');
         return;
     }
 
@@ -4792,28 +4792,28 @@ function startManualLoadBuilder() {
                     <div class="card-header bg-info text-dark"><h5 class="mb-0"><i class="bi bi-tools me-2"></i>Painel de Montagem de Carga Manual</h5></div>
                     <div class="card-body">
                         <div class="row align-items-center mb-3">
-                            <div class="col-md-4"><label for="manualVehicleType" class="form-label">Montar para o veÃ­culo:</label><select id="manualVehicleType" class="form-select" onchange="updateManualBuilderUI()"><option value="fiorino">Fiorino</option><option value="van">Van</option><option value="tresQuartos">3/4</option><option value="toco">Toco</option></select></div>
+                            <div class="col-md-4"><label for="manualVehicleType" class="form-label">Montar para o veá­culo:</label><select id="manualVehicleType" class="form-select" onchange="updateManualBuilderUI()"><option value="fiorino">Fiorino</option><option value="van">Van</option><option value="tresQuartos">3/4</option><option value="toco">Toco</option></select></div>
                             <div class="col-md-5"><p class="mb-1"><strong>Peso Total:</strong> <span id="manualLoadKg">0,00</span> kg</p><p class="mb-0"><strong>Cubagem Total:</strong> <span id="manualLoadCubage">0,00</span> mÂ³</p></div>
                             <div class="col-md-3 text-end"><button class="btn btn-danger me-2" onclick="cancelManualLoad()"><i class="bi bi-x-circle me-1"></i>Cancelar</button><button id="finalizeManualLoadBtn" class="btn btn-success" onclick="finalizeManualLoad()" disabled><i class="bi bi-check-circle me-1"></i>Criar</button></div>
                         </div>
                         <div id="manual-progress-bar-container"></div>
                         <div id="manual-drop-zone" class="p-3 border rounded drop-zone-card" style="background-color: var(--dark-bg); min-height: 150px;" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event)" data-load-id="manual-builder">
-                            <p class="text-muted text-center" id="manual-drop-text">Arraste os pedidos da lista de "DisponÃ­veis Varejo" para cÃ¡.</p><div id="manual-load-table-container"></div>
+                            <p class="text-muted text-center" id="manual-drop-text">Arraste os pedidos da lista de "Disponá­veis Varejo" para cá¡.</p><div id="manual-load-table-container"></div>
                         </div>
                     </div>
                 </div>`;
 
-    // NOVO: Insere o painel de montagem no topo da Ã¡rea de trabalho, nÃ£o no final.
-    const insertAfterElement = activeTabPane.querySelector('.mb-3.no-print'); // Encontra o container dos botÃµes de rota
+    // NOVO: Insere o painel de montagem no topo da á¡rea de trabalho, ná£o no final.
+    const insertAfterElement = activeTabPane.querySelector('.mb-3.no-print'); // Encontra o container dos botáµes de rota
     if (insertAfterElement && insertAfterElement.nextElementSibling && insertAfterElement.nextElementSibling.tagName === 'HR') {
         insertAfterElement.insertAdjacentElement('afterend', builderWrapper);
     } else {
-        // Fallback: se nÃ£o encontrar, insere no inÃ­cio da aba.
+        // Fallback: se ná£o encontrar, insere no iná­cio da aba.
         activeTabPane.prepend(builderWrapper);
     }
 
     updateManualBuilderUI();
-    // Rola a tela suavemente para o painel recÃ©m-criado.
+    // Rola a tela suavemente para o painel recá©m-criado.
     builderWrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -4866,7 +4866,7 @@ function finalizeManualLoad() {
 
     activeLoads[newLoad.id] = newLoad;
 
-    // NOVO: Remove os pedidos da lista de disponÃ­veis para manter a consistÃªncia da UI.
+    // NOVO: Remove os pedidos da lista de disponá­veis para manter a consistáªncia da UI.
     const usedOrderIds = new Set(newLoad.pedidos.map(p => String(p.Num_Pedido)));
     pedidosGeraisAtuais = pedidosGeraisAtuais.filter(p => !usedOrderIds.has(String(p.Num_Pedido)));
 
@@ -4888,7 +4888,7 @@ function finalizeManualLoad() {
     // Encontra o container de resultados dentro da aba ativa
     let resultContainer = activeTabPane.querySelector('[id^="resultado-"]');
     if (!resultContainer) {
-        // Se nÃ£o houver um container, cria um (caso de aba vazia)
+        // Se ná£o houver um container, cria um (caso de aba vazia)
         activeTabPane.innerHTML += `<div id="resultado-${vehicleType}-geral" class="mt-3"></div>`;
         resultContainer = activeTabPane.querySelector('[id^="resultado-"]');
     }
@@ -4897,14 +4897,14 @@ function finalizeManualLoad() {
     const newCardHTML = renderLoadCard(newLoad, vehicleType, vehicleInfo[vehicleType]);
     resultContainer.insertAdjacentHTML('beforeend', newCardHTML);
 
-    // MELHORIA: Em vez de fechar o painel, reinicia-o para permitir a criaÃ§Ã£o de outra carga em sequÃªncia.
+    // MELHORIA: Em vez de fechar o painel, reinicia-o para permitir a criaá§á£o de outra carga em sequáªncia.
     const currentVehicleType = document.getElementById('manualVehicleType').value;
     manualLoadInProgress = {
         pedidos: [], totalKg: 0, totalCubagem: 0, vehicleType: currentVehicleType
     };
     updateManualBuilderUI(); // Atualiza a UI do painel para refletir o estado zerado.
 
-    // NOVO: Atualiza a lista de disponÃ­veis e os KPIs sem redesenhar toda a mesa de trabalho.
+    // NOVO: Atualiza a lista de disponá­veis e os KPIs sem redesenhar toda a mesa de trabalho.
     const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
     displayGerais(document.getElementById('resultado-geral'), gruposGerais);
     updateAndRenderKPIs();
@@ -4928,7 +4928,7 @@ function cancelManualLoad() {
     if (builderWrapper) builderWrapper.remove();
     manualLoadInProgress = null;
 
-    // Atualiza apenas as partes necessÃ¡rias da UI, sem redesenhar tudo.
+    // Atualiza apenas as partes necessá¡rias da UI, sem redesenhar tudo.
     const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
     displayGerais(document.getElementById('resultado-geral'), gruposGerais);
     updateAndRenderKPIs();
@@ -4998,7 +4998,7 @@ function drop(event) {
     }
 
     if (!sourceLoad || !targetLoad) {
-        console.error("ERRO: Carga de origem ou destino nÃ£o encontrada.", { sourceId, targetId, activeLoads });
+        console.error("ERRO: Carga de origem ou destino ná£o encontrada.", { sourceId, targetId, activeLoads });
         return;
     }
 
@@ -5009,7 +5009,7 @@ function drop(event) {
     const clientBlockKg = clientOrdersToMove.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
     const clientBlockCubagem = clientOrdersToMove.reduce((sum, p) => sum + p.Cubagem, 0);
 
-    // CORREÃ‡ÃƒO: ValidaÃ§Ã£o completa da jogada usando isMoveValid
+    // CORREá‡áƒO: Validaá§á£o completa da jogada usando isMoveValid
     if (!targetIsGeral && !targetIsLeftovers) {
         const groupToAdd = {
             pedidos: clientOrdersToMove,
@@ -5020,7 +5020,7 @@ function drop(event) {
 
         const targetVehicleType = targetLoad.vehicleType;
         if (!isMoveValid(targetLoad, groupToAdd, targetVehicleType)) {
-            alert(`AÃ§Ã£o invÃ¡lida! O grupo nÃ£o pode ser adicionado a esta carga.\nVerifique as regras de capacidade, clientes especiais e agendamento.`);
+            alert(`Aá§á£o invá¡lida! O grupo ná£o pode ser adicionado a esta carga.\nVerifique as regras de capacidade, clientes especiais e agendamento.`);
             dropZoneCard.classList.add('drop-invalid');
             setTimeout(() => dropZoneCard.classList.remove('drop-invalid'), 500);
             return;
@@ -5079,7 +5079,7 @@ function drop(event) {
         }
     }
 
-    // Update the "Pedidos DisponÃ­veis" list
+    // Update the "Pedidos Disponá­veis" list
     const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
     displayGerais(document.getElementById('resultado-geral'), gruposGerais);
 
@@ -5089,7 +5089,7 @@ function drop(event) {
 }
 
 function highlightClientRows(event) {
-    if (event.button === 2) return; // Ignora cliques com o botÃ£o direito para nÃ£o interferir no menu de contexto
+    if (event.button === 2) return; // Ignora cliques com o botá£o direito para ná£o interferir no menu de contexto
     const clickedRow = event.target.closest('tr[data-cliente-id]');
     if (!clickedRow || !clickedRow.dataset.clienteId) return;
 
@@ -5107,10 +5107,10 @@ function highlightClientRows(event) {
     }
 }
 
-// --- FunÃ§Ãµes para AÃ§Ãµes em Massa ---
+// --- Funá§áµes para Aá§áµes em Massa ---
 function toggleAllCheckboxes(source) {
     const table = source.closest('table');
-    // Adicionado para o caso de nÃ£o haver tabela (estado vazio) - Simplificado
+    // Adicionado para o caso de ná£o haver tabela (estado vazio) - Simplificado
     if (!table) {
         updateBulkActionsPanel();
         return;
@@ -5163,14 +5163,14 @@ function bulkAction(action) {
         case 'copy':
             const textToCopy = selectedPedidos.join('\n');
             navigator.clipboard.writeText(textToCopy).then(() => {
-                showToast(`${selectedPedidos.length} nÃºmero(s) de pedido copiado(s) para a Ã¡rea de transferÃªncia.`, 'success');
+                showToast(`${selectedPedidos.length} náºmero(s) de pedido copiado(s) para a á¡rea de transferáªncia.`, 'success');
             }).catch(err => {
-                console.error('Erro ao copiar nÃºmeros dos pedidos: ', err);
-                showToast('Falha ao copiar os nÃºmeros. Verifique o console para mais detalhes.', 'danger');
+                console.error('Erro ao copiar náºmeros dos pedidos: ', err);
+                showToast('Falha ao copiar os náºmeros. Verifique o console para mais detalhes.', 'danger');
             });
-            // A aÃ§Ã£o de copiar nÃ£o requer reprocessamento.
+            // A aá§á£o de copiar ná£o requer reprocessamento.
             clearBulkSelection();
-            return; // Sai da funÃ§Ã£o aqui.
+            return; // Sai da funá§á£o aqui.
             break;
     }
 
@@ -5181,7 +5181,7 @@ function bulkAction(action) {
         // AUDIT LOG
         import('./js/realtime.js').then(m => m.logActivity('ACAO_EM_MASSA', { tipo: action, qtd: selectedPedidos.length }));
         // Local toast for immediate feedback
-        if (window.showLocalToast) window.showLocalToast('VocÃª', `AÃ§Ã£o em massa: ${action} (${selectedPedidos.length})`, 'info');
+        if (window.showLocalToast) window.showLocalToast('Vocáª', `Aá§á£o em massa: ${action} (${selectedPedidos.length})`, 'info');
     }
 
     clearBulkSelection();
@@ -5190,7 +5190,7 @@ function bulkAction(action) {
 function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
     const input = document.getElementById(inputId);
     const resultadoDivOriginal = document.getElementById(resultadoId);
-    if (resultadoDivOriginal) resultadoDivOriginal.innerHTML = ''; // Limpa a Ã¡rea de resultado antiga
+    if (resultadoDivOriginal) resultadoDivOriginal.innerHTML = ''; // Limpa a á¡rea de resultado antiga
 
     if (planilhaData.length === 0) {
         showToast("Por favor, carregue a planilha primeiro.", 'warning');
@@ -5200,7 +5200,7 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
     const numerosPedidos = input.value.split('\n').map(n => n.trim()).filter(Boolean);
 
     if (numerosPedidos.length === 0) {
-        alert(`Nenhum nÃºmero de pedido foi inserido para a ${nomeCarga}.`);
+        alert(`Nenhum náºmero de pedido foi inserido para a ${nomeCarga}.`);
         return;
     }
 
@@ -5223,10 +5223,10 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
     });
 
     if (pedidosJaProcessados.length > 0) {
-        showToast(`Pedidos jÃ¡ alocados em outras cargas foram ignorados: ${pedidosJaProcessados.join(', ')}`, 'warning');
+        showToast(`Pedidos já¡ alocados em outras cargas foram ignorados: ${pedidosJaProcessados.join(', ')}`, 'warning');
     }
     if (pedidosNaoEncontrados.length > 0) {
-        showToast(`Pedidos nÃ£o encontrados na planilha: ${pedidosNaoEncontrados.join(', ')}`, 'error');
+        showToast(`Pedidos ná£o encontrados na planilha: ${pedidosNaoEncontrados.join(', ')}`, 'error');
     }
     if (pedidosSelecionados.length === 0) {
         return;
@@ -5254,7 +5254,7 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
         veiculoEscolhido = { tipo: 'toco', nome: 'Carreta/Truck (Excedeu Capacidade)' };
     }
 
-    // --- LÃ“GICA DE DIRECIONAMENTO PARA ABA ATIVA ---
+    // --- Lá“GICA DE DIRECIONAMENTO PARA ABA ATIVA ---
     const vehicleType = veiculoEscolhido.tipo;
 
     // Encontra a aba ativa na Mesa de Trabalho
@@ -5266,12 +5266,12 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
         targetContainer = activeTabPane.querySelector('[id^="resultado-"]');
     }
 
-    // Fallback: se nÃ£o encontrar um container na aba ativa, usa a lÃ³gica antiga baseada no tipo de veÃ­culo
+    // Fallback: se ná£o encontrar um container na aba ativa, usa a lá³gica antiga baseada no tipo de veá­culo
     if (!targetContainer) {
         const fallbackContainerId = vehicleType === 'fiorino' ? 'resultado-fiorino-geral' : vehicleType === 'van' ? 'resultado-van-geral' : vehicleType === 'tresQuartos' ? 'resultado-34-geral' : 'resultado-toco';
         targetContainer = document.getElementById(fallbackContainerId);
     }
-    // --- FIM DA LÃ“GICA DE DIRECIONAMENTO ---
+    // --- FIM DA Lá“GICA DE DIRECIONAMENTO ---
 
     if (veiculoEscolhido) {
         const pedidosSelecionadosIds = new Set(pedidosSelecionados.map(p => String(p.Num_Pedido)));
@@ -5295,7 +5295,7 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
             toco: { name: 'Carreta/Truck', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
         };
 
-        // --- NOVA LÃ“GICA DE RENDERIZAÃ‡ÃƒO ---
+        // --- NOVA Lá“GICA DE RENDERIZAá‡áƒO ---
         if (targetContainer) {
             const newCardHTML = renderLoadCard(load, vehicleType, vehicleInfo[vehicleType]);
             targetContainer.insertAdjacentHTML('beforeend', newCardHTML);
@@ -5309,7 +5309,7 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
 
         // AUDIT LOG
         import('./js/realtime.js').then(m => m.logActivity('CARGA_MANUAL', { carga: nomeCarga, veiculo: veiculoEscolhido.nome }));
-        if (window.showLocalToast) window.showLocalToast('VocÃª', `Carga Manual Criada: ${nomeCarga}`, 'success');
+        if (window.showLocalToast) window.showLocalToast('Vocáª', `Carga Manual Criada: ${nomeCarga}`, 'success');
 
         showToast(`Carga ${nomeCarga} montada com sucesso em um(a) ${veiculoEscolhido.nome}!`, 'success');
 
@@ -5324,7 +5324,7 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
         saveStateToLocalStorage();
 
     } else {
-        showToast(`Carga excede a capacidade dos veÃ­culos. Peso: ${totalKg.toFixed(2)}kg`, 'error');
+        showToast(`Carga excede a capacidade dos veá­culos. Peso: ${totalKg.toFixed(2)}kg`, 'error');
     }
 }
 
@@ -5332,7 +5332,7 @@ function displayPedidosFuncionarios(div, pedidos) {
     if (!div) return;
     div.innerHTML = ''; // Limpa o container
     if (pedidos.length === 0) {
-        return false; // Retorna false se nÃ£o houver pedidos
+        return false; // Retorna false se ná£o houver pedidos
     }
 
     pedidos.sort((a, b) => {
@@ -5355,7 +5355,7 @@ function displayPedidosFuncionarios(div, pedidos) {
                 <div class="accordion-item" id="${printAreaId}">
                     <h2 class="accordion-header" id="${headerId}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                            <strong>Pedidos de FuncionÃ¡rios</strong> &nbsp;
+                            <strong>Pedidos de Funcioná¡rios</strong> &nbsp;
                             <span class="badge bg-secondary ms-2"><i class="bi bi-box me-1"></i>${pedidos.length} Pedidos</span>
                             <span class="badge bg-light text-dark ms-2"><i class="bi bi-database me-1"></i>${totalKgFormatado} kg</span>
                         </button>
@@ -5364,7 +5364,7 @@ function displayPedidosFuncionarios(div, pedidos) {
                         <div class="accordion-body">
                             <div class="d-flex justify-content-between align-items-center mb-3 no-print">
                                 <p class="text-muted small mb-0">Pedidos com a tag "TBL FUNCIONARIO" na Coluna 5, separados automaticamente.</p>
-                                <button class="btn btn-sm btn-outline-info" onclick="imprimirGeneric('${printAreaId}', 'Pedidos de FuncionÃ¡rios')">
+                                <button class="btn btn-sm btn-outline-info" onclick="imprimirGeneric('${printAreaId}', 'Pedidos de Funcioná¡rios')">
                                     <i class="bi bi-printer-fill me-1"></i>Imprimir Lista
                                 </button> 
                             </div>
@@ -5382,7 +5382,7 @@ function displayPedidosTransferencias(div, pedidos) {
     if (!div) return;
     div.innerHTML = ''; // Limpa o container
     if (pedidos.length === 0) {
-        return false; // Retorna false se nÃ£o houver pedidos
+        return false; // Retorna false se ná£o houver pedidos
     }
 
     pedidos.sort((a, b) => {
@@ -5406,7 +5406,7 @@ function displayPedidosTransferencias(div, pedidos) {
                 <div class="accordion-item" id="${printAreaId}">
                     <h2 class="accordion-header" id="${headerId}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                            <strong>Pedidos de TransferÃªncia</strong> &nbsp;
+                            <strong>Pedidos de Transferáªncia</strong> &nbsp;
                             <span class="badge bg-secondary ms-2"><i class="bi bi-box me-1"></i>${pedidos.length} Pedidos</span>
                             <span class="badge bg-light text-dark ms-2"><i class="bi bi-database me-1"></i>${totalKgFormatado} kg</span>
                         </button>
@@ -5415,7 +5415,7 @@ function displayPedidosTransferencias(div, pedidos) {
                         <div class="accordion-body">
                             <div class="d-flex justify-content-between align-items-center mb-3 no-print">
                                 <p class="text-muted small mb-0">Pedidos com as tags "TABELA TRANSFER", "TRANSF. TODESCH" ou "INSTITUCIONAL" na Coluna 5.</p>
-                                <button class="btn btn-sm btn-outline-info" onclick="imprimirGeneric('${printAreaId}', 'Pedidos de TransferÃªncia')">
+                                <button class="btn btn-sm btn-outline-info" onclick="imprimirGeneric('${printAreaId}', 'Pedidos de Transferáªncia')">
                                     <i class="bi bi-printer-fill me-1"></i>Imprimir Lista
                                 </button> 
                             </div>
@@ -5433,7 +5433,7 @@ function displayPedidosExportacao(div, pedidos) {
     if (!div) return;
     div.innerHTML = ''; // Limpa o container
     if (pedidos.length === 0) {
-        return false; // Retorna false se nÃ£o houver pedidos
+        return false; // Retorna false se ná£o houver pedidos
     }
 
     pedidos.sort((a, b) => {
@@ -5451,19 +5451,19 @@ function displayPedidosExportacao(div, pedidos) {
     const accordionId = 'accordionExportacao';
     const collapseId = 'collapseExportacao';
     const headerId = 'headingExportacao';
-    const printAreaId = 'exportacao-print-area'; // Este ID Ã© usado no botÃ£o de imprimir
+    const printAreaId = 'exportacao-print-area'; // Este ID á© usado no botá£o de imprimir
 
     let accordionHtml = `<div class="accordion accordion-flush" id="${accordionId}">
                 <div class="accordion-item" id="${printAreaId}">
                     <h2 class="accordion-header" id="${headerId}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                            <strong>Pedidos de ExportaÃ§Ã£o</strong> &nbsp;
+                            <strong>Pedidos de Exportaá§á£o</strong> &nbsp;
                             <span class="badge bg-secondary ms-2"><i class="bi bi-box me-1"></i>${pedidos.length} Pedidos</span>
                             <span class="badge bg-light text-dark ms-2"><i class="bi bi-database me-1"></i>${totalKgFormatado} kg</span>
                         </button>
                     </h2>
                     <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#${accordionId}">
-                        <div class="accordion-body"><div class="d-flex justify-content-between align-items-center mb-3 no-print"><p class="text-muted small mb-0">Pedidos com a tag "TBL EXPORTACAO" na Coluna 5.</p><button class="btn btn-sm btn-outline-info" onclick="imprimirGeneric('${printAreaId}', 'Pedidos de ExportaÃ§Ã£o')"><i class="bi bi-printer-fill me-1"></i>Imprimir Lista</button></div>${createTable(pedidos, ['Num_Pedido', 'Cliente', 'Nome_Cliente', 'Quilos_Saldo', 'Cidade', 'Predat', 'Dat_Ped', 'Coluna5', 'BLOQ.'])}</div>
+                        <div class="accordion-body"><div class="d-flex justify-content-between align-items-center mb-3 no-print"><p class="text-muted small mb-0">Pedidos com a tag "TBL EXPORTACAO" na Coluna 5.</p><button class="btn btn-sm btn-outline-info" onclick="imprimirGeneric('${printAreaId}', 'Pedidos de Exportaá§á£o')"><i class="bi bi-printer-fill me-1"></i>Imprimir Lista</button></div>${createTable(pedidos, ['Num_Pedido', 'Cliente', 'Nome_Cliente', 'Quilos_Saldo', 'Cidade', 'Predat', 'Dat_Ped', 'Coluna5', 'BLOQ.'])}</div>
                     </div></div></div>`; // prettier-ignore
     div.innerHTML = accordionHtml;
     return true; // Retorna true se houver pedidos
@@ -5473,7 +5473,7 @@ function displayPedidosMoinho(div, pedidos) {
     if (!div) return;
     div.innerHTML = ''; // Limpa o container
     if (pedidos.length === 0) {
-        return false; // Retorna false se nÃ£o houver pedidos
+        return false; // Retorna false se ná£o houver pedidos
     }
 
     pedidos.sort((a, b) => {
@@ -5517,7 +5517,7 @@ function displayPedidosMarcaPropria(div, pedidos) {
     if (!div) return;
     div.innerHTML = ''; // Limpa o container
     if (pedidos.length === 0) {
-        return false; // Retorna false se nÃ£o houver pedidos
+        return false; // Retorna false se ná£o houver pedidos
     }
 
     pedidos.sort((a, b) => {
@@ -5539,7 +5539,7 @@ function displayPedidosMarcaPropria(div, pedidos) {
                 <div class="accordion-item" id="${printAreaId}">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}">
-                            <strong>Pedidos "Marca PrÃ³pria"</strong> &nbsp;
+                            <strong>Pedidos "Marca Prá³pria"</strong> &nbsp;
                             <span class="badge bg-secondary ms-2"><i class="bi bi-box me-1"></i>${pedidos.length} Pedidos</span>
                             <span class="badge bg-light text-dark ms-2"><i class="bi bi-database me-1"></i>${totalKgFormatado} kg</span>
                         </button>
@@ -5548,7 +5548,7 @@ function displayPedidosMarcaPropria(div, pedidos) {
                         <div class="accordion-body">
                             <div class="d-flex justify-content-between align-items-center mb-3 no-print">
                                 <p class="text-muted small mb-0">Pedidos com a tag "MARCA PROPRIA" na Coluna 5.</p>
-                                <button class="btn btn-sm btn-outline-info" onclick="imprimirGeneric('${printAreaId}', 'Pedidos Marca PrÃ³pria')"><i class="bi bi-printer-fill me-1"></i>Imprimir Lista</button>
+                                <button class="btn btn-sm btn-outline-info" onclick="imprimirGeneric('${printAreaId}', 'Pedidos Marca Prá³pria')"><i class="bi bi-printer-fill me-1"></i>Imprimir Lista</button>
                             </div>
                             ${createTable(pedidos, ['Num_Pedido', 'Cliente', 'Nome_Cliente', 'Quilos_Saldo', 'Cidade', 'Predat', 'Dat_Ped', 'Coluna5', 'BLOQ.'])}
                         </div>
@@ -5564,7 +5564,7 @@ function gerarRelatorioPDF() {
     // --- 1. Coleta e Agrupamento de Dados ---
     const allLoads = Object.values(activeLoads);
     if (allLoads.length === 0 && currentLeftoversForPrinting.length === 0 && pedidosTransferencias.length === 0 && pedidosExportacao.length === 0 && pedidosFuncionarios.length === 0) {
-        showToast("NÃ£o hÃ¡ dados processados para gerar o relatÃ³rio.", 'warning');
+        showToast("Náo há¡ dados processados para gerar o relatá³rio.", 'warning');
         return;
     }
 
@@ -5586,36 +5586,36 @@ function gerarRelatorioPDF() {
     const totalPesoAlocado = allLoads.reduce((sum, l) => sum + l.totalKg, 0);
     const totalVeiculos = varejoLoads.length + manualLoads.length;
 
-    // --- 2. ConstruÃ§Ã£o do PDF ---
+    // --- 2. Construá§á£o do PDF ---
     const today = new Date().toLocaleDateString('pt-BR');
-    let finalY = 10; // Inicia a posiÃ§Ã£o Y
+    let finalY = 10; // Inicia a posiá§á£o Y
 
-    // CabeÃ§alho
+    // Cabeá§alho
     doc.setFontSize(20);
     doc.setTextColor('#00bfa5');
     doc.text("ApexLog", 14, 20);
     doc.setFontSize(18);
     doc.setTextColor(40);
-    doc.text("RelatÃ³rio de PrevisÃ£o de ExpediÃ§Ã£o", 105, 20, { align: 'center' });
+    doc.text("Relatá³rio de Previsá£o de Expediá§á£o", 105, 20, { align: 'center' });
     doc.setFontSize(10);
     doc.setTextColor(120);
-    doc.text(`Data de GeraÃ§Ã£o: ${today}`, 200, 26, { align: 'right' });
+    doc.text(`Data de Geraá§á£o: ${today}`, 200, 26, { align: 'right' });
     doc.setLineWidth(0.5);
     doc.setDrawColor('#00bfa5');
     doc.line(14, 29, 200, 29);
 
-    finalY = 35; // PosiÃ§Ã£o Y apÃ³s o cabeÃ§alho
+    finalY = 35; // Posiá§á£o Y apá³s o cabeá§alho
     // Resumo Geral
     doc.setFontSize(14);
     doc.setTextColor(40);
-    doc.text("Resumo Geral da PrevisÃ£o", 14, finalY);
+    doc.text("Resumo Geral da Previsá£o", 14, finalY);
     doc.autoTable({
         startY: finalY + 6,
         body: [
-            ['Total de VeÃ­culos Previstos:', totalVeiculos.toString()],
+            ['Total de Veá­culos Previstos:', totalVeiculos.toString()],
             ['Peso Total Alocado (kg):', totalPesoAlocado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })],
             ['Total de Pedidos Alocados:', totalPedidosAlocados.toString()],
-            ['Pedidos em Sobra (NÃ£o alocados):', currentLeftoversForPrinting.length.toString()],
+            ['Pedidos em Sobra (Náo alocados):', currentLeftoversForPrinting.length.toString()],
         ],
         theme: 'striped',
         styles: { fontSize: 10, cellPadding: 2.5 },
@@ -5623,7 +5623,7 @@ function gerarRelatorioPDF() {
         columnStyles: { 0: { fontStyle: 'bold' } }
     });
 
-    finalY = doc.lastAutoTable.finalY; // Atualiza a posiÃ§Ã£o Y
+    finalY = doc.lastAutoTable.finalY; // Atualiza a posiá§á£o Y
 
     // Detalhamento Varejo
     const bodyVarejo = Object.keys(resumoVarejo).map(tipo => {
@@ -5639,33 +5639,33 @@ function gerarRelatorioPDF() {
     });
 
     if (bodyVarejo.length > 0) {
-        finalY += 10; // Adiciona um espaÃ§o antes da prÃ³xima seÃ§Ã£o
+        finalY += 10; // Adiciona um espaá§o antes da prá³xima seá§á£o
         doc.setFontSize(14);
         doc.setTextColor(40);
         doc.text("Detalhamento de Cargas (Varejo)", 14, finalY);
         doc.autoTable({
-            head: [['Tipo de VeÃ­culo', 'Qtd. VeÃ­culos', 'Peso Total (kg)', 'Peso MÃ©dio/VeÃ­culo (kg)', 'Qtd. Pedidos']],
+            head: [['Tipo de Veá­culo', 'Qtd. Veá­culos', 'Peso Total (kg)', 'Peso Má©dio/Veá­culo (kg)', 'Qtd. Pedidos']],
             body: bodyVarejo,
             startY: finalY + 6,
             headStyles: { fillColor: [0, 191, 165], textColor: 255 }
         });
-        finalY = doc.lastAutoTable.finalY; // Atualiza a posiÃ§Ã£o Y
+        finalY = doc.lastAutoTable.finalY; // Atualiza a posiá§á£o Y
     }
 
     // Outras Categorias (Re-adicionado)
     const bodyOutros = [];
-    if (pedidosTransferencias.length > 0) bodyOutros.push(['TransferÃªncias', pedidosTransferencias.length, pedidosTransferencias.reduce((s, p) => s + p.Quilos_Saldo, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })]);
-    if (pedidosExportacao.length > 0) bodyOutros.push(['ExportaÃ§Ã£o', pedidosExportacao.length, pedidosExportacao.reduce((s, p) => s + p.Quilos_Saldo, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })]);
+    if (pedidosTransferencias.length > 0) bodyOutros.push(['Transferáªncias', pedidosTransferencias.length, pedidosTransferencias.reduce((s, p) => s + p.Quilos_Saldo, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })]);
+    if (pedidosExportacao.length > 0) bodyOutros.push(['Exportaá§á£o', pedidosExportacao.length, pedidosExportacao.reduce((s, p) => s + p.Quilos_Saldo, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })]);
 
     const totalPedidosTruck = Object.values(gruposPorCFGlobais).reduce((sum, g) => sum + g.pedidos.length, 0);
     const totalPesoTruck = Object.values(gruposPorCFGlobais).reduce((sum, g) => sum + g.totalKg, 0);
     if (totalPedidosTruck > 0) {
         bodyOutros.push(['Truck / Carreta', totalPedidosTruck, totalPesoTruck.toLocaleString('pt-BR', { minimumFractionDigits: 2 })]);
     }
-    if (pedidosFuncionarios.length > 0) bodyOutros.push(['FuncionÃ¡rios', pedidosFuncionarios.length, pedidosFuncionarios.reduce((s, p) => s + p.Quilos_Saldo, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })]);
+    if (pedidosFuncionarios.length > 0) bodyOutros.push(['Funcioná¡rios', pedidosFuncionarios.length, pedidosFuncionarios.reduce((s, p) => s + p.Quilos_Saldo, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })]);
 
     if (bodyOutros.length > 0) {
-        finalY += 10; // Adiciona um espaÃ§o
+        finalY += 10; // Adiciona um espaá§o
         doc.setFontSize(14);
         doc.setTextColor(40);
         doc.text("Outras Categorias de Pedidos", 14, finalY);
@@ -5677,14 +5677,14 @@ function gerarRelatorioPDF() {
         });
     }
 
-    // RodapÃ© e Salvamento
+    // Rodapá© e Salvamento
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
         doc.setTextColor(150);
-        doc.text(`PÃ¡gina ${i} de ${pageCount}`, doc.internal.pageSize.width / 2, 287, { align: 'center' });
-        doc.text('Este Ã© um relatÃ³rio de previsÃ£o e pode sofrer alteraÃ§Ãµes.', 14, 287);
+        doc.text(`Pá¡gina ${i} de ${pageCount}`, doc.internal.pageSize.width / 2, 287, { align: 'center' });
+        doc.text('Este á© um relatá³rio de previsá£o e pode sofrer alteraá§áµes.', 14, 287);
     }
 
     doc.save(`Previsao_Expedicao_${today.replace(/\//g, '-')}.pdf`);
@@ -5697,13 +5697,13 @@ function exportarRelatorioDisponiveisPDF() {
     const allAllocatedIds = new Set();
     Object.values(activeLoads).forEach(l => l.pedidos.forEach(p => allAllocatedIds.add(String(p.Num_Pedido))));
 
-    // 1. Coletar todos os pedidos disponÃ­veis (Varejo + Toco) com identificaÃ§Ã£o de tipo
+    // 1. Coletar todos os pedidos disponá­veis (Varejo + Toco) com identificaá§á£o de tipo
     let todosPedidos = pedidosGeraisAtuais.filter(p => !allAllocatedIds.has(String(p.Num_Pedido))).map(p => {
-        const tipo = String(p.Cod_Rota || '').startsWith('2') ? 'Varejo SÃ£o Paulo' : 'Varejo';
+        const tipo = String(p.Cod_Rota || '').startsWith('2') ? 'Varejo Sá£o Paulo' : 'Varejo';
         return { data: p, tipo: tipo };
     });
 
-    // Adiciona pedidos de Toco disponÃ­veis
+    // Adiciona pedidos de Toco disponá­veis
     Object.values(gruposToco).forEach(grupo => {
         grupo.pedidos.forEach(p => {
             if (!allAllocatedIds.has(String(p.Num_Pedido))) {
@@ -5713,7 +5713,7 @@ function exportarRelatorioDisponiveisPDF() {
     });
 
     if (todosPedidos.length === 0) {
-        showToast("NÃ£o hÃ¡ pedidos disponÃ­veis para gerar o relatÃ³rio.", 'warning');
+        showToast("Náo há¡ pedidos disponá­veis para gerar o relatá³rio.", 'warning');
         return;
     }
 
@@ -5726,15 +5726,15 @@ function exportarRelatorioDisponiveisPDF() {
         return dateA - dateB;
     });
 
-    // 3. ConfiguraÃ§Ã£o do PDF
+    // 3. Configuraá§á£o do PDF
     const today = new Date().toLocaleDateString('pt-BR');
     doc.setFontSize(16);
-    doc.text("RelatÃ³rio de Fila de Pedidos (Por Data)", 14, 20);
+    doc.text("Relatá³rio de Fila de Pedidos (Por Data)", 14, 20);
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text(`Gerado em: ${today} - Total Pendente: ${todosPedidos.length} pedidos`, 14, 28);
 
-    const tableColumn = ["Data Ped.", "Rota", "CÃ³d.", "Cliente", "Pedido", "Tipo", "Peso (kg)"];
+    const tableColumn = ["Data Ped.", "Rota", "Cá³d.", "Cliente", "Pedido", "Tipo", "Peso (kg)"];
     const tableRows = [];
 
     todosPedidos.forEach(item => {
@@ -5768,20 +5768,20 @@ function exportarRelatorioDisponiveisPDF() {
         headStyles: { fillColor: [41, 128, 185] },
         columnStyles: {
             0: { fontStyle: 'bold' }, // Data em negrito
-            6: { halign: 'right' }    // Peso alinhado Ã  direita
+            6: { halign: 'right' }    // Peso alinhado á  direita
         }
     });
 
     doc.save(`Relatorio_Fila_Pedidos_${today.replace(/\//g, '-')}.pdf`);
-    showToast("RelatÃ³rio de fila gerado com sucesso!", 'success');
+    showToast("Relatá³rio de fila gerado com sucesso!", 'success');
 }
 
 function exportarRelatorioDisponiveisExcel() {
     const allAllocatedIds = new Set();
     Object.values(activeLoads).forEach(l => l.pedidos.forEach(p => allAllocatedIds.add(String(p.Num_Pedido))));
 
-    // 1. Coletar todos os pedidos disponÃ­veis (Varejo + Toco)
-    let todosPedidos = pedidosGeraisAtuais.filter(p => !allAllocatedIds.has(String(p.Num_Pedido))).map(p => ({ ...p, Tipo: String(p.Cod_Rota || '').startsWith('2') ? 'Varejo SÃ£o Paulo' : 'Varejo' }));
+    // 1. Coletar todos os pedidos disponá­veis (Varejo + Toco)
+    let todosPedidos = pedidosGeraisAtuais.filter(p => !allAllocatedIds.has(String(p.Num_Pedido))).map(p => ({ ...p, Tipo: String(p.Cod_Rota || '').startsWith('2') ? 'Varejo Sá£o Paulo' : 'Varejo' }));
 
     Object.values(gruposToco).forEach(grupo => {
         grupo.pedidos.forEach(p => {
@@ -5792,7 +5792,7 @@ function exportarRelatorioDisponiveisExcel() {
     });
 
     if (todosPedidos.length === 0) {
-        showToast("NÃ£o hÃ¡ pedidos disponÃ­veis para gerar o relatÃ³rio.", 'warning');
+        showToast("Náo há¡ pedidos disponá­veis para gerar o relatá³rio.", 'warning');
         return;
     }
 
@@ -5807,9 +5807,9 @@ function exportarRelatorioDisponiveisExcel() {
     const dataToExport = todosPedidos.map(p => ({
         'Data Pedido': p.Dat_Ped,
         'Rota': p.Cod_Rota,
-        'CÃ³digo Cliente': normalizeClientId(p.Cliente),
+        'Cá³digo Cliente': normalizeClientId(p.Cliente),
         'Nome Cliente': p.Nome_Cliente,
-        'NÃºmero Pedido': p.Num_Pedido,
+        'Náºmero Pedido': p.Num_Pedido,
         'Tipo': p.Tipo,
         'Peso (kg)': p.Quilos_Saldo,
         'Cidade': p.Cidade,
@@ -5825,17 +5825,17 @@ function exportarRelatorioDisponiveisExcel() {
 
     const today = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
     XLSX.writeFile(workbook, `Relatorio_Fila_Pedidos_${today}.xlsx`);
-    showToast("RelatÃ³rio Excel gerado com sucesso!", 'success');
+    showToast("Relatá³rio Excel gerado com sucesso!", 'success');
 }
 
 function exportarRelatorioCompletoPorRotaExcel() {
     const allAllocatedIds = new Set();
     Object.values(activeLoads).forEach(l => l.pedidos.forEach(p => allAllocatedIds.add(String(p.Num_Pedido))));
 
-    // 1. Pedidos Varejo DisponÃ­veis
+    // 1. Pedidos Varejo Disponá­veis
     const pedidosVarejoReais = pedidosGeraisAtuais.filter(p => !allAllocatedIds.has(String(p.Num_Pedido)));
 
-    // 2. Pedidos Toco DisponÃ­veis
+    // 2. Pedidos Toco Disponá­veis
     const pedidosTocoDisponiveis = [];
     Object.values(gruposToco).forEach(grupo => {
         grupo.pedidos.forEach(p => {
@@ -5846,7 +5846,7 @@ function exportarRelatorioCompletoPorRotaExcel() {
     const todosPedidos = [...pedidosVarejoReais, ...pedidosTocoDisponiveis];
 
     if (todosPedidos.length === 0) {
-        showToast("NÃ£o hÃ¡ pedidos disponÃ­veis para gerar o relatÃ³rio.", 'warning');
+        showToast("Náo há¡ pedidos disponá­veis para gerar o relatá³rio.", 'warning');
         return;
     }
 
@@ -5863,7 +5863,7 @@ function exportarRelatorioCompletoPorRotaExcel() {
         }
     };
 
-    // Ordenar para corresponder Ã  sequÃªncia da UI "DisponÃ­veis Varejo"
+    // Ordenar para corresponder á  sequáªncia da UI "Disponá­veis Varejo"
     const vehicleOrder = { 'fiorino': 1, 'van': 2, 'tresQuartos': 3 };
     const numericSort = (a, b) => a.localeCompare(b, undefined, { numeric: true });
 
@@ -5899,9 +5899,9 @@ function exportarRelatorioCompletoPorRotaExcel() {
 
     // Preparar dados
     const dataToExport = todosPedidos.map(p => ({
-        'Rota DescriÃ§Ã£o': getRouteDisplayName(p.Cod_Rota),
-        'CÃ³d. Rota': p.Cod_Rota,
-        'NÃºmero Pedido': p.Num_Pedido,
+        'Rota Descriá§á£o': getRouteDisplayName(p.Cod_Rota),
+        'Cá³d. Rota': p.Cod_Rota,
+        'Náºmero Pedido': p.Num_Pedido,
         'Cliente': normalizeClientId(p.Cliente),
         'Nome Cliente': p.Nome_Cliente,
         'Cidade': p.Cidade,
@@ -5915,9 +5915,9 @@ function exportarRelatorioCompletoPorRotaExcel() {
 
     // Ajuste de largura das colunas
     const wscols = [
-        { wch: 30 }, // Rota DescriÃ§Ã£o
-        { wch: 10 }, // CÃ³d. Rota
-        { wch: 15 }, // NÃºmero Pedido
+        { wch: 30 }, // Rota Descriá§á£o
+        { wch: 10 }, // Cá³d. Rota
+        { wch: 15 }, // Náºmero Pedido
         { wch: 10 }, // Cliente
         { wch: 30 }, // Nome Cliente
         { wch: 20 }, // Cidade
@@ -5933,21 +5933,21 @@ function exportarRelatorioCompletoPorRotaExcel() {
 
     const today = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
     XLSX.writeFile(workbook, `Relatorio_Completo_Rotas_${today}.xlsx`);
-    showToast("RelatÃ³rio Excel (Por Rota) gerado com sucesso!", 'success');
+    showToast("Relatá³rio Excel (Por Rota) gerado com sucesso!", 'success');
 }
 
 function exportarRelatorioCompletoPorRotaPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l', 'mm', 'a4'); // Paisagem para caber mais colunas
 
-    // SEGURANÃ‡A: Garante que a lista reflita exatamente o que estÃ¡ disponÃ­vel, excluindo alocados
+    // SEGURANá‡A: Garante que a lista reflita exatamente o que está¡ disponá­vel, excluindo alocados
     const allAllocatedIds = new Set();
     Object.values(activeLoads).forEach(l => l.pedidos.forEach(p => allAllocatedIds.add(String(p.Num_Pedido))));
 
-    // 1. Pedidos Varejo DisponÃ­veis
+    // 1. Pedidos Varejo Disponá­veis
     const pedidosVarejoReais = pedidosGeraisAtuais.filter(p => !allAllocatedIds.has(String(p.Num_Pedido)));
 
-    // 2. Pedidos Toco DisponÃ­veis (ainda na aba Toco, nÃ£o montados)
+    // 2. Pedidos Toco Disponá­veis (ainda na aba Toco, ná£o montados)
     const pedidosTocoDisponiveis = [];
     Object.values(gruposToco).forEach(grupo => {
         grupo.pedidos.forEach(p => {
@@ -5958,7 +5958,7 @@ function exportarRelatorioCompletoPorRotaPDF() {
     const todosPedidos = [...pedidosVarejoReais, ...pedidosTocoDisponiveis];
 
     if (todosPedidos.length === 0) {
-        showToast("NÃ£o hÃ¡ pedidos disponÃ­veis para gerar o relatÃ³rio.", 'warning');
+        showToast("Náo há¡ pedidos disponá­veis para gerar o relatá³rio.", 'warning');
         return;
     }
 
@@ -5975,7 +5975,7 @@ function exportarRelatorioCompletoPorRotaPDF() {
 
     const today = new Date().toLocaleDateString('pt-BR');
     doc.setFontSize(16);
-    doc.text("RelatÃ³rio Completo de Pedidos DisponÃ­veis (Por Rota)", 14, 15);
+    doc.text("Relatá³rio Completo de Pedidos Disponá­veis (Por Rota)", 14, 15);
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text(`Gerado em: ${today}`, 14, 22);
@@ -5999,7 +5999,7 @@ function exportarRelatorioCompletoPorRotaPDF() {
                 String(p.Cod_Rota || ''),
                 normalizeClientId(p.Cliente),
                 String(p.Nome_Cliente || '').substring(0, 30),
-                p.Agendamento || 'NÃ£o',
+                p.Agendamento || 'Náo',
                 String(p.Num_Pedido),
                 p.Quilos_Saldo.toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
                 p.Cubagem.toLocaleString('pt-BR', { minimumFractionDigits: 3 }),
@@ -6026,10 +6026,10 @@ function exportarRelatorioCompletoPorRotaPDF() {
     });
 
     doc.save(`Relatorio_Completo_Rotas_${today.replace(/\//g, '-')}.pdf`);
-    showToast("RelatÃ³rio PDF gerado com sucesso!", 'success');
+    showToast("Relatá³rio PDF gerado com sucesso!", 'success');
 }
 
-// --- FUNÃ‡Ã•ES AUXILIARES PARA GEOLOCALIZAÃ‡ÃƒO E CLUSTERIZAÃ‡ÃƒO ---
+// --- FUNá‡á•ES AUXILIARES PARA GEOLOCALIZAá‡áƒO E CLUSTERIZAá‡áƒO ---
 function deg2rad(deg) { return deg * (Math.PI / 180); }
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -6072,7 +6072,7 @@ function processarPriorizacaoEmMassa() {
     if (!input) return;
     const orderNumbers = input.value.split(/[\n,\s\t]+/).map(s => s.trim()).filter(s => s.length > 0);
 
-    if (orderNumbers.length === 0) { showToast("Nenhum nÃºmero de pedido encontrado.", "warning"); return; }
+    if (orderNumbers.length === 0) { showToast("Nenhum náºmero de pedido encontrado.", "warning"); return; }
 
     let countAdded = 0;
     orderNumbers.forEach(num => {
@@ -6090,86 +6090,86 @@ function processarPriorizacaoEmMassa() {
         input.value = '';
         const modal = bootstrap.Modal.getInstance(document.getElementById('bulkPriorityModal'));
         if (modal) modal.hide();
-    } else { showToast("Todos os pedidos informados jÃ¡ eram prioritÃ¡rios.", "info"); }
+    } else { showToast("Todos os pedidos informados já¡ eram prioritá¡rios.", "info"); }
 }
 
 /**
- * NOVO: FunÃ§Ã£o para montar cargas automaticamente baseadas nos pedidos prioritÃ¡rios.
+ * NOVO: Funá§á£o para montar cargas automaticamente baseadas nos pedidos prioritá¡rios.
  * Identifica as rotas que possuem pedidos marcados como prioridade e processa apenas elas.
  */
 async function montarCargasPrioritarias() {
-    // 1. Identificar pedidos prioritÃ¡rios que ainda estÃ£o disponÃ­veis (nÃ£o alocados)
+    // 1. Identificar pedidos prioritá¡rios que ainda está£o disponá­veis (ná£o alocados)
     const pedidosPrioritariosDisponiveis = pedidosGeraisAtuais.filter(p =>
         pedidosPrioritarios.includes(String(p.Num_Pedido)) ||
         pedidosRecall.includes(String(p.Num_Pedido))
     );
 
     if (pedidosPrioritariosDisponiveis.length === 0) {
-        showToast("NÃ£o hÃ¡ pedidos prioritÃ¡rios pendentes na lista de disponÃ­veis.", "info");
+        showToast("Náo há¡ pedidos prioritá¡rios pendentes na lista de disponá­veis.", "info");
         return;
     }
 
-    // 2. Identificar as rotas Ãºnicas desses pedidos
+    // 2. Identificar as rotas áºnicas desses pedidos
     const rotasParaProcessar = [...new Set(pedidosPrioritariosDisponiveis.map(p => String(p.Cod_Rota)))];
     rotasParaProcessar.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-    const confirmMsg = `Encontrei ${pedidosPrioritariosDisponiveis.length} pedido(s) prioritÃ¡rio(s) distribuÃ­do(s) em ${rotasParaProcessar.length} rota(s):\n\nRotas: ${rotasParaProcessar.join(', ')}\n\nDeseja montar as cargas para essas rotas agora? O sistema tentarÃ¡ incluir os prioritÃ¡rios e completar a carga com outros pedidos da rota.`;
+    const confirmMsg = `Encontrei ${pedidosPrioritariosDisponiveis.length} pedido(s) prioritá¡rio(s) distribuá­do(s) em ${rotasParaProcessar.length} rota(s):\n\nRotas: ${rotasParaProcessar.join(', ')}\n\nDeseja montar as cargas para essas rotas agora? O sistema tentará¡ incluir os prioritá¡rios e completar a carga com outros pedidos da rota.`;
 
     if (!confirm(confirmMsg)) return;
 
-    showToast(`Iniciando montagem automÃ¡tica para ${rotasParaProcessar.length} rotas...`, "info");
+    showToast(`Iniciando montagem automá¡tica para ${rotasParaProcessar.length} rotas...`, "info");
 
-    // Limpa mensagens de sucesso antigas antes de comeÃ§ar o lote para evitar acÃºmulo
+    // Limpa mensagens de sucesso antigas antes de comeá§ar o lote para evitar acáºmulo
     document.querySelectorAll('.route-success-message').forEach(el => el.remove());
 
     // 3. Processar cada rota sequencialmente
     for (const rota of rotasParaProcessar) {
-        // Determina as configuraÃ§Ãµes da rota (tipo de veÃ­culo, tÃ­tulo, etc.)
+        // Determina as configuraá§áµes da rota (tipo de veá­culo, tá­tulo, etc.)
         let config = rotaVeiculoMap[rota];
 
-        // Fallback para rotas de SP ou nÃ£o mapeadas
+        // Fallback para rotas de SP ou ná£o mapeadas
         if (!config) {
-            config = { type: 'van', title: `Rota ${rota} (AutomÃ¡tica)` };
+            config = { type: 'van', title: `Rota ${rota} (Automá¡tica)` };
         }
 
-        // Determina o ID da div de destino baseado no tipo de veÃ­culo
+        // Determina o ID da div de destino baseado no tipo de veá­culo
         const divId = config.type === 'fiorino' ? 'resultado-fiorino-geral' :
             (config.type === 'van' ? 'resultado-van-geral' : 'resultado-34-geral');
 
-        // Chama a funÃ§Ã£o de separaÃ§Ã£o existente
-        // Passamos 'null' no botÃ£o pois Ã© uma chamada automÃ¡tica
-        // Passamos 'true' para isBatchMode para nÃ£o limpar as cargas anteriores
+        // Chama a funá§á£o de separaá§á£o existente
+        // Passamos 'null' no botá£o pois á© uma chamada automá¡tica
+        // Passamos 'true' para isBatchMode para ná£o limpar as cargas anteriores
         await separarCargasGeneric(rota, divId, config.title, config.type, null, true);
 
-        // Pequena pausa para a UI respirar e nÃ£o travar
+        // Pequena pausa para a UI respirar e ná£o travar
         await new Promise(r => setTimeout(r, 500));
     }
 
     // 4. Atualiza a interface geral para garantir que tudo esteja sincronizado
     renderAllUI();
-    showToast("Processamento de cargas prioritÃ¡rias concluÃ­do!", "success");
+    showToast("Processamento de cargas prioritá¡rias concluá­do!", "success");
 }
 
 /**
- * NOVO: FunÃ§Ã£o para montar todas as rotas disponÃ­veis sequencialmente.
- * Simula o clique manual em cada botÃ£o de rota.
+ * NOVO: Funá§á£o para montar todas as rotas disponá­veis sequencialmente.
+ * Simula o clique manual em cada botá£o de rota.
  */
 async function montarTodasAsRotas() {
     if (pedidosGeraisAtuais.length === 0) {
-        showToast("NÃ£o hÃ¡ pedidos disponÃ­veis para montar.", "info");
+        showToast("Náo há¡ pedidos disponá­veis para montar.", "info");
         return;
     }
 
-    // Identifica rotas Ãºnicas presentes nos pedidos disponÃ­veis
+    // Identifica rotas áºnicas presentes nos pedidos disponá­veis
     const rotasDisponiveis = [...new Set(pedidosGeraisAtuais.map(p => String(p.Cod_Rota)))];
 
     if (rotasDisponiveis.length === 0) return;
 
     const rotasOrdenadas = getSortedVarejoRoutes(rotasDisponiveis);
 
-    if (!confirm(`Deseja iniciar a montagem automÃ¡tica para ${rotasOrdenadas.length} rotas? O processo serÃ¡ executado sequencialmente.`)) return;
+    if (!confirm(`Deseja iniciar a montagem automá¡tica para ${rotasOrdenadas.length} rotas? O processo será¡ executado sequencialmente.`)) return;
 
-    showToast(`Iniciando montagem automÃ¡tica de ${rotasOrdenadas.length} rotas...`, "info");
+    showToast(`Iniciando montagem automá¡tica de ${rotasOrdenadas.length} rotas...`, "info");
 
     // Remove mensagens de sucesso anteriores
     document.querySelectorAll('.route-success-message').forEach(el => el.remove());
@@ -6180,7 +6180,7 @@ async function montarTodasAsRotas() {
         if (processedInThisBatch.has(rota)) continue;
 
         let config = rotaVeiculoMap[rota];
-        if (!config) config = { type: 'van', title: `Rota ${rota} (AutomÃ¡tica)` };
+        if (!config) config = { type: 'van', title: `Rota ${rota} (Automá¡tica)` };
 
         let rotasParaProcessar = rota;
         if (config.combined) {
@@ -6197,7 +6197,7 @@ async function montarTodasAsRotas() {
     }
 
     renderAllUI();
-    showToast("Montagem automÃ¡tica de todas as rotas concluÃ­da!", "success");
+    showToast("Montagem automá¡tica de todas as rotas concluá­da!", "success");
 }
 
 async function processarRoteirizacaoLista() {
@@ -6205,7 +6205,7 @@ async function processarRoteirizacaoLista() {
     const useGeo = document.getElementById('roteiroGeoCheck').checked;
 
     const orderNumbers = input.value.split(/[\n,\s]+/).map(s => s.trim()).filter(Boolean);
-    if (orderNumbers.length === 0) { showToast("Insira os nÃºmeros dos pedidos.", "warning"); return; }
+    if (orderNumbers.length === 0) { showToast("Insira os náºmeros dos pedidos.", "warning"); return; }
 
     // Show processing modal
     const modalElement = document.getElementById('processing-modal');
@@ -6243,12 +6243,12 @@ async function processarRoteirizacaoLista() {
 
         if (pedidosEncontrados.length === 0) {
             modal.hide(); stopThinkingText();
-            showToast("Nenhum pedido encontrado na lista de disponÃ­veis/sobras.", "error");
+            showToast("Nenhum pedido encontrado na lista de disponá­veis/sobras.", "error");
             return;
         }
 
         if (pedidosNaoEncontrados.length > 0) {
-            showToast(`${pedidosNaoEncontrados.length} pedidos nÃ£o encontrados ou jÃ¡ alocados.`, "warning");
+            showToast(`${pedidosNaoEncontrados.length} pedidos ná£o encontrados ou já¡ alocados.`, "warning");
         }
 
         progressBar.style.width = '10%';
@@ -6262,11 +6262,11 @@ async function processarRoteirizacaoLista() {
             uniqueCitiesMap[key].pedidos.push(p);
         });
 
-        // PrÃ©-carrega coordenadas para todas as cidades encontradas
+        // Prá©-carrega coordenadas para todas as cidades encontradas
         if (useGeo) {
             const apiKey = document.getElementById('graphhopperApiKey').value;
             if (apiKey) {
-                thinkingText.textContent = "Buscando coordenadas geogrÃ¡ficas...";
+                thinkingText.textContent = "Buscando coordenadas geográ¡ficas...";
                 const cityKeys = Object.keys(uniqueCitiesMap);
                 for (let i = 0; i < cityKeys.length; i++) {
                     const cityKey = cityKeys[i];
@@ -6276,18 +6276,18 @@ async function processarRoteirizacaoLista() {
                     progressBar.style.width = `${10 + (i / cityKeys.length) * 20}%`; // Progress 10% -> 30%
                 }
             } else {
-                showToast("API Key nÃ£o configurada. Agrupamento geogrÃ¡fico desativado.", "warning");
+                showToast("API Key ná£o configurada. Agrupamento geográ¡fico desativado.", "warning");
             }
         }
 
-        // --- CLASSIFICAÃ‡ÃƒO DOS PEDIDOS POR VEÃCULO (Baseado na Rota) ---
-        thinkingText.textContent = "Classificando pedidos por veÃ­culo...";
+        // --- CLASSIFICAá‡áƒO DOS PEDIDOS POR VEáCULO (Baseado na Rota) ---
+        thinkingText.textContent = "Classificando pedidos por veá­culo...";
         const buckets = { fiorino: [], van: [], tresQuartos: [], toco: [] };
         const normalizeCity = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
 
         pedidosEncontrados.forEach(p => {
             const rota = String(p.Cod_Rota);
-            let type = 'van'; // PadrÃ£o
+            let type = 'van'; // Padrá£o
 
             // Verifica regras especiais de Fiorino (cidades permitidas)
             if (rotasEspeciaisFiorino[rota]) {
@@ -6295,7 +6295,7 @@ async function processarRoteirizacaoLista() {
                 if (new Set(rotasEspeciaisFiorino[rota]).has(cidadePedido)) {
                     type = 'fiorino';
                 } else {
-                    type = 'van'; // Se a cidade nÃ£o pode Fiorino, vai pra Van
+                    type = 'van'; // Se a cidade ná£o pode Fiorino, vai pra Van
                 }
             } else if (rotaVeiculoMap[rota]) {
                 type = rotaVeiculoMap[rota].type;
@@ -6305,11 +6305,11 @@ async function processarRoteirizacaoLista() {
             else buckets.van.push(p);
         });
 
-        // --- FUNÃ‡ÃƒO AUXILIAR DE OTIMIZAÃ‡ÃƒO POR ESTÃGIO ---
+        // --- FUNá‡áƒO AUXILIAR DE OTIMIZAá‡áƒO POR ESTáGIO ---
         const optimizeStage = async (orders, type) => {
             if (orders.length === 0) return { loads: [], leftovers: [] };
 
-            // 1. Agrupar cidades prÃ³ximas (ClusterizaÃ§Ã£o)
+            // 1. Agrupar cidades prá³ximas (Clusterizaá§á£o)
             const stageCitiesMap = {};
             orders.forEach(p => {
                 const key = `${(p.Cidade || 'N/A').trim().toUpperCase()} - ${(p.UF || '').trim().toUpperCase()}`;
@@ -6355,7 +6355,7 @@ async function processarRoteirizacaoLista() {
             const stageLoads = [];
             const stageLeftovers = [];
 
-            // ConfiguraÃ§Ãµes atuais
+            // Configuraá§áµes atuais
             const vehicleConfigs = {
                 fiorinoMinCapacity: parseFloat(document.getElementById('fiorinoMinCapacity').value), fiorinoMaxCapacity: parseFloat(document.getElementById('fiorinoMaxCapacity').value), fiorinoCubage: parseFloat(document.getElementById('fiorinoCubage').value), fiorinoHardMaxCapacity: parseFloat(document.getElementById('fiorinoHardMaxCapacity').value), fiorinoHardCubage: parseFloat(document.getElementById('fiorinoHardCubage').value),
                 vanMinCapacity: parseFloat(document.getElementById('vanMinCapacity').value), vanMaxCapacity: parseFloat(document.getElementById('vanMaxCapacity').value), vanCubage: parseFloat(document.getElementById('vanCubage').value), vanHardMaxCapacity: parseFloat(document.getElementById('vanHardMaxCapacity').value), vanHardCubage: parseFloat(document.getElementById('vanHardCubage').value),
@@ -6371,7 +6371,7 @@ async function processarRoteirizacaoLista() {
                     return acc;
                 }, {}));
 
-                // Calcula a data mais antiga para priorizaÃ§Ã£o correta (Igual Ã  montagem normal)
+                // Calcula a data mais antiga para priorizaá§á£o correta (Igual á  montagem normal)
                 packableGroups.forEach(group => {
                     group.oldestDate = group.pedidos.reduce((oldest, p) => {
                         let pDate = p.Dat_Ped;
@@ -6408,11 +6408,11 @@ async function processarRoteirizacaoLista() {
                 });
                 processingWorker.terminate();
 
-                // --- MELHORIA: Refinamento e AtribuiÃ§Ã£o de Tipo ---
+                // --- MELHORIA: Refinamento e Atribuiá§á£o de Tipo ---
                 result.loads.forEach(l => l.vehicleType = type);
                 const { refinedLoads, remainingLeftovers } = refineLoadsWithSimpleFit(result.loads, result.leftovers);
 
-                // 3. VerificaÃ§Ã£o de DistÃ¢ncia
+                // 3. Verificaá§á£o de Distá¢ncia
                 if ((type === 'fiorino' || type === 'van') && useGeo) {
                     const distanceLimit = type === 'fiorino' ? 500 : 1400;
                     const depot = { lat: -23.31461, lng: -51.36963 };
@@ -6423,7 +6423,7 @@ async function processarRoteirizacaoLista() {
                         let currentPos = depot;
                         let validDist = true;
 
-                        // CÃ¡lculo aproximado da rota
+                        // Cá¡lculo aproximado da rota
                         for (const cityKey of citiesInLoad) {
                             const coords = uniqueCitiesMap[cityKey]?.coords;
                             if (coords) {
@@ -6435,7 +6435,7 @@ async function processarRoteirizacaoLista() {
                         const estimatedRoadDist = totalDistKm * 1.3;
 
                         if (estimatedRoadDist > distanceLimit) {
-                            // Se exceder a distÃ¢ncia, desmonta a carga e joga para sobras (para tentar upgrade)
+                            // Se exceder a distá¢ncia, desmonta a carga e joga para sobras (para tentar upgrade)
                             const groups = Object.values(load.pedidos.reduce((acc, p) => {
                                 const cId = normalizeClientId(p.Cliente);
                                 if (!acc[cId]) acc[cId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) };
@@ -6455,7 +6455,7 @@ async function processarRoteirizacaoLista() {
             return { loads: stageLoads, leftovers: stageLeftovers };
         };
 
-        // --- EXECUÃ‡ÃƒO DO PIPELINE (CASCATA) ---
+        // --- EXECUá‡áƒO DO PIPELINE (CASCATA) ---
         const allCreatedLoads = [];
 
         // 1. FIORINO
@@ -6465,7 +6465,7 @@ async function processarRoteirizacaoLista() {
         const fiorinoResult = await optimizeStage(buckets.fiorino, 'fiorino');
         allCreatedLoads.push(...fiorinoResult.loads.map(l => ({ ...l, vehicleType: 'fiorino' })));
 
-        // Sobras de Fiorino vÃ£o para Van
+        // Sobras de Fiorino vá£o para Van
         const ordersForVan = [...buckets.van, ...fiorinoResult.leftovers.flatMap(g => g.pedidos)];
 
         // 2. VAN
@@ -6475,7 +6475,7 @@ async function processarRoteirizacaoLista() {
         const vanResult = await optimizeStage(ordersForVan, 'van');
         allCreatedLoads.push(...vanResult.loads.map(l => ({ ...l, vehicleType: 'van' })));
 
-        // Sobras de Van vÃ£o para 3/4
+        // Sobras de Van vá£o para 3/4
         const ordersFor34 = [...buckets.tresQuartos, ...vanResult.leftovers.flatMap(g => g.pedidos)];
 
         // 3. 3/4
@@ -6484,7 +6484,7 @@ async function processarRoteirizacaoLista() {
         const tqResult = await optimizeStage(ordersFor34, 'tresQuartos');
         allCreatedLoads.push(...tqResult.loads.map(l => ({ ...l, vehicleType: 'tresQuartos' })));
 
-        // Sobras de 3/4 vÃ£o para Toco
+        // Sobras de 3/4 vá£o para Toco
         const ordersForToco = [...buckets.toco, ...tqResult.leftovers.flatMap(g => g.pedidos)];
 
         // 4. TOCO
@@ -6493,10 +6493,10 @@ async function processarRoteirizacaoLista() {
         const tocoResult = await optimizeStage(ordersForToco, 'toco');
         allCreatedLoads.push(...tocoResult.loads.map(l => ({ ...l, vehicleType: 'toco' })));
 
-        // Sobras finais (nÃ£o couberam em nada)
+        // Sobras finais (ná£o couberam em nada)
         const finalLeftovers = tocoResult.leftovers.flatMap(g => g.pedidos);
         if (finalLeftovers.length > 0) {
-            showToast(`${finalLeftovers.length} pedidos nÃ£o couberam em nenhum veÃ­culo e voltaram para a lista.`, 'warning');
+            showToast(`${finalLeftovers.length} pedidos ná£o couberam em nenhum veá­culo e voltaram para a lista.`, 'warning');
         }
 
         let loads = allCreatedLoads;
@@ -6509,7 +6509,7 @@ async function processarRoteirizacaoLista() {
         const roteirizadosContainer = document.getElementById('resultado-roteirizados');
         if (roteirizadosContainer) roteirizadosContainer.innerHTML = '';
 
-        // Pequeno delay para garantir que a UI atualize antes de travar na renderizaÃ§Ã£o
+        // Pequeno delay para garantir que a UI atualize antes de travar na renderizaá§á£o
         setTimeout(() => {
             try {
                 const vehicleInfo = { fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' }, van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' }, tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' }, toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' } };
@@ -6518,7 +6518,7 @@ async function processarRoteirizacaoLista() {
                     load.numero = `R-${Date.now().toString().slice(-4)}-${idx + 1}`;
                     load.id = `roteiro-${Date.now()}-${idx}`;
                     const citiesInLoad = [...new Set(load.pedidos.map(p => p.Cidade))];
-                    load.observation = `RoteirizaÃ§Ã£o por Lista (${citiesInLoad.length} cidades)`;
+                    load.observation = `Roteirizaá§á£o por Lista (${citiesInLoad.length} cidades)`;
                     activeLoads[load.id] = load;
 
                     // Agora direciona todas as cargas para o container de roteirizados
@@ -6528,7 +6528,7 @@ async function processarRoteirizacaoLista() {
                     }
                 });
 
-                // Remove apenas os pedidos que foram efetivamente alocados em cargas vÃ¡lidas
+                // Remove apenas os pedidos que foram efetivamente alocados em cargas vá¡lidas
                 const usedIds = new Set(loads.flatMap(l => l.pedidos.map(p => String(p.Num_Pedido))));
                 pedidosGeraisAtuais = pedidosGeraisAtuais.filter(p => !usedIds.has(String(p.Num_Pedido)));
                 currentLeftoversForPrinting = currentLeftoversForPrinting.filter(p => !usedIds.has(String(p.Num_Pedido)));
@@ -6554,7 +6554,7 @@ async function processarRoteirizacaoLista() {
 
                 showToast(`${loads.length} cargas criadas com sucesso!`, "success");
             } catch (innerError) {
-                console.error("Erro na renderizaÃ§Ã£o final:", innerError);
+                console.error("Erro na renderizaá§á£o final:", innerError);
                 modal.hide();
                 stopThinkingText();
                 showToast("Erro ao finalizar montagem: " + innerError.message, "error");
@@ -6570,12 +6570,12 @@ async function processarRoteirizacaoLista() {
 }
 
 // ================================================================================================
-//  LÃ“GICA DE PERSISTÃŠNCIA DE ESTADO
+//  Lá“GICA DE PERSISTáŠNCIA DE ESTADO
 // ================================================================================================
 
 async function saveStateToLocalStorage() {
     if (typeof (Storage) === "undefined") {
-        console.warn("Seu navegador nÃ£o suporta Local Storage. O progresso nÃ£o serÃ¡ salvo.");
+        console.warn("Seu navegador ná£o suporta Local Storage. O progresso ná£o será¡ salvo.");
         return;
     }
     try {
@@ -6610,7 +6610,7 @@ async function saveStateToLocalStorage() {
             lastActiveTab: localStorage.getItem('lastActiveTab') || '#fiorino-tab-pane' // Salva a aba ativa
         };
         localStorage.setItem('logisticsAppState', JSON.stringify(state));
-        console.log("Estado da aplicaÃ§Ã£o salvo no Local Storage.");
+        console.log("Estado da aplicaá§á£o salvo no Local Storage.");
     } catch (e) {
         console.error("Erro ao salvar o estado no Local Storage:", e);
         showToast("Erro ao salvar o estado. O armazenamento pode estar cheio.", 'error');
@@ -6618,7 +6618,7 @@ async function saveStateToLocalStorage() {
 }
 
 async function saveRouteContext(context) {
-    // Agora apenas atualiza a variÃ¡vel global. O salvamento ocorre em saveStateToLocalStorage.
+    // Agora apenas atualiza a variá¡vel global. O salvamento ocorre em saveStateToLocalStorage.
     if (!processedRouteContexts) {
         processedRouteContexts = {};
     }
@@ -6641,7 +6641,7 @@ async function loadStateFromLocalStorage() {
             planilhaData = savedPlanilha;
             console.log("Dados da planilha restaurados do IndexedDB.");
             // Simula o evento de carregamento de arquivo para re-popular a UI,
-            // mas com um flag para nÃ£o limpar o estado.
+            // mas com um flag para ná£o limpar o estado.
             const fileInfo = { name: localStorage.getItem('lastFileName') || 'planilha-salva.xlsx' };
             if (fileInput) fileInput.files[0] = new File([], fileInfo.name); // Apenas para UI
             handleFile(new File([], fileInfo.name), true);
@@ -6652,7 +6652,7 @@ async function loadStateFromLocalStorage() {
 
         const savedState = JSON.parse(savedStateJSON);
 
-        // FunÃ§Ã£o auxiliar para garantir que as datas sejam objetos Date
+        // Funá§á£o auxiliar para garantir que as datas sejam objetos Date
         const reviveDates = (data) => {
             if (!data) return [];
             return data.map(item => {
@@ -6691,7 +6691,7 @@ async function loadStateFromLocalStorage() {
         processedRouteContexts = savedState.processedRouteContexts || {};
         localStorage.setItem('lastActiveTab', savedState.lastActiveTab); // Restaura a aba salva
 
-        // NOVO: Habilita o botÃ£o se houver sobras de SP salvas
+        // NOVO: Habilita o botá£o se houver sobras de SP salvas
         const exportBtn = document.getElementById('export-sobras-sp-btn');
         if (exportBtn) {
             exportBtn.disabled = !allSaoPauloLeftovers || allSaoPauloLeftovers.length === 0;
@@ -6714,7 +6714,7 @@ async function loadStateFromLocalStorage() {
         Object.values(gruposToco).forEach(group => group.pedidos = reviveDates(group.pedidos));
         Object.values(gruposPorCFGlobais).forEach(group => group.pedidos = reviveDates(group.pedidos));
 
-        // Se nÃ£o houver dados da planilha E nenhum estado salvo, nÃ£o hÃ¡ o que restaurar.
+        // Se ná£o houver dados da planilha E nenhum estado salvo, ná£o há¡ o que restaurar.
         if (planilhaData.length === 0 && (pedidosGeraisAtuais.length === 0 && Object.keys(activeLoads).length === 0 && currentLeftoversForPrinting.length === 0)) {
             console.log("Nenhum estado processado para restaurar.");
             return;
@@ -6732,7 +6732,7 @@ async function loadStateFromLocalStorage() {
         statusDiv.innerHTML = `<p class="text-success">Progresso anterior restaurado com sucesso!</p>`;
         processarBtn.disabled = false;
 
-        // 2026-01-24: ForÃ§a a restauraÃ§Ã£o da VIEW e da TAB ativa para evitar tela em branco e garantir UX
+        // 2026-01-24: Forá§a a restauraá§á£o da VIEW e da TAB ativa para evitar tela em branco e garantir UX
         setTimeout(() => {
             const lastView = localStorage.getItem('lastActiveView') || 'summary-view'; // Default para summary se nao houver salvo
             // Remove # se existir para garantir compatibilidade
@@ -6751,7 +6751,7 @@ async function loadStateFromLocalStorage() {
             if (lastTab) {
                 const tabBtn = document.querySelector(`button[data-bs-target="${lastTab}"]`);
                 if (tabBtn) {
-                    // Pequeno delay para garantir que a aba esteja visÃ­vel antes de clicar
+                    // Pequeno delay para garantir que a aba esteja visá­vel antes de clicar
                     setTimeout(() => tabBtn.click(), 100);
                 }
             }
@@ -6761,12 +6761,12 @@ async function loadStateFromLocalStorage() {
         atualizarListaBloqueados();
         atualizarListaSemCorte();
 
-        // Re-renderizar todas as seÃ§Ãµes principais
+        // Re-renderizar todas as seá§áµes principais
         const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
         displayGerais(document.getElementById('resultado-geral'), gruposGerais);
         displayToco(document.getElementById('resultado-toco'), gruposToco);
 
-        // Adicionado para restaurar todas as outras seÃ§Ãµes da UI
+        // Adicionado para restaurar todas as outras seá§áµes da UI
         displayPedidosBloqueados(document.getElementById('resultado-bloqueados'), pedidosManualmenteBloqueadosAtuais);
         displayRota1(document.getElementById('resultado-rota1'), rota1SemCarga);
         displayPedidosCFNumerico(document.getElementById('resultado-cf-numerico'), pedidosComCFNumericoIsolado);
@@ -6779,8 +6779,8 @@ async function loadStateFromLocalStorage() {
         displayPedidosMarcaPropria(document.getElementById('resultado-marca-propria'), pedidosMarcaPropria);
         reRenderManualLoads();
 
-        // NOVO: ReconstrÃ³i a UI inicial (botÃµes e listas) a partir dos dados restaurados
-        // Isso Ã© crucial para criar os containers onde as cargas serÃ£o renderizadas
+        // NOVO: Reconstrá³i a UI inicial (botáµes e listas) a partir dos dados restaurados
+        // Isso á© crucial para criar os containers onde as cargas será£o renderizadas
         if (pedidosGeraisAtuais.length > 0 || processedRoutes.size > 0) {
             const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => {
                 const rota = p.Cod_Rota;
@@ -6797,7 +6797,7 @@ async function loadStateFromLocalStorage() {
         updateAndRenderChart();
         recalcAllFreights();
 
-        console.log("Estado da aplicaÃ§Ã£o restaurado do Local Storage.");
+        console.log("Estado da aplicaá§á£o restaurado do Local Storage.");
     } catch (e) {
         console.error("Erro ao carregar o estado do Local Storage:", e);
         localStorage.removeItem('logisticsAppState'); // Limpa estado corrompido
@@ -6840,7 +6840,7 @@ function reRenderActiveLoads(processedRouteContexts) {
     // Agrupa as cargas por contexto de rota (divId)
     const loadsByContext = {};
 
-    // Processa os contextos para reativar os botÃµes e preparar os containers
+    // Processa os contextos para reativar os botáµes e preparar os containers
     for (const contextKey in processedRouteContexts) {
         const context = processedRouteContexts[contextKey];
         const resultadoDiv = document.getElementById(context.divId);
@@ -6849,8 +6849,8 @@ function reRenderActiveLoads(processedRouteContexts) {
         // Limpa e prepara o container da rota
         resultadoDiv.innerHTML = `<div class="resultado-container"><h5 class="mt-3">Cargas para <strong>${context.title}</strong></h5></div>`;
 
-        // Reativa o botÃ£o da rota processada
-        // Reativa o botÃ£o da rota processada
+        // Reativa o botá£o da rota processada
+        // Reativa o botá£o da rota processada
         const routeButton = document.getElementById(context.buttonId);
         if (routeButton) {
             const vehicleType = routeButton.id.split('-')[1];
@@ -6858,7 +6858,7 @@ function reRenderActiveLoads(processedRouteContexts) {
             routeButton.classList.remove(`btn-outline-${colorClass}`);
             routeButton.classList.add(`btn-${colorClass}`, 'active');
             routeButton.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i>${context.title}`;
-            routeButton.disabled = true; // Garante que o botÃ£o permaneÃ§a desativado
+            routeButton.disabled = true; // Garante que o botá£o permaneá§a desativado
         }
     }
 
@@ -6875,16 +6875,16 @@ function reRenderActiveLoads(processedRouteContexts) {
         }
     }
 
-    // Renderiza as sobras na Ãºltima aba ativa (ou na primeira, como fallback)
-    // REMOVIDO: O card de sobras foi removido da interface conforme solicitaÃ§Ã£o.
+    // Renderiza as sobras na áºltima aba ativa (ou na primeira, como fallback)
+    // REMOVIDO: O card de sobras foi removido da interface conforme solicitaá§á£o.
     /*
     if (currentLeftoversForPrinting.length > 0) {
-         ... (cÃ³digo removido) ...
+         ... (cá³digo removido) ...
     }
     */
 }
 
-// --- Script para a nova animaÃ§Ã£o "Holographic Nexus" (V9) ---
+// --- Script para a nova animaá§á£o "Holographic Nexus" (V9) ---
 const processingModal = document.getElementById('processing-modal');
 const animationContainer = document.querySelector('.loading-animation-container');
 
@@ -6897,7 +6897,7 @@ function createHolographicNexus() {
     // Limpa pacotes antigos
     system.querySelectorAll('.data-packet').forEach(el => el.remove());
 
-    const packetCount = 16; // Mais partÃ­culas para efeito mais rico
+    const packetCount = 16; // Mais partá­culas para efeito mais rico
     for (let i = 0; i < packetCount; i++) {
         const packet = document.createElement('div');
         packet.className = 'data-packet';
@@ -6968,5 +6968,7 @@ function saveFreightConfig() {
 
     showToast("Configurações de frete salvas com sucesso!", "success");
 }
+
+
 
 

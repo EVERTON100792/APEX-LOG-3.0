@@ -1,4 +1,4 @@
-
+﻿
 import { supabase } from './supabase-client.js';
 
 /**
@@ -127,3 +127,4 @@ export async function deleteSession(sessionId) {
 
     if (error) throw error;
 }
+

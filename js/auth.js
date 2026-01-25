@@ -1,4 +1,4 @@
-
+﻿
 import { supabase } from './supabase-client.js';
 
 export async function getSession() {
@@ -73,3 +73,4 @@ export async function signUp(email, password, fullName) {
 
     return { data, error };
 }
+
