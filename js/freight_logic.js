@@ -10,89 +10,122 @@ const defaultFreightConfig = {
 
 function getFreightConfig() {
     const stored = localStorage.getItem('apexFreightConfig');
-    if (stored) return { ...defaultFreightConfig, ...JSON.parse(stored) };
-    return defaultFreightConfig;
+    let config = { ...defaultFreightConfig };
+
+    if (stored) {
+        try {
+            const parsed = JSON.parse(stored);
+            // Merge robusto: garante que cada tipo de veículo tenha todas as propriedades
+            Object.keys(defaultFreightConfig).forEach(vType => {
+                if (parsed[vType]) {
+                    config[vType] = { ...defaultFreightConfig[vType], ...parsed[vType] };
+                }
+            });
+        } catch (e) {
+            console.error("Erro ao ler configuração de frete:", e);
+        }
+    }
+    return config;
 }
 
 function saveFreightConfig() {
-    const config = {
-        fiorino: {
-            limit: parseFloat(document.getElementById('fiorinoLimit').value) || 0,
-            fixed: parseFloat(document.getElementById('fiorinoFixed').value) || 0,
-            rate: parseFloat(document.getElementById('fiorinoRate').value) || 0
-        },
-        van: {
-            limit: parseFloat(document.getElementById('vanLimit').value) || 0,
-            tableValue: parseFloat(document.getElementById('vanTableValue').value) || 0,
-            rate: parseFloat(document.getElementById('vanRate').value) || 0
-        },
-        tresQuartos: {
-            limit: parseFloat(document.getElementById('truck34Limit').value) || 0,
-            tableValue: parseFloat(document.getElementById('truck34TableValue').value) || 0,
-            rate: parseFloat(document.getElementById('truck34Rate').value) || 0
-        },
-        toco: {
-            limit: parseFloat(document.getElementById('tocoLimit').value) || 0,
-            tableValue: parseFloat(document.getElementById('tocoTableValue').value) || 0,
-            rate: parseFloat(document.getElementById('tocoRate').value) || 0
+    try {
+        const config = {
+            fiorino: {
+                limit: parseFloat(document.getElementById('fiorinoLimit').value) || 0,
+                fixed: parseFloat(document.getElementById('fiorinoFixed').value) || 0,
+                rate: parseFloat(document.getElementById('fiorinoRate').value) || 0
+            },
+            van: {
+                limit: parseFloat(document.getElementById('vanLimit').value) || 0,
+                tableValue: parseFloat(document.getElementById('vanTableValue').value) || 0,
+                rate: parseFloat(document.getElementById('vanRate').value) || 0
+            },
+            tresQuartos: {
+                limit: parseFloat(document.getElementById('truck34Limit').value) || 0,
+                tableValue: parseFloat(document.getElementById('truck34TableValue').value) || 0,
+                rate: parseFloat(document.getElementById('truck34Rate').value) || 0
+            },
+            toco: {
+                limit: parseFloat(document.getElementById('tocoLimit').value) || 0,
+                tableValue: parseFloat(document.getElementById('tocoTableValue').value) || 0,
+                rate: parseFloat(document.getElementById('tocoRate').value) || 0
+            }
+        };
+        localStorage.setItem('apexFreightConfig', JSON.stringify(config));
+
+        // Atualiza a tabela visual
+        updateFreightTableUI();
+
+        // Recalcula fretes de todas as cargas ativas se tiverem distância
+        recalcAllFreights();
+
+        if (typeof showToast === 'function') {
+            showToast("Configurações de frete salvas com sucesso!", "success");
         }
-    };
-    localStorage.setItem('apexFreightConfig', JSON.stringify(config));
-
-    // Atualiza a tabela visual
-    updateFreightTableUI();
-
-    // Recalcula fretes de todas as cargas ativas se tiverem distância
-    recalcAllFreights();
-
-    showToast("Configurações de frete salvas com sucesso!", "success");
+    } catch (e) {
+        console.error("Erro ao salvar configuração de frete:", e);
+        if (typeof showToast === 'function') {
+            showToast("Erro ao salvar configurações.", "error");
+        }
+    }
 }
 
 function updateFreightTableUI() {
-    const config = getFreightConfig();
+    try {
+        const config = getFreightConfig();
 
-    // Popula Inputs
-    document.getElementById('fiorinoLimit').value = config.fiorino.limit;
-    document.getElementById('fiorinoFixed').value = config.fiorino.fixed.toFixed(2);
-    document.getElementById('fiorinoRate').value = config.fiorino.rate.toFixed(2);
+        // Popula Inputs (se existirem na página/modal atual)
+        const inputs = [
+            { id: 'fiorinoLimit', val: config.fiorino.limit },
+            { id: 'fiorinoFixed', val: config.fiorino.fixed },
+            { id: 'fiorinoRate', val: config.fiorino.rate },
+            { id: 'vanLimit', val: config.van.limit },
+            { id: 'vanTableValue', val: config.van.tableValue },
+            { id: 'vanRate', val: config.van.rate },
+            { id: 'truck34Limit', val: config.tresQuartos.limit },
+            { id: 'truck34TableValue', val: config.tresQuartos.tableValue },
+            { id: 'truck34Rate', val: config.tresQuartos.rate },
+            { id: 'tocoLimit', val: config.toco.limit },
+            { id: 'tocoTableValue', val: config.toco.tableValue },
+            { id: 'tocoRate', val: config.toco.rate }
+        ];
 
-    document.getElementById('vanLimit').value = config.van.limit;
-    document.getElementById('vanTableValue').value = config.van.tableValue.toFixed(2);
-    document.getElementById('vanRate').value = config.van.rate.toFixed(2);
+        inputs.forEach(item => {
+            const el = document.getElementById(item.id);
+            if (el) {
+                el.value = typeof item.val === 'number' ? item.val.toFixed(2).replace('.00', '') : item.val;
+            }
+        });
 
-    document.getElementById('truck34Limit').value = config.tresQuartos.limit;
-    document.getElementById('truck34TableValue').value = config.tresQuartos.tableValue.toFixed(2);
-    document.getElementById('truck34Rate').value = config.tresQuartos.rate.toFixed(2);
-
-    document.getElementById('tocoLimit').value = config.toco.limit;
-    document.getElementById('tocoTableValue').value = config.toco.tableValue.toFixed(2);
-    document.getElementById('tocoRate').value = config.toco.rate.toFixed(2);
-
-    // Popula Tabela Visual
-    const tbody = document.getElementById('freight-table-body');
-    if (tbody) {
-        tbody.innerHTML = `
-            <tr>
-                <td><i class="bi bi-truck me-2 text-success"></i>Fiorino</td>
-                <td>Até ${config.fiorino.limit}km: Fixo<br>Acima: R$ ${config.fiorino.rate}/km</td>
-                <td><strong>R$ ${config.fiorino.fixed.toFixed(2)}</strong> (Fixo)<br><span class="text-muted">Excedente: R$ ${config.fiorino.rate} / km</span></td>
-            </tr>
-            <tr>
-                <td><i class="bi bi-truck-front me-2 text-primary"></i>Van</td>
-                <td>Até ${config.van.limit}km: Tabela<br>Acima: R$ ${config.van.rate}/km</td>
-                <td><strong>${config.van.tableValue > 0 ? 'R$ ' + config.van.tableValue.toFixed(2) : 'A definir'}</strong> (Tabela)<br><span class="text-muted">Excedente: R$ ${config.van.rate} / km</span></td>
-            </tr>
-            <tr>
-                <td><i class="bi bi-truck-flatbed me-2 text-warning"></i>3/4</td>
-                <td>Até ${config.tresQuartos.limit}km: Tabela<br>Acima: R$ ${config.tresQuartos.rate}/km</td>
-                <td><strong>${config.tresQuartos.tableValue > 0 ? 'R$ ' + config.tresQuartos.tableValue.toFixed(2) : 'A definir'}</strong> (Tabela)<br><span class="text-muted">Excedente: R$ ${config.tresQuartos.rate} / km</span></td>
-            </tr>
-            <tr>
-                <td><i class="bi bi-inboxes-fill me-2 text-secondary"></i>Toco</td>
-                <td>Até ${config.toco.limit}km: Tabela<br>Acima: R$ ${config.toco.rate}/km</td>
-                <td><strong>${config.toco.tableValue > 0 ? 'R$ ' + config.toco.tableValue.toFixed(2) : 'A definir'}</strong> (Tabela)<br><span class="text-muted">Excedente: R$ ${config.toco.rate} / km</span></td>
-            </tr>
-        `;
+        // Popula Tabela Visual
+        const tbody = document.getElementById('freight-table-body');
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td><i class="bi bi-truck me-2 text-success"></i>Fiorino</td>
+                    <td>Até ${config.fiorino.limit}km: Fixo<br>Acima: R$ ${config.fiorino.rate}/km</td>
+                    <td><strong>R$ ${config.fiorino.fixed.toFixed(2)}</strong> (Fixo)<br><span class="text-muted">Excedente: R$ ${config.fiorino.rate} / km</span></td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-truck-front me-2 text-primary"></i>Van</td>
+                    <td>Até ${config.van.limit}km: Tabela<br>Acima: R$ ${config.van.rate}/km</td>
+                    <td><strong>${config.van.tableValue > 0 ? 'R$ ' + config.van.tableValue.toFixed(2) : 'A definir'}</strong> (Tabela)<br><span class="text-muted">Excedente: R$ ${config.van.rate} / km</span></td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-truck-flatbed me-2 text-warning"></i>3/4</td>
+                    <td>Até ${config.tresQuartos.limit}km: Tabela<br>Acima: R$ ${config.tresQuartos.rate}/km</td>
+                    <td><strong>${config.tresQuartos.tableValue > 0 ? 'R$ ' + config.tresQuartos.tableValue.toFixed(2) : 'A definir'}</strong> (Tabela)<br><span class="text-muted">Excedente: R$ ${config.tresQuartos.rate} / km</span></td>
+                </tr>
+                <tr>
+                    <td><i class="bi bi-inboxes-fill me-2 text-secondary"></i>Toco</td>
+                    <td>Até ${config.toco.limit}km: Tabela<br>Acima: R$ ${config.toco.rate}/km</td>
+                    <td><strong>${config.toco.tableValue > 0 ? 'R$ ' + config.toco.tableValue.toFixed(2) : 'A definir'}</strong> (Tabela)<br><span class="text-muted">Excedente: R$ ${config.toco.rate} / km</span></td>
+                </tr>
+            `;
+        }
+    } catch (e) {
+        console.error("Erro ao atualizar UI de frete:", e);
     }
 }
 
