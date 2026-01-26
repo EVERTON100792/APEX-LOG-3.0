@@ -2358,7 +2358,7 @@ function renderMainKpiCard(title, weight, count, type, icon, onClickAction) {
 function renderKpiCard(title, weight, count, icon, colorClass, isClickable = false) {
     const weightText = weight !== null ? `${(weight / 1000).toFixed(2)}` : `${count}`;
     const unitText = weight !== null ? 'ton' : 'pedidos';
-    const subText = weight !== null ? `${count} pedidos` : 'Aá§á£o Necessá¡ria';
+    const subText = weight !== null ? `${count} pedidos` : 'Ação Necessária';
     const clickableClass = isClickable ? 'stat-card-clickable' : '';
     const onClickAction = isClickable ? 'onclick="exportarPedidosAtrasados()"' : '';
     const titleAttr = isClickable ? 'title="Clique para exportar a lista"' : '';
