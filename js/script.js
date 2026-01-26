@@ -6982,6 +6982,7 @@ async function loadStateFromLocalStorage() {
     const savedStateJSON = localStorage.getItem('logisticsAppState');
     if (!savedStateJSON) {
         console.log("Nenhum estado salvo encontrado.");
+        isRestoringState = false; // FIX: Libera a flag para permitir salvamentos futuros
         return;
     }
 
