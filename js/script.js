@@ -6005,7 +6005,7 @@ function exportarRelatorioDisponiveisPDF() {
 
     // 1. Coletar todos os pedidos disponá­veis (Varejo + Toco) com identificaá§á£o de tipo
     let todosPedidos = pedidosGeraisAtuais.filter(p => !allAllocatedIds.has(String(p.Num_Pedido))).map(p => {
-        const tipo = String(p.Cod_Rota || '').startsWith('2') ? 'Varejo Sá£o Paulo' : 'Varejo';
+        const tipo = String(p.Cod_Rota || '').startsWith('2') ? 'Varejo São Paulo' : 'Varejo';
         return { data: p, tipo: tipo };
     });
 
@@ -6087,7 +6087,7 @@ function exportarRelatorioDisponiveisExcel() {
     Object.values(activeLoads).forEach(l => l.pedidos.forEach(p => allAllocatedIds.add(String(p.Num_Pedido))));
 
     // 1. Coletar todos os pedidos disponá­veis (Varejo + Toco)
-    let todosPedidos = pedidosGeraisAtuais.filter(p => !allAllocatedIds.has(String(p.Num_Pedido))).map(p => ({ ...p, Tipo: String(p.Cod_Rota || '').startsWith('2') ? 'Varejo Sá£o Paulo' : 'Varejo' }));
+    let todosPedidos = pedidosGeraisAtuais.filter(p => !allAllocatedIds.has(String(p.Num_Pedido))).map(p => ({ ...p, Tipo: String(p.Cod_Rota || '').startsWith('2') ? 'Varejo São Paulo' : 'Varejo' }));
 
     Object.values(gruposToco).forEach(grupo => {
         grupo.pedidos.forEach(p => {
