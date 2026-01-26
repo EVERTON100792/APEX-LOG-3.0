@@ -1,74 +1,139 @@
 ﻿
 // --- FREIGHT SYSTEM LOGIC ---
 
-const defaultFreightConfig = {
-    fiorino: { limit: 300, fixed: 225.00, rate: 1.40 },
-    van: { limit: 500, tableValue: 0.00, rate: 1.80 },
-    tresQuartos: { limit: 500, tableValue: 0.00, rate: 2.85 },
-    toco: { limit: 500, tableValue: 0.00, rate: 3.45 }
+// --- FREIGHT SYSTEM LOGIC ---
+
+// DEFINIÇÃO DAS TABELAS DE FRETE (Fonte: Imagens do Usuário)
+// --- FREIGHT SYSTEM LOGIC ---
+
+// DEFINIÇÃO DAS TABELAS DE FRETE (Fonte: Imagens do Usuário)
+// Agora é um 'let' para permitir personalização via UI
+let freightTables = {
+    fiorino: {
+        ranges: [
+            { max: 150, value: 207.80 }
+        ],
+        exceedingRate: 1.40 // Valor por KM rodado se passar do limite máximo das faixas
+    },
+    van: {
+        ranges: [
+            { max: 100, value: 305.40 },
+            { max: 150, value: 375.54 },
+            { max: 200, value: 434.86 },
+            { max: 300, value: 524.09 },
+            { max: 400, value: 624.14 },
+            { max: 500, value: 753.30 }
+        ],
+        exceedingRate: 1.80
+    },
+    tresQuartos: {
+        ranges: [
+            { max: 100, value: 516.59 },
+            { max: 150, value: 583.27 },
+            { max: 200, value: 665.52 },
+            { max: 300, value: 753.73 },
+            { max: 400, value: 887.63 },
+            { max: 500, value: 1050.29 }
+        ],
+        exceedingRate: 2.85
+    },
+    toco: {
+        ranges: [
+            { max: 100, value: 636.00 },
+            { max: 150, value: 732.38 },
+            { max: 200, value: 828.74 },
+            { max: 300, value: 963.65 },
+            { max: 400, value: 1117.84 },
+            { max: 500, value: 1310.58 }
+        ],
+        exceedingRate: 3.53
+    }
 };
 
+// Carrega configurações ao iniciar
+loadFreightConfig();
 
 function getFreightConfig() {
-    const stored = localStorage.getItem('apexFreightConfig');
-    let config = { ...defaultFreightConfig };
-
-    if (stored) {
-        try {
-            const parsed = JSON.parse(stored);
-            // Merge robusto: garante que cada tipo de veículo tenha todas as propriedades
-            Object.keys(defaultFreightConfig).forEach(vType => {
-                if (parsed[vType]) {
-                    config[vType] = { ...defaultFreightConfig[vType], ...parsed[vType] };
-                }
-            });
-        } catch (e) {
-            console.error("Erro ao ler configuração de frete:", e);
+    // Retorna a estrutura adaptada para a UI antiga, mas baseada nos dados reais de 'freightTables'
+    // Isso garante que os inputs mostrem os valores reais de taxa excedente
+    return {
+        fiorino: {
+            limit: freightTables.fiorino.ranges[0].max,
+            fixed: freightTables.fiorino.ranges[0].value,
+            rate: freightTables.fiorino.exceedingRate
+        },
+        van: {
+            limit: 500, // Fixo conforme tabela imagem
+            tableValue: 0, // Não usado na edição simples
+            rate: freightTables.van.exceedingRate
+        },
+        tresQuartos: {
+            limit: 500,
+            tableValue: 0,
+            rate: freightTables.tresQuartos.exceedingRate
+        },
+        toco: {
+            limit: 500,
+            tableValue: 0,
+            rate: freightTables.toco.exceedingRate
         }
+    };
+}
+
+function loadFreightConfig() {
+    try {
+        const stored = localStorage.getItem('apexFreightTables');
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            // Merge cuidadoso: apenas taxas e limites básicos se a estrutura bater
+            // Como a estrutura é complexa, vou assumir que o salvo sobrescreve o padrão se existir
+            if (parsed && parsed.fiorino && parsed.van) {
+                freightTables = parsed;
+                console.log("Configuração de fretes carregada do armazenamento local.");
+            }
+        }
+    } catch (e) {
+        console.error("Erro ao carregar fretes:", e);
     }
-    return config;
 }
 
 function saveFreightConfig() {
     try {
-        const config = {
-            fiorino: {
-                limit: parseFloat(document.getElementById('fiorinoLimit').value) || 0,
-                fixed: parseFloat(document.getElementById('fiorinoFixed').value) || 0,
-                rate: parseFloat(document.getElementById('fiorinoRate').value) || 0
-            },
-            van: {
-                limit: parseFloat(document.getElementById('vanLimit').value) || 0,
-                tableValue: parseFloat(document.getElementById('vanTableValue').value) || 0,
-                rate: parseFloat(document.getElementById('vanRate').value) || 0
-            },
-            tresQuartos: {
-                limit: parseFloat(document.getElementById('truck34Limit').value) || 0,
-                tableValue: parseFloat(document.getElementById('truck34TableValue').value) || 0,
-                rate: parseFloat(document.getElementById('truck34Rate').value) || 0
-            },
-            toco: {
-                limit: parseFloat(document.getElementById('tocoLimit').value) || 0,
-                tableValue: parseFloat(document.getElementById('tocoTableValue').value) || 0,
-                rate: parseFloat(document.getElementById('tocoRate').value) || 0
-            }
+        // 1. Atualiza Fiorino (Simples)
+        const fiorinoLimit = parseFloat(document.getElementById('fiorinoLimit').value);
+        const fiorinoFixed = parseFloat(document.getElementById('fiorinoFixed').value);
+        const fiorinoRate = parseFloat(document.getElementById('fiorinoRate').value);
+
+        if (!isNaN(fiorinoLimit)) freightTables.fiorino.ranges[0].max = fiorinoLimit;
+        if (!isNaN(fiorinoFixed)) freightTables.fiorino.ranges[0].value = fiorinoFixed;
+        if (!isNaN(fiorinoRate)) freightTables.fiorino.exceedingRate = fiorinoRate;
+
+        // 2. Atualiza Outros (Apenas Taxa Excedente por enquanto, pois a tabela é complexa)
+        // Se o usuário quisesse editar a tabela inteira, precisaria de uma UI melhor.
+        // Vou assumir que ele quer editar a TAXA de excedente e talvez o limite onde ela começa.
+
+        const updateComplexVehicle = (idRate, type) => {
+            const valRate = parseFloat(document.getElementById(idRate).value);
+            if (!isNaN(valRate)) freightTables[type].exceedingRate = valRate;
         };
-        localStorage.setItem('apexFreightConfig', JSON.stringify(config));
 
-        // Atualiza a tabela visual
+        updateComplexVehicle('vanRate', 'van');
+        updateComplexVehicle('truck34Rate', 'tresQuartos');
+        updateComplexVehicle('tocoRate', 'toco');
+
+        // Salva no LocalStorage
+        localStorage.setItem('apexFreightTables', JSON.stringify(freightTables));
+
+        // Atualiza UI e Recalcula
         updateFreightTableUI();
-
-        // Recalcula fretes de todas as cargas ativas se tiverem distância
         recalcAllFreights();
 
         if (typeof showToast === 'function') {
-            showToast("Configurações de frete salvas com sucesso!", "success");
+            showToast("Valores de frete atualizados e salvos!", "success");
         }
     } catch (e) {
-        console.error("Erro ao salvar configuração de frete:", e);
-        if (typeof showToast === 'function') {
-            showToast("Erro ao salvar configurações.", "error");
-        }
+        console.error("Erro ao salvar valores:", e);
+        if (typeof showToast === 'function') showToast("Erro ao salvar valores.", "error");
     }
 }
 
@@ -76,33 +141,34 @@ function updateFreightTableUI() {
     try {
         const config = getFreightConfig();
 
-        // Popula Inputs (se existirem na página/modal atual)
-        const inputs = [
-            { id: 'fiorinoLimit', val: config.fiorino.limit },
-            { id: 'fiorinoFixed', val: config.fiorino.fixed },
-            { id: 'fiorinoRate', val: config.fiorino.rate },
-            { id: 'vanLimit', val: config.van.limit },
-            { id: 'vanTableValue', val: config.van.tableValue },
-            { id: 'vanRate', val: config.van.rate },
-            { id: 'truck34Limit', val: config.tresQuartos.limit },
-            { id: 'truck34TableValue', val: config.tresQuartos.tableValue },
-            { id: 'truck34Rate', val: config.tresQuartos.rate },
-            { id: 'tocoLimit', val: config.toco.limit },
-            { id: 'tocoTableValue', val: config.toco.tableValue },
-            { id: 'tocoRate', val: config.toco.rate }
-        ];
+        // Popula Inputs
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = typeof val === 'number' ? val.toFixed(2).replace('.00', '') : val;
+        };
 
-        console.log("Atualizando UI da Tabela de Fretes com config:", config);
+        setVal('fiorinoLimit', config.fiorino.limit);
+        setVal('fiorinoFixed', config.fiorino.fixed);
+        setVal('fiorinoRate', config.fiorino.rate);
 
-        inputs.forEach(item => {
+        // Para os complexos, mostramos apenas a taxa e limitamos a edição da 'tableValue'
+        setVal('vanLimit', 500);
+        setVal('vanRate', config.van.rate);
+        const vanTableInput = document.getElementById('vanTableValue');
+        if (vanTableInput) { vanTableInput.value = ''; vanTableInput.placeholder = 'Ver Tabela (Fixo)'; vanTableInput.disabled = true; }
 
-            const el = document.getElementById(item.id);
-            if (el) {
-                el.value = typeof item.val === 'number' ? item.val.toFixed(2).replace('.00', '') : item.val;
-            }
-        });
+        setVal('truck34Limit', 500);
+        setVal('truck34Rate', config.tresQuartos.rate);
+        const t34TableInput = document.getElementById('truck34TableValue');
+        if (t34TableInput) { t34TableInput.value = ''; t34TableInput.placeholder = 'Ver Tabela (Fixo)'; t34TableInput.disabled = true; }
 
-        // Popula Tabela Visual
+        setVal('tocoLimit', 500);
+        setVal('tocoRate', config.toco.rate);
+        const tocoTableInput = document.getElementById('tocoTableValue');
+        if (tocoTableInput) { tocoTableInput.value = ''; tocoTableInput.placeholder = 'Ver Tabela (Fixo)'; tocoTableInput.disabled = true; }
+
+
+        // Popula Tabela Visual (Resumo)
         const tbody = document.getElementById('freight-table-body');
         if (tbody) {
             tbody.innerHTML = `
@@ -113,18 +179,18 @@ function updateFreightTableUI() {
                 </tr>
                 <tr>
                     <td><i class="bi bi-truck-front me-2 text-primary"></i>Van</td>
-                    <td>Até ${config.van.limit}km: Tabela<br>Acima: R$ ${config.van.rate}/km</td>
-                    <td><strong>${config.van.tableValue > 0 ? 'R$ ' + config.van.tableValue.toFixed(2) : 'A definir'}</strong> (Tabela)<br><span class="text-muted">Excedente: R$ ${config.van.rate} / km</span></td>
+                    <td>Até 500km (Tabela Progressiva)</td>
+                    <td><strong>Ver Tabela Detalhada</strong><br><span class="text-muted">Acima 500km: R$ ${config.van.rate} / km</span></td>
                 </tr>
                 <tr>
                     <td><i class="bi bi-truck-flatbed me-2 text-warning"></i>3/4</td>
-                    <td>Até ${config.tresQuartos.limit}km: Tabela<br>Acima: R$ ${config.tresQuartos.rate}/km</td>
-                    <td><strong>${config.tresQuartos.tableValue > 0 ? 'R$ ' + config.tresQuartos.tableValue.toFixed(2) : 'A definir'}</strong> (Tabela)<br><span class="text-muted">Excedente: R$ ${config.tresQuartos.rate} / km</span></td>
+                    <td>Até 500km (Tabela Progressiva)</td>
+                    <td><strong>Ver Tabela Detalhada</strong><br><span class="text-muted">Acima 500km: R$ ${config.tresQuartos.rate} / km</span></td>
                 </tr>
                 <tr>
                     <td><i class="bi bi-inboxes-fill me-2 text-secondary"></i>Toco</td>
-                    <td>Até ${config.toco.limit}km: Tabela<br>Acima: R$ ${config.toco.rate}/km</td>
-                    <td><strong>${config.toco.tableValue > 0 ? 'R$ ' + config.toco.tableValue.toFixed(2) : 'A definir'}</strong> (Tabela)<br><span class="text-muted">Excedente: R$ ${config.toco.rate} / km</span></td>
+                    <td>Até 500km (Tabela Progressiva)</td>
+                    <td><strong>Ver Tabela Detalhada</strong><br><span class="text-muted">Acima 500km: R$ ${config.toco.rate} / km</span></td>
                 </tr>
             `;
         }
@@ -135,38 +201,28 @@ function updateFreightTableUI() {
 
 function calculateFreightValue(vehicleType, distanceKm) {
     if (!distanceKm || distanceKm <= 0) return 0;
-    const config = getFreightConfig()[vehicleType];
-    if (!config) return 0;
 
-    let freight = 0;
+    // Normaliza o tipo de veículo para chave da tabela
+    // Ex: 'fiorino' -> 'fiorino', 'toco' -> 'toco'
+    const table = freightTables[vehicleType];
 
-    if (vehicleType === 'fiorino') {
-        if (distanceKm <= config.limit) {
-            freight = config.fixed;
-        } else {
-            // Regra: "Passar de 300km eles ganham 1,80 o rodado". 
-            // Interpretação: O valor TOTAL é (distância * taxa) ou (fixo + excedente)?
-            // Geralmente "ganham X o rodado" significa X * KM TOTAL.
-            // Se fosse excedente, diria "X por km excedente".
-            // Vou assumir X * KM TOTAL se passar do limite, mas se for menor, paga o fixo.
-            // Mas se 301km * 1.80 = 541, e 300km = 225. É um salto grande?
-            // 300 * 1.80 = 540.
-            // Então 225 é um valor MÍNIMO garantido ou tabela específica?
-            // O prompt diz: "se passar de 300 ganham 1,80 o rodado, se for ate 300 ganham 225 fixo".
-            // Isso implica logicamente: Distância <= 300 -> 225. Distância > 300 -> Distância * 1.80.
-            freight = distanceKm * config.rate;
-        }
-    } else {
-        // Vans, 3/4, Toco: "se passar de X ganham Y o rodado".
-        // Mesma lógica. Se <= X, ganham "Tabela".
-        if (distanceKm <= config.limit) {
-            freight = config.tableValue;
-        } else {
-            freight = distanceKm * config.rate;
+    if (!table) {
+        console.warn(`Tabela de frete não encontrada para: ${vehicleType}`);
+        return 0;
+    }
+
+    // 1. Verificar se está dentro das faixas
+    // As faixas devem estar ordenadas por 'max'
+    for (const range of table.ranges) {
+        if (distanceKm <= range.max) {
+            return range.value;
         }
     }
 
-    return freight;
+    // 2. Se passou de todas as faixas, regra de excedente
+    // Regra: "Acima X KM será pago Y o KM Rodado" -> Valor Total = Distância * Taxa
+    // Isso foi confirmado pela interpretação das imagens (ex: Van > 500km = R$ 1,80 KM Rodado)
+    return distanceKm * table.exceedingRate;
 }
 
 function updateLoadFreightDisplay(loadId, distanceKm = null) {

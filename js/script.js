@@ -4203,7 +4203,7 @@ function renderLoadCard(load, vehicleType, vInfo) {
                     </div>
                     <div class="metric-item" id="freight-container-${load.id}">
                         <span class="metric-label">Est. Frete</span>
-                        <span id="freight-${load.id}" class="metric-value freight-value-pending">
+                        <span id="freight-${load.id}" class="metric-value freight-value-pending" onclick="refreshLoadFreight('${load.id}')" style="cursor: pointer;" title="Clique para calcular">
                             <i class="bi bi-calculator me-1"></i>Calcular
                         </span>
                     </div>
@@ -4601,7 +4601,11 @@ async function refreshLoadFreight(loadId) {
 
     try {
         load.isCalculatingFreight = true;
-        updateLoadFreightDisplay(loadId);
+        // Atualiza UI para mostrar spinner
+        const el = document.getElementById(`freight-${loadId}`);
+        if (el) el.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+        // updateLoadFreightDisplay(loadId); // Removido para não sobrescrever o spinner imediatamente
 
         // Usa as coordenadas exatas da Selmi que definimos
         const centroSelmi = { lat: -23.3002, lng: -51.3358 };
