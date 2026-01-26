@@ -948,7 +948,7 @@
                                 </button>
                                 <button id="start-manual-routing-btn" class="btn btn-sm btn-outline-secondary"
                                     data-bs-toggle="modal" data-bs-target="#manualRoutingModal"
-                                    title="Roteirizaá§á£o Manual">
+                                    title="Roteirização Manual">
                                     <i class="bi bi-signpost-split-fill"></i>
                                 </button>
                             </div>
@@ -1021,7 +1021,7 @@
                                     <div
                                         class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
                                         <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
-                                            para montar as Vans ou utilize as opá§áµes de exportaá§á£o.</p>
+                                            para montar as Vans ou utilize as opções de exportação.</p>
                                         <div class="btn-group btn-group-sm">
                                             <button id="export-sobras-sp-btn" class="btn btn-sm btn-outline-warning"
                                                 onclick="exportarSobrasSP_PDF()" disabled>
@@ -1086,7 +1086,7 @@
                                     <div
                                         class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
                                         <p class="card-subtitle text-body-secondary small mb-0">Cargas geradas por
-                                            Roteirizaá§á£o de Lista.</p>
+                                            Roteirização de Lista.</p>
                                         <button class="btn btn-sm btn-outline-light"
                                             onclick="imprimirCargasGeneric('resultado-roteirizados', 'Cargas Roteirizadas')"><i
                                                 class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
@@ -1118,7 +1118,7 @@
                                     <hr>
                                     <div id="resultado-exportacao" class="mb-3">
                                         <div class="empty-state"><i class="bi bi-box-arrow-up-right"></i>
-                                            <p>Nenhum pedido de exportaá§á£o encontrado.</p>
+                                            <p>Nenhum pedido de exportação encontrado.</p>
                                         </div>
                                     </div>
                                     <hr>
@@ -1315,11 +1315,11 @@
         </div>
 
         <div id="alteracao-rota-view" class="main-view">
-            <h1 class="h2 mb-4 animated-entry">Aná¡lise: Alteraá§á£o de Rota</h1>
+            <h1 class="h2 mb-4 animated-entry">Análise: Alteração de Rota</h1>
             <div class="card border-warning animated-entry">
                 <div class="card-header bg-warning-subtle text-warning-emphasis">
                     <h2 class="card-title h5 mb-0"><i class="bi bi-sign-turn-right-fill me-2"></i>Pedidos da Rota 1
-                        para Alteraá§á£o</h2>
+                        para Alteração</h2>
                 </div>
                 <div class="card-body">
                     <div id="resultado-rota1"></div>
@@ -1334,16 +1334,16 @@
             <h1 class="h2 mb-4 animated-entry">Relatórios Gerenciais</h1>
             <div class="card animated-entry">
                 <div class="card-header">
-                    <h2 class="card-title h5 mb-0"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Previsá£o de
-                        Expediá§á£o</h2>
+                    <h2 class="card-title h5 mb-0"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Previsão de
+                        Expedição</h2>
                 </div>
                 <div class="card-body text-center">
-                    <p class="text-muted">Gere um relatá³rio gerencial em PDF com a previsá£o de expediá§á£o baseada nos
+                    <p class="text-muted">Gere um relatório gerencial em PDF com a previsão de expedição baseada nos
                         resultados atuais.</p>
-                    <p class="text-muted small">O relatá³rio incluirá¡ um resumo geral e o detalhamento das cargas de
+                    <p class="text-muted small">O relatório incluirá um resumo geral e o detalhamento das cargas de
                         varejo montadas.</p>
                     <button class="btn btn-primary btn-lg mt-2" onclick="gerarRelatorioPDF()">
-                        <i class="bi bi-download me-2"></i>Gerar Relatá³rio PDF
+                        <i class="bi bi-download me-2"></i>Gerar Relatório PDF
                     </button>
                 </div>
             </div>
@@ -1383,7 +1383,7 @@
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="mapModalTitle"><i class="bi bi-map-fill me-2"></i> Visualizaá§á£o de
+                    <h5 class="modal-title" id="mapModalTitle"><i class="bi bi-map-fill me-2"></i> Visualização de
                         Rota
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1404,12 +1404,12 @@
         </div>
     </div>
 
-    <!-- Modal de Roteirizaá§á£o Manual -->
+    <!-- Modal de Roteirização Manual -->
     <div class="modal fade" id="manualRoutingModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-signpost-split-fill me-2"></i>Roteirizaá§á£o Manual</h5>
+                    <h5 class="modal-title"><i class="bi bi-signpost-split-fill me-2"></i>Roteirização Manual</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -1417,7 +1417,7 @@
                         partindo e retornando para a Selmi.</p>
                     <div class="mb-3">
                         <label for="manualRoutingCities" class="form-label">Cidades (e estado por extenso, ex: Cascavel,
-                            Paraná¡):</label>
+                            Paraná):</label>
                         <textarea class="form-control" id="manualRoutingCities" rows="8"
                             placeholder="Cascavel, Paraná¡&#10;Maringá¡, Paraná¡&#10;Sá£o Paulo, Sá£o Paulo"></textarea>
                     </div>
@@ -1426,7 +1426,7 @@
                     </button>
                     <hr>
                     <div id="manualRoutingResult">
-                        <p class="text-center text-muted">O resultado da roteirizaá§á£o aparecerá¡ aqui.</p>
+                        <p class="text-center text-muted">O resultado da roteirização aparecerá aqui.</p>
                     </div>
                 </div>
             </div>
@@ -1446,18 +1446,18 @@
                             <div class="card h-100">
                                 <div class="card-header">
                                     <h2 class="card-title h5 mb-0"><i class="bi bi-cpu-fill me-2"></i>Algoritmo de
-                                        Otimizaçáo (Varejo)</h2>
+                                        Otimização (Varejo)</h2>
                                 </div>
                                 <div class="card-body">
                                     <label for="optimizationLevelSelect" class="form-label">Nível de
-                                        Otimizaçáo:</label>
+                                        Otimização:</label>
                                     <select class="form-select" id="optimizationLevelSelect"
                                         onchange="updateOptimizationDescription()">
                                         <option value="1">Nível 1: Rápido</option>
                                         <option value="2" selected>Nível 2: Especialista</option>
                                     </select>
                                     <div id="optimization-description" class="form-text mt-3 small">
-                                        <!-- A descriçáo será inserida aqui pelo JavaScript -->
+                                        <!-- A descrição será inserida aqui pelo JavaScript -->
                                     </div>
                                 </div>
                                 <div class="card-footer">
@@ -1648,16 +1648,16 @@
         </div>
     </div>
 
-    <!-- Modal de Priorizaá§á£o em Massa -->
+    <!-- Modal de Priorização em Massa -->
     <div class="modal fade" id="bulkPriorityModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-star-fill text-warning me-2"></i>Priorizaá§á£o em Massa</h5>
+                    <h5 class="modal-title"><i class="bi bi-star-fill text-warning me-2"></i>Priorização em Massa</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small">Cole abaixo os náºmeros dos pedidos que deseja priorizar (um por linha
+                    <p class="text-muted small">Cole abaixo os números dos pedidos que deseja priorizar (um por linha
                         ou
                         separados por espaá§o/vá­rgula). Vocáª pode copiar esta lista do Relatá³rio Excel.</p>
                     <textarea class="form-control" id="bulkPriorityInput" rows="10"
@@ -1672,7 +1672,7 @@
         </div>
     </div>
 
-    <!-- Modal de Roteirizaá§á£o e Montagem por Lista -->
+    <!-- Modal de Roteirização e Montagem por Lista -->
     <div class="modal fade" id="roteirizacaoModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1681,16 +1681,16 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small">Cole os náºmeros dos pedidos. O sistema irá¡ roteirizar as cidades e
-                        montar as cargas sequencialmente respeitando a capacidade do veá­culo.</p>
+                    <p class="text-muted small">Cole os números dos pedidos. O sistema irá¡ roteirizar as cidades e
+                        montar as cargas sequencialmente respeitando a capacidade do veículo.</p>
                     <div class="mb-3">
                         <label for="roteiroPedidosInput" class="form-label">Pedidos:</label>
                         <textarea class="form-control" id="roteiroPedidosInput" rows="5"
-                            placeholder="Cole os náºmeros aqui..."></textarea>
+                            placeholder="Cole os números aqui..."></textarea>
                     </div>
                     <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox"
                             id="roteiroGeoCheck" checked><label class="form-check-label" for="roteiroGeoCheck">Usar
-                            Geolocalizaá§á£o (Agrupar cidades prá³ximas)</label></div>
+                            Geolocalização (Agrupar cidades próximas)</label></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -1748,7 +1748,7 @@
                     <p>Vocáª tem certeza que deseja limpar todos os dados?</p>
                     <p class="text-danger fw-bold">Todo o progresso, incluindo cargas montadas e configuraá§áµes, será¡
                         permanentemente perdido.</p>
-                    <p class="text-muted small">Esta aá§á£o á© equivalente a recarregar o sistema do zero.</p>
+                    <p class="text-muted small">Esta ação é equivalente a recarregar o sistema do zero.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
