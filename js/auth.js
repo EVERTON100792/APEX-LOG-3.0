@@ -25,15 +25,19 @@ export async function login(email, password) {
 
 export async function logout() {
     // Clear application state to prevent data leaking between users
-    // MODIFICADO: Comentado para permitir que o usuário continue de onde parou ao logar novamente.
-    // localStorage.removeItem('logisticsAppState');
-    // localStorage.removeItem('processamentoData'); // Caso exista
-    // localStorage.removeItem('currentSessionName');
-    // localStorage.removeItem('lastActiveView');
-    // localStorage.removeItem('lastActiveTab');
-    // localStorage.removeItem('sidebarCollapsed');
-    // NOTE: We might want to keep 'configuracoes' if they are global, but safer to clear if user-specific preferences exist. 
-    // For now, let's keep config or clear it? User said "perde tudo". Let's clear app state primarily.
+    // MODIFICADO: Limpeza agressiva conforme solicitado para evitar persistência indesejada.
+    localStorage.removeItem('logisticsAppState');
+    localStorage.removeItem('processamentoData');
+    localStorage.removeItem('currentSessionName');
+    localStorage.removeItem('lastActiveView');
+    localStorage.removeItem('lastActiveTab');
+    localStorage.removeItem('sidebarCollapsed');
+    localStorage.removeItem('apexFreightConfig'); // Limpa config de frete também se necessário
+    localStorage.removeItem('lastFileName');
+
+    // NOVO: Limpa sessionStorage para forçar a detecção de "nova sessão" no próximo login
+    sessionStorage.clear();
+
 
     const { error } = await supabase.auth.signOut();
     if (!error) {

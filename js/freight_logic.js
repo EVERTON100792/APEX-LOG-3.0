@@ -177,14 +177,17 @@ function updateLoadFreightDisplay(loadId, distanceKm = null) {
     if (distanceKm !== null) {
         console.log(`UpdateFreight: Recebido ${distanceKm}km para carga ${loadId} (${load.vehicleType})`);
         load.distanceKm = parseFloat(distanceKm);
-        saveStateToLocalStorage();
+        if (typeof debouncedSaveState === 'function') debouncedSaveState();
+        else saveStateToLocalStorage();
     }
 
 
     if (load.distanceKm) {
         const freightValue = calculateFreightValue(load.vehicleType, load.distanceKm);
         load.freightValue = freightValue; // Salva valor calculado
-        saveStateToLocalStorage();
+        if (typeof debouncedSaveState === 'function') debouncedSaveState();
+        else saveStateToLocalStorage();
+
 
         if (freightValue > 0) {
             freightEl.innerHTML = `<i class="bi bi-cash-stack me-1"></i>R$ ${freightValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} <small>(${load.distanceKm}km)</small>`;

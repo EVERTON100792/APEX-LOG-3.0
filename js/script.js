@@ -421,43 +421,94 @@ function getVehicleConfig(vehicleType) {
     return configs;
 }
 
+let saveStateTimeout = null;
+function debouncedSaveState() {
+    if (saveStateTimeout) clearTimeout(saveStateTimeout);
+    saveStateTimeout = setTimeout(() => {
+        saveStateToLocalStorage();
+    }, 1500); // Salva após 1.5s de inatividade para não travar a UI
+}
+
 function changeLoadVehicleType(loadId, newVehicleType) {
-    if (!activeLoads || !activeLoads[loadId]) {
-        console.error('Carga ná£o encontrada para alterar o tipo de veá­culo:', loadId);
-        return;
-    }
+    if (!activeLoads || !activeLoads[loadId]) return;
 
     const load = activeLoads[loadId];
     load.vehicleType = newVehicleType;
 
-    // Recalcula o frete para o novo tipo de veá­culo se possá­vel
-    if (typeof updateLoadFreightDisplay === 'function') {
-        updateLoadFreightDisplay(loadId);
-    }
-
     const cardElement = document.getElementById(loadId);
     if (cardElement) {
         const vehicleInfo = {
-            fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
-            van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
-            tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
-            toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
+            fiorino: { name: 'Fiorino', icon: 'bi-box-seam-fill' },
+            van: { name: 'Van', icon: 'bi-truck-front-fill' },
+            tresQuartos: { name: '3/4', icon: 'bi-truck-flatbed' },
+            toco: { name: 'Toco', icon: 'bi-inboxes-fill' }
         };
 
-        const newCardHTML = renderLoadCard(load, newVehicleType, vehicleInfo[newVehicleType]);
-        cardElement.outerHTML = newCardHTML;
+        const vInfo = vehicleInfo[newVehicleType];
 
-        const newCardElement = document.getElementById(loadId);
-        if (newCardElement) {
-            newCardElement.classList.add('highlight-change-animation');
-            setTimeout(() => newCardElement.classList.remove('highlight-change-animation'), 1200);
+        // 1. Atualizar o Atributo de Dados (Muda a cor via CSS)
+        cardElement.setAttribute('data-vehicle-type', newVehicleType);
+        cardElement.className = `premium-load-card drop-zone-card vehicle-${newVehicleType} animated-entry ${cardElement.classList.contains('priority-glow') ? 'priority-glow' : ''}`;
+
+        // 2. Atualizar o Ícone (Sem reconstruir o header todo)
+        const iconElement = cardElement.querySelector('.load-badge-id i');
+        if (iconElement) {
+            iconElement.className = `bi ${vInfo.icon}`;
+            // Ajustar cor do ícone
+            let iconColor = '#6366f1';
+            if (newVehicleType === 'fiorino') iconColor = '#10b981';
+            else if (newVehicleType === 'van') iconColor = '#3b82f6';
+            else if (newVehicleType === 'tresQuartos') iconColor = '#f59e0b';
+            iconElement.style.color = iconColor;
         }
+
+        // 3. Atualizar o Nome do Veículo
+        const nameElement = cardElement.querySelector('.load-main-title');
+        if (nameElement) {
+            // Preservar os badges (SP, Prioridade, etc)
+            const badges = nameElement.querySelector('.badge-group')?.outerHTML || '';
+            const spBadge = nameElement.querySelector('.badge-neon-info')?.outerHTML || '';
+            nameElement.innerHTML = `${vInfo.name}${spBadge} ${badges}`;
+        }
+
+        // 4. Recalcular o Progresso com os novos limites
+        const config = getVehicleConfig(newVehicleType);
+        const maxKg = config.hardMaxKg;
+        const pesoPercentual = maxKg > 0 ? (load.totalKg / maxKg) * 100 : 0;
+
+        const progressBar = cardElement.querySelector('.premium-progress-bar');
+        if (progressBar) {
+            progressBar.style.width = `${Math.min(pesoPercentual, 100)}%`;
+
+            // Atualizar o tema do progresso
+            let theme = 'secondary';
+            if (load.totalKg > maxKg || pesoPercentual > 100) theme = 'danger';
+            else if (pesoPercentual > (config.softMaxKg / maxKg * 100)) theme = 'warning';
+            else if (pesoPercentual >= (config.minKg / maxKg * 100)) theme = 'success';
+
+            progressBar.className = `premium-progress-bar theme-${theme}`;
+        }
+
+        // 5. Recalcular o frete
+        if (typeof updateLoadFreightDisplay === 'function') {
+            updateLoadFreightDisplay(loadId);
+        }
+
+        // 6. Pequeno efeito de feedback
+        cardElement.classList.add('highlight-change-animation');
+        setTimeout(() => cardElement.classList.remove('highlight-change-animation'), 1000);
     }
 
-    updateAndRenderKPIs();
-    updateAndRenderChart();
-    saveStateToLocalStorage();
+    // Otimização: Adia as atualizações globais e pesadas para o próximo frame
+    // Isso garante que a mudança visual do card seja instantânea
+    requestAnimationFrame(() => {
+        updateAndRenderKPIs();
+        updateAndRenderChart();
+        debouncedSaveState(); // Salva em background
+    });
 }
+
+
 
 let planilhaData = [];
 let originalColumnHeaders = [];
@@ -2694,34 +2745,131 @@ function displayRota1(div, pedidos) {
 
 function createPrintWindow(title) {
     const printWindow = window.open('', '', 'height=800,width=1200');
+    const isLoadPrint = title.includes('Carga');
+
     printWindow.document.write('<html><head><title>' + title + '</title>');
     printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">');
     printWindow.document.write(`<style>
-                @page { size: auto; margin: 5mm; }
-                body { margin: 10px; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-family: sans-serif; font-size: 10pt; } 
-                .card, .load-card { break-inside: avoid; margin-bottom: 10px; page-break-inside: avoid; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; } 
-                .load-card-header { background-color: #f0f0f0; padding: 5px 10px; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
-                .load-title { font-weight: bold; font-size: 1rem; color: #000; }
-                .load-meta { font-size: 0.8rem; color: #555; margin-top: 2px; }
-                .load-meta-item { margin-right: 10px; display: inline-flex; align-items: center; }
-                .load-meta-item i { margin-right: 4px; }
-                .no-print { display: none !important; } 
-                .bg-success { background-color: #198754 !important; color: white !important; } 
-                .bg-primary { background-color: #0d6efd !important; color: white !important; } 
-                .bg-warning { background-color: #ffc107 !important; color: black !important; } 
-                .bg-danger { background-color: #dc3545 !important; color: white !important; } 
-                .table-responsive { overflow: visible !important; } 
-                table, th, td { border: 1px solid #dee2e6 !important; padding: 2px 4px !important; font-size: 8pt !important; } 
-                .table-primary, .table-primary > th, .table-primary > td { --bs-table-bg: #cfe2ff !important; color: #000 !important; } 
-                h1, h2, h3, h4, h5 { margin-top: 0.5rem; margin-bottom: 0.5rem; }
-                .progress { display: none !important; } /* Esconde barra de progresso na impressá£o */
-                .card-body { padding: 5px !important; }
-                .px-3 { padding-left: 5px !important; padding-right: 5px !important; }
-                .pt-2 { padding-top: 5px !important; }
-                .pb-3 { padding-bottom: 5px !important; }
-            </style></head><body>`);
+                @page { size: landscape; margin: 5mm; }
+                body { 
+                    margin: 0; 
+                    padding: 8px; 
+                    -webkit-print-color-adjust: exact; 
+                    print-color-adjust: exact; 
+                    font-family: Arial, sans-serif; 
+                    font-size: 8pt; 
+                    color: black;
+                    background: white;
+                } 
+                h3.print-title { 
+                    font-size: 11pt; 
+                    font-weight: 800; 
+                    margin: 0 0 5px 0; 
+                    border-bottom: 2px solid #000;
+                    text-transform: uppercase;
+                }
+                .premium-load-card, .load-card { 
+                    break-inside: avoid; 
+                    page-break-inside: avoid; 
+                    border: none !important;
+                    border-bottom: 1px solid #ddd !important;
+                    margin-bottom: 15px !important; 
+                    padding: 0 0 5px 0 !important;
+                    display: block;
+                } 
+                .premium-card-header { 
+                    padding: 0 !important;
+                    background: transparent !important;
+                    border: none !important;
+                    display: flex !important;
+                    flex-direction: row !important;
+                    align-items: center !important;
+                    gap: 20px !important;
+                    margin-bottom: 4px !important;
+                }
+                .header-main-info { 
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 10px !important;
+                }
+                .load-badge-id { 
+                    font-weight: 900; 
+                    font-size: 11pt !important;
+                }
+                .load-main-title { 
+                    font-weight: 800; 
+                    font-size: 11pt !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 10px !important;
+                }
+                .badge-group { display: flex; gap: 5px; }
+                .badge-neon-priority, .badge-neon-danger, .badge-neon-info {
+                    font-size: 7pt;
+                    padding: 0 4px;
+                    border: 1px solid #000;
+                    background: #eee !important;
+                    font-weight: bold;
+                }
+                .premium-card-body { padding: 0 !important; }
+                .metrics-grid { 
+                    display: inline-flex !important; 
+                    gap: 25px !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    background: transparent !important;
+                }
+                .metric-item { display: flex !important; align-items: center !important; gap: 5px !important; }
+                .metric-label { font-size: 7pt; font-weight: bold; text-transform: uppercase; color: #333; }
+                .metric-value { font-size: 9.5pt; font-weight: 800; }
+                .metric-value small { font-size: 7.5pt; font-weight: normal; }
+
+                .table-container-premium { margin-top: 5px; width: 100%; }
+                table { 
+                    width: 100% !important; 
+                    border-collapse: collapse !important; 
+                    border: 1px solid #000 !important; 
+                }
+                th, td { 
+                    border: 1px solid #000 !important; 
+                    padding: 2px 4px !important; 
+                    font-size: 8pt !important; 
+                    line-height: 1.1;
+                    word-wrap: normal;
+                    white-space: nowrap; /* Tenta manter em uma linha colunas curtas */
+                }
+                th { background-color: #f2f2f2 !important; font-weight: bold; text-transform: uppercase; }
+                
+                /* Colunas que podem quebrar texto */
+                td:nth-child(4), td:nth-child(9), td:nth-child(15) { white-space: normal !important; }
+
+                th:first-child, td:first-child { display: none !important; }
+                
+                .premium-deadline-alert {
+                    margin-top: 5px;
+                    padding: 2px 8px;
+                    border-left: 4px solid #000;
+                    font-weight: bold;
+                    background: #f9f9f9 !important;
+                }
+                .deadline-title { font-size: 9pt; display: inline; margin-right: 15px; }
+                .deadline-sub { font-size: 7.5pt; font-weight: normal; }
+
+                .premium-observation-box {
+                    margin: 5px 0;
+                    padding: 6px;
+                    border: 1px solid #ddd;
+                    font-size: 8.5pt;
+                    background: #fff !important;
+                }
+                
+                .no-print, .progress, .card-glass-overlay, .progress-glow, .action-buttons-group, .premium-dropdown-container, .btn-add-obs-premium, .premium-progress-container, .card-footer-neon, .observation-actions, .header-actions, .progress-glow, .select-icon { 
+                    display: none !important; 
+                } 
+            </style></head><body><div class="print-container">`);
     return printWindow;
 }
+
 
 function imprimirGeneric(source, title) {
     let elementToPrint = null;
@@ -2764,7 +2912,7 @@ function imprimirGeneric(source, title) {
     }
 
     const printWindow = createPrintWindow(title);
-    printWindow.document.body.innerHTML = `<h3>${title}</h3>` + htmlContent;
+    printWindow.document.body.innerHTML = `<h3 class="print-title">${title}</h3>` + htmlContent;
     printWindow.document.close();
     printWindow.focus();
     setTimeout(() => {
@@ -2911,7 +3059,10 @@ function imprimirCargaIndividual(loadId) {
         clonePrintDiv.style.display = 'block';
     }
 
-    imprimirGeneric(cardClone.outerHTML, `Impressáo - Carga ${load.numero} (${load.vehicleType})`);
+    const vehicleNames = { fiorino: 'Fiorino', van: 'Van', tresQuartos: '3/4', toco: 'Toco' };
+    const vehicleName = vehicleNames[load.vehicleType] || load.vehicleType;
+    imprimirGeneric(cardClone.outerHTML, `Carga ${load.numero} - ${vehicleName}`);
+
 }
 
 
@@ -3908,63 +4059,70 @@ function renderLoadCard(load, vehicleType, vInfo) {
     const totalCubagemFormatado = (load.totalCubagem || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const isPriorityLoad = load.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido)) || pedidosRecall.includes(String(p.Num_Pedido)));
 
-    const distanciaHtml = `<span id="distancia-${load.id}" class="ms-2 badge bg-dark border border-secondary text-secondary fw-normal"></span>`;
 
-    const priorityBadge = isPriorityLoad ? '<span class="badge bg-warning text-dark ms-2"><i class="bi bi-star-fill"></i> Prioridade</span>' : '';
-    const hardLimitBadge = load.usedHardLimit ? '<span class="badge bg-danger ms-2"><i class="bi bi-exclamation-triangle-fill"></i> Excesso</span>' : '';
+
+    const priorityBadge = isPriorityLoad ? '<span class="badge-neon-priority"><i class="bi bi-star-fill"></i> Prioridade</span>' : '';
+    const hardLimitBadge = load.usedHardLimit ? '<span class="badge-neon-danger"><i class="bi bi-exclamation-triangle-fill"></i> Excesso</span>' : '';
     const isSaoPauloRoute = load.pedidos.some(p => ['2555', '2560', '2561', '2571', '2575', '2705', '2735', '2745'].includes(String(p.Cod_Rota)));
-    const spDescription = isSaoPauloRoute ? ' <span class="badge bg-info text-dark ms-1">SP</span>' : '';
+    const spDescription = isSaoPauloRoute ? ' <span class="badge-neon-info">SP</span>' : '';
 
     const config = getVehicleConfig(vehicleType);
     const maxKg = config.hardMaxKg;
 
     const isOverloaded = maxKg > 0 && load.totalKg > maxKg;
     const pesoPercentual = maxKg > 0 ? (load.totalKg / maxKg) * 100 : 0;
-    let progressColor = 'bg-primary';
-    if (isOverloaded || pesoPercentual > 100) progressColor = 'bg-danger'; // Acima do limite rígido
-    else if (pesoPercentual > (config.softMaxKg / maxKg * 100)) progressColor = 'bg-warning'; // Acima do preferencial
-    else if (pesoPercentual >= (config.minKg / maxKg * 100)) progressColor = 'bg-success'; // Acima do mínimo
-    else progressColor = 'bg-secondary'; // Abaixo do mínimo
+
+    let progressTheme = 'primary';
+    if (isOverloaded || pesoPercentual > 100) progressTheme = 'danger';
+    else if (pesoPercentual > (config.softMaxKg / maxKg * 100)) progressTheme = 'warning';
+    else if (pesoPercentual >= (config.minKg / maxKg * 100)) progressTheme = 'success';
+    else progressTheme = 'secondary';
 
     const progressBar = `
-                <div class="progress" role="progressbar" aria-label="Capacidade" style="height: 4px; border-radius: 0; background-color: rgba(0,0,0,0.1);">
-                  <div class="progress-bar ${progressColor}" style="width: ${Math.min(pesoPercentual, 100)}%"></div>
-                </div>`;
+        <div class="premium-progress-container">
+            <div class="premium-progress-bar theme-${progressTheme}" style="width: ${Math.min(pesoPercentual, 100)}%">
+                <div class="progress-glow"></div>
+            </div>
+        </div>`;
 
     const vehicleSelectDropdown = `
-                <select class="form-select form-select-sm border-0 bg-transparent text-secondary fw-bold py-0 ps-0 pe-4" style="width: auto; cursor: pointer; font-size: 0.8rem;" onchange="changeLoadVehicleType('${load.id}', this.value)">
-                    <option value="fiorino" ${vehicleType === 'fiorino' ? 'selected' : ''}>Fiorino</option>
-                    <option value="van" ${vehicleType === 'van' ? 'selected' : ''}>Van</option>
-                    <option value="tresQuartos" ${vehicleType === 'tresQuartos' ? 'selected' : ''}>3/4</option>
-                    <option value="toco" ${vehicleType === 'toco' ? 'selected' : ''}>Toco</option>
-                </select>`;
-
-    const observationForPrint = ` 
-                <div class="print-only-observation mt-2 p-2 border rounded" style="background-color: #f8f9fa; display: none;">
-                    <p class="mb-0"></p>
-                </div>`;
+        <div class="premium-dropdown-container">
+            <select class="premium-select" onchange="changeLoadVehicleType('${load.id}', this.value)">
+                <option value="fiorino" ${vehicleType === 'fiorino' ? 'selected' : ''}>Fiorino</option>
+                <option value="van" ${vehicleType === 'van' ? 'selected' : ''}>Van</option>
+                <option value="tresQuartos" ${vehicleType === 'tresQuartos' ? 'selected' : ''}>3/4</option>
+                <option value="toco" ${vehicleType === 'toco' ? 'selected' : ''}>Toco</option>
+            </select>
+            <i class="bi bi-chevron-down select-icon"></i>
+        </div>`;
 
     const observationText = load.observation || '';
     let initialObservationHtml;
     if (observationText) {
         initialObservationHtml = `
-                    <div class="alert alert-secondary d-flex justify-content-between align-items-center p-2 mb-0 mt-2">
-                        <small class="text-truncate" style="max-width: 80%;"><i class="bi bi-info-circle me-1"></i>${observationText}</small>
-                        <div>
-                            <button class="btn btn-link btn-sm p-0 text-secondary me-2" onclick="toggleObservationEdit('${load.id}', true)"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-link btn-sm p-0 text-danger" onclick="deleteObservation('${load.id}')"><i class="bi bi-trash"></i></button>
-                        </div>
-                    </div>`;
+            <div class="premium-observation-box alternate-entry">
+                <div class="observation-content">
+                    <i class="bi bi-chat-left-text-fill me-2 text-primary"></i>
+                    <span>${observationText}</span>
+                </div>
+                <div class="observation-actions">
+                    <button class="btn-obs-action" onclick="toggleObservationEdit('${load.id}', true)"><i class="bi bi-pencil-square"></i></button>
+                    <button class="btn-obs-action delete" onclick="deleteObservation('${load.id}')"><i class="bi bi-trash3"></i></button>
+                </div>
+            </div>`;
     } else {
-        initialObservationHtml = `<button class="btn btn-sm btn-link text-decoration-none text-muted p-0 mt-2" style="font-size: 0.8rem;" onclick="toggleObservationEdit('${load.id}', true)"><i class="bi bi-plus-circle me-1"></i>Adicionar Obs</button>`;
+        initialObservationHtml = `
+            <button class="btn-add-obs-premium no-print" onclick="toggleObservationEdit('${load.id}', true)">
+                <i class="bi bi-plus-circle-dotted me-2"></i>Adicionar Observação
+            </button>`;
     }
 
-    let titleColorClass = 'text-body';
-    if (vehicleType === 'fiorino') titleColorClass = 'text-success';
-    else if (vehicleType === 'van') titleColorClass = 'text-primary';
-    else if (vehicleType === 'tresQuartos') titleColorClass = 'text-warning';
+    let titleIconColor = 'var(--dark-primary)';
+    if (vehicleType === 'fiorino') titleIconColor = '#10b981';
+    else if (vehicleType === 'van') titleIconColor = '#3b82f6';
+    else if (vehicleType === 'tresQuartos') titleIconColor = '#f59e0b';
 
-    // --- NOVA Lá“GICA: Identificar Data Mais Antiga (Predat) ---
+    // --- Identificar Data Mais Antiga (Predat) ---
     let oldestDate = null;
     let oldestOrders = [];
 
@@ -3972,8 +4130,6 @@ function renderLoadCard(load, vehicleType, vInfo) {
         if (!p.Predat) return;
         let pDate = p.Predat instanceof Date ? p.Predat : new Date(p.Predat);
         if (isNaN(pDate.getTime())) return;
-
-        // Normaliza para comparar apenas a data (zera horas)
         const pDateOnly = new Date(pDate.getFullYear(), pDate.getMonth(), pDate.getDate());
 
         if (oldestDate === null || pDateOnly < oldestDate) {
@@ -3988,59 +4144,88 @@ function renderLoadCard(load, vehicleType, vInfo) {
     if (oldestDate) {
         const dateStr = oldestDate.toLocaleDateString('pt-BR');
         const ordersStr = oldestOrders.join(', ');
-        // Estilo destacado para chamar atená§á£o do motorista/expediá§á£o
         oldestDateHtml = `
-                    <div class="mt-2 pt-2 border-top border-secondary-subtle">
-                        <div class="d-flex align-items-center text-warning-emphasis">
-                            <i class="bi bi-calendar-event-fill me-2 fs-5"></i>
-                            <div>
-                                <span class="fw-bold d-block" style="line-height: 1.2;">Prazo Máximo de Entrega: ${dateStr}</span>
-                                <span class="small text-muted">Ref. Pedido(s): ${ordersStr}</span>
-                            </div>
-                        </div>
-                    </div>`;
+            <div class="premium-deadline-alert">
+                <div class="deadline-icon-wrapper">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="deadline-text">
+                    <span class="deadline-title">Prazo Final: ${dateStr}</span>
+                    <span class="deadline-sub">Pedidos: ${ordersStr}</span>
+                </div>
+            </div>`;
     }
-    // --- FIM NOVA Lá“GICA ---
 
-    // --- NOVO: Botá£o de aá§á£o modificado para toggle de mapa e container oculto ---
-    return `<div id="${load.id}" class="load-card vehicle-${vehicleType} drop-zone-card ${isPriorityLoad ? 'shadow-lg' : ''}" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event)" data-load-id="${load.id}" data-vehicle-type="${vehicleType}">
-                        <div class="load-card-header">
-                            <div class="d-flex flex-column">
-                                <div class="load-title ${titleColorClass}">
-                                    <i class="bi ${vInfo.icon} me-2"></i>${vInfo.name} #${load.numero}${spDescription}
-                                    ${priorityBadge} ${hardLimitBadge}
-                                </div>
-                                <div class="load-meta">
-                                    <span class="load-meta-item" title="Peso Total"><i class="bi bi-database"></i> ${totalKgFormatado} kg</span>
-                                    <span class="load-meta-item" title="Cubagem Total"><i class="bi bi-rulers"></i> ${totalCubagemFormatado} m³</span>
-                                    ${distanciaHtml}
-                                    <span id="freight-${load.id}" class="load-meta-item badge bg-dark text-muted border border-secondary fw-normal ms-2" title="Valor Estimado do Frete">
-                                        <i class="bi bi-calculator me-1"></i>Calc. KM p/ Frete
-                                    </span>
-                                </div>
-                            </div>
+    return `
+        <div id="${load.id}" 
+             class="premium-load-card drop-zone-card vehicle-${vehicleType} animated-entry ${isPriorityLoad ? 'priority-glow' : ''}" 
+             data-load-id="${load.id}" 
+             data-vehicle-type="${vehicleType}"
+             ondragover="dragOver(event)" 
+             ondragleave="dragLeave(event)" 
+             ondrop="drop(event)">
+            <div class="card-glass-overlay"></div>
 
-                            <div class="d-flex flex-column align-items-end gap-1">
-                                <div class="no-print mb-1">${vehicleSelectDropdown}</div>
-                                <div class="load-actions no-print">
-                                    <button class="btn-icon-action" onclick="showRouteOnMap('${load.id}')" title="Ver Rota no Mapa"><i class="bi bi-map-fill"></i></button>
-                                    <button class="btn-icon-action" onclick="abrirMapaCarga('${load.id}')" title="Google Maps (Externo)"><i class="bi bi-box-arrow-up-right"></i></button>
-                                    <button class="btn-icon-action" onclick="imprimirCargaIndividual('${load.id}')" title="Imprimir"><i class="bi bi-printer"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                        ${progressBar}
-                        <div class="card-body p-0">
-                            <div class="px-3 pt-2 pb-3">
-                                <div class="no-print" id="obs-container-${load.id}">${initialObservationHtml}</div>
-                                ${observationForPrint}
-                                
-                                <div class="mt-2">${createTable(load.pedidos, null, load.id)}</div>
-                                ${oldestDateHtml}
-                            </div>
-                        </div>
-                    </div>`;
+            
+            <div class="premium-card-header">
+                <div class="header-main-info">
+                    <div class="load-badge-id">
+                        <i class="bi ${vInfo.icon}" style="color: ${titleIconColor}"></i>
+                        <span>#${load.numero}</span>
+                    </div>
+                    <div class="load-main-title">
+                        ${vInfo.name}${spDescription}
+                        <div class="badge-group">${priorityBadge}${hardLimitBadge}</div>
+                    </div>
+                </div>
+                
+                <div class="header-actions no-print">
+                    ${vehicleSelectDropdown}
+                    <div class="action-buttons-group">
+                        <button class="premium-action-btn" onclick="showRouteOnMap('${load.id}')" title="Mapa Local"><i class="bi bi-map"></i></button>
+                        <button class="premium-action-btn" onclick="abrirMapaCarga('${load.id}')" title="Google Maps"><i class="bi bi-geo"></i></button>
+                        <button class="premium-action-btn" onclick="imprimirCargaIndividual('${load.id}')" title="Imprimir"><i class="bi bi-printer"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            ${progressBar}
+
+            <div class="premium-card-body">
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <span class="metric-label">Peso Bruto</span>
+                        <span class="metric-value">${totalKgFormatado} <small>kg</small></span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Cubagem</span>
+                        <span class="metric-value">${totalCubagemFormatado} <small>m³</small></span>
+                    </div>
+                    <div class="metric-item" id="freight-container-${load.id}">
+                        <span class="metric-label">Est. Frete</span>
+                        <span id="freight-${load.id}" class="metric-value freight-value-pending">
+                            <i class="bi bi-calculator me-1"></i>Calcular
+                        </span>
+                    </div>
+
+                </div>
+
+                <div class="observation-section">
+                    <div id="obs-container-${load.id}">${initialObservationHtml}</div>
+                </div>
+
+
+                <div class="table-container-premium">
+                    ${createTable(load.pedidos, null, load.id)}
+                </div>
+                
+                ${oldestDateHtml}
+            </div>
+            
+            <div class="card-footer-neon"></div>
+        </div>`;
 }
+
 
 
 
@@ -6697,7 +6882,18 @@ async function processarRoteirizacaoLista() {
 let isRestoringState = false;
 
 async function saveStateToLocalStorage() {
+    // --- NOVO: Verificação de Sessão Efêmera ---
+    // Se não houver a flag 'isSessionActive' no sessionStorage (que morre ao fechar o navegador),
+    // significa que é uma nova abertura do navegador. Nesse caso, devemos limpar o localStorage antigo.
+    if (!sessionStorage.getItem('isSessionActive')) {
+        console.warn("Nova sessão do navegador detectada. Limpando dados antigos...");
+        localStorage.clear(); // Limpa TUDO para garantir início zerado
+        sessionStorage.setItem('isSessionActive', 'true'); // Marca a sessão como ativa
+        return; // Não salva nada agora, deixa o estado zerado
+    }
+
     if (isRestoringState) {
+
         console.log("Ignorando salvamento automático: restauração em curso.");
         return;
     }
@@ -6752,8 +6948,34 @@ async function saveRouteContext(context) {
     processedRouteContexts[context.routesKey] = context;
 }
 
+async function clearPlanilhaDb() {
+    try {
+        const db = await openDb();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction([storeName], "readwrite");
+            const store = transaction.objectStore(storeName);
+            const request = store.clear();
+            request.onsuccess = () => {
+                console.log("IndexedDB limpo com sucesso.");
+                resolve();
+            };
+            request.onerror = (event) => reject("Erro ao limpar IndexedDB: " + event.target.error);
+        });
+    } catch (e) { console.error("Erro ao tentar limpar DB:", e); }
+}
+
 async function loadStateFromLocalStorage() {
+    // --- NOVO: Verificação de Sessão Efêmera no Carregamento ---
+    if (!sessionStorage.getItem('isSessionActive')) {
+        console.warn("Nova sessão detectada ao carregar. Limpando dados antigos...");
+        localStorage.clear();
+        await clearPlanilhaDb(); // Limpa também o banco de dados
+        sessionStorage.setItem('isSessionActive', 'true');
+        return; // Retorna sem carregar nada, app inicia zerado
+    }
+
     if (typeof (Storage) === "undefined") return;
+
 
     isRestoringState = true;
 
