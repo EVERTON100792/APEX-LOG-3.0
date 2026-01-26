@@ -574,9 +574,9 @@ function showToast(message, type = 'info') {
     const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
     toast.show();
 }
-function saveConfigurations() {
+async function saveConfigurations() {
     const configStatus = document.getElementById('configStatus');
-    configStatus.innerHTML = '<p class="text-info">Salvando configuraá§áµes no armazenamento local...</p>';
+    configStatus.innerHTML = '<p class="text-info">Salvando configuraçőes...</p>';
     try {
         const configs = {};
         Object.keys(defaultConfigs).forEach(key => {
@@ -589,39 +589,90 @@ function saveConfigurations() {
         const apiKey = document.getElementById('graphhopperApiKey').value;
         localStorage.setItem('graphhopperApiKey', apiKey);
 
+        // 1. Salva Localmente
         localStorage.setItem('vehicleConfigs', JSON.stringify(configs));
-        configStatus.innerHTML = '<p class="text-success">Configuraá§áµes salvas com sucesso!</p>';
+
+        // 2. Salva no Supabase (se autenticado)
+        const sb = window.supabaseClient || window.supabase;
+        if (sb) {
+            const user = await sb.auth.getUser();
+            if (user && user.data && user.data.user) {
+                const { error } = await sb
+                    .from('vehicle_configs')
+                    .insert([
+                        {
+                            config_json: configs,
+                            updated_by: user.data.user.id
+                        }
+                    ]);
+                if (error) console.error("Erro ao salvar config veicular no Supabase:", error);
+                else console.log("Config veicular salva no Supabase.");
+            }
+        }
+
+        configStatus.innerHTML = '<p class="text-success">Configuraçőes salvas com sucesso!</p>';
         setTimeout(() => { configStatus.innerHTML = ''; }, 3000);
-        showToast('Configuraá§áµes salvas com sucesso!', 'success');
+        showToast('Configuraçőes salvas com sucesso (Local + Nuvem)!', 'success');
     } catch (error) {
-        console.error("Erro ao salvar no localStorage:", error);
-        configStatus.innerHTML = `<p class="text-danger">Erro ao salvar as configuraá§áµes: ${error.message}</p>`;
+        console.error("Erro ao salvar configuraçőes:", error);
+        configStatus.innerHTML = `<p class="text-danger">Erro ao salvar: ${error.message}</p>`;
     }
 }
 
-function loadConfigurations() { // prettier-ignore
+async function loadConfigurations() { // prettier-ignore
     const configStatus = document.getElementById('configStatus');
-    configStatus.innerHTML = '<p class="text-info">Carregando configuraá§áµes...</p>';
+    configStatus.innerHTML = '<p class="text-info">Carregando configuraçőes...</p>';
     try { // prettier-ignore
-        const savedConfigs = localStorage.getItem('vehicleConfigs');
-        const configs = savedConfigs ? JSON.parse(savedConfigs) : defaultConfigs;
-
-        // NOVO: Carrega a chave da API do GraphHopper
+        // 0. Setup GraphHopper Key (Local Only)
         const defaultApiKey = '6aaa58ba-e39d-447e-86b4-34cc7eb03d85';
         const savedApiKey = localStorage.getItem('graphhopperApiKey');
-        document.getElementById('graphhopperApiKey').value = savedApiKey || defaultApiKey;
+        const apiKeyInput = document.getElementById('graphhopperApiKey');
+        if (apiKeyInput) apiKeyInput.value = savedApiKey || defaultApiKey;
 
+        let configs = null;
+
+        // 1. Tenta carregar do Supabase
+        try {
+            const sb = window.supabaseClient || window.supabase;
+            if (sb) {
+                const { data, error } = await sb
+                    .from('vehicle_configs')
+                    .select('config_json')
+                    .order('updated_at', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                if (data && data.config_json) {
+                    configs = data.config_json;
+                    console.log("Configuraçőes de veículo carregadas do Supabase.");
+                    // Atualiza cache local
+                    localStorage.setItem('vehicleConfigs', JSON.stringify(configs));
+                }
+            }
+        } catch (cloudErr) {
+            console.warn("Falha ao carregar da nuvem, usando local:", cloudErr);
+        }
+
+        // 2. Fallback para LocalStorage se não veio da nuvem
+        if (!configs) {
+            const savedConfigs = localStorage.getItem('vehicleConfigs');
+            configs = savedConfigs ? JSON.parse(savedConfigs) : defaultConfigs;
+            console.log("Configuraçőes de veículo carregadas do Local Storage.");
+        }
+
+        // 3. Aplica na UI
         Object.keys(defaultConfigs).forEach(key => {
             const element = document.getElementById(key);
             if (element) {
                 element.value = configs[key] !== undefined ? configs[key] : defaultConfigs[key];
             }
         });
-        configStatus.innerHTML = '<p class="text-success">Configuraá§áµes carregadas!</p>';
+
+        configStatus.innerHTML = '<p class="text-success">Configuraçőes carregadas!</p>';
         setTimeout(() => { configStatus.innerHTML = ''; }, 2000);
     } catch (error) {
-        console.error("Erro ao carregar do localStorage:", error);
-        configStatus.innerHTML = `<p class="text-warning">Náo foi possá­vel carregar configuraá§áµes. Usando valores padrá£o.</p>`;
+        console.error("Erro ao carregar configuraçőes:", error);
+        configStatus.innerHTML = `<p class="text-warning">Erro ao carregar. Usando padrőes.</p>`;
         Object.keys(defaultConfigs).forEach(key => {
             const element = document.getElementById(key);
             if (element) { element.value = defaultConfigs[key]; }
