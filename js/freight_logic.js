@@ -2,11 +2,12 @@
 // --- FREIGHT SYSTEM LOGIC ---
 
 const defaultFreightConfig = {
-    fiorino: { limit: 300, fixed: 225.00, rate: 1.80 },
+    fiorino: { limit: 300, fixed: 225.00, rate: 1.40 },
     van: { limit: 500, tableValue: 0.00, rate: 1.80 },
     tresQuartos: { limit: 500, tableValue: 0.00, rate: 2.85 },
     toco: { limit: 500, tableValue: 0.00, rate: 3.45 }
 };
+
 
 function getFreightConfig() {
     const stored = localStorage.getItem('apexFreightConfig');
