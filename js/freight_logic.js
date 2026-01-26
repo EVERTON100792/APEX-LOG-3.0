@@ -91,7 +91,10 @@ function updateFreightTableUI() {
             { id: 'tocoRate', val: config.toco.rate }
         ];
 
+        console.log("Atualizando UI da Tabela de Fretes com config:", config);
+
         inputs.forEach(item => {
+
             const el = document.getElementById(item.id);
             if (el) {
                 el.value = typeof item.val === 'number' ? item.val.toFixed(2).replace('.00', '') : item.val;
@@ -165,39 +168,48 @@ function calculateFreightValue(vehicleType, distanceKm) {
     return freight;
 }
 
-function updateLoadFreightDisplay(loadId, distanceKm) {
+function updateLoadFreightDisplay(loadId, distanceKm = null) {
     const load = activeLoads[loadId];
-    if (!load) return;
+    const freightEl = document.getElementById(`freight-${loadId}`);
+    if (!load || !freightEl) return;
 
     // Atualiza a distância no objeto load se fornecida
-    if (distanceKm) {
+    if (distanceKm !== null) {
+        console.log(`UpdateFreight: Recebido ${distanceKm}km para carga ${loadId} (${load.vehicleType})`);
         load.distanceKm = parseFloat(distanceKm);
         saveStateToLocalStorage();
     }
 
-    // Se não tem distância salva, não calcula
-    if (!load.distanceKm) return;
 
-    const freightValue = calculateFreightValue(load.vehicleType, load.distanceKm);
-    load.freightValue = freightValue; // Salva valor calculado
-    saveStateToLocalStorage();
+    if (load.distanceKm) {
+        const freightValue = calculateFreightValue(load.vehicleType, load.distanceKm);
+        load.freightValue = freightValue; // Salva valor calculado
+        saveStateToLocalStorage();
 
-    const freightEl = document.getElementById(`freight-${loadId}`);
-    if (freightEl) {
         if (freightValue > 0) {
-            freightEl.innerHTML = `<i class="bi bi-cash-stack me-1"></i>R$ ${freightValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
-            freightEl.classList.remove('d-none');
+            freightEl.innerHTML = `<i class="bi bi-cash-stack me-1"></i>R$ ${freightValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} <small>(${load.distanceKm}km)</small>`;
+            freightEl.className = "load-meta-item badge bg-success text-white border border-success fw-bold ms-2";
         } else {
-            // Se valor for 0 (ex: tabela não definida), mostra aviso?
-            if (load.distanceKm <= (getFreightConfig()[load.vehicleType]?.limit || 0)) {
-                freightEl.innerHTML = `<i class="bi bi-cash-stack me-1"></i>A Definir (Tab)`;
-                freightEl.classList.remove('d-none');
-            } else {
-                freightEl.classList.add('d-none');
-            }
+            // Se valor for 0 (ex: Van 'A combinar'), mostra texto informativo com KM
+            freightEl.innerHTML = `<i class="bi bi-cash-stack me-1"></i>A Definir <small>(${load.distanceKm}km)</small>`;
+            freightEl.className = "load-meta-item badge bg-secondary text-white border border-secondary fw-bold ms-2";
         }
+        freightEl.classList.remove('d-none');
+    } else {
+        // Se não tem distância e está calculando, mostra spinner
+        if (load.isCalculatingFreight) {
+            freightEl.innerHTML = `<i class="spinner-border spinner-border-sm me-1" role="status"></i>Calculando KM...`;
+            freightEl.className = "load-meta-item badge bg-info text-white border border-info fw-normal ms-2";
+        } else {
+            // Se não tem distância, mostra placeholder informativo amigável
+            freightEl.innerHTML = `<i class="bi bi-calculator me-1"></i>Calc. KM p/ Frete`;
+            freightEl.className = "load-meta-item badge bg-dark text-muted border border-secondary fw-normal ms-2";
+        }
+        freightEl.classList.remove('d-none');
     }
 }
+
+
 
 function recalcAllFreights() {
     Object.keys(activeLoads).forEach(loadId => {

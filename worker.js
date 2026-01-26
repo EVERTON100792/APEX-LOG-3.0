@@ -3,15 +3,15 @@
 // ================================================================================================
 // Este script é executado em uma thread separada para não travar a interface do usuário.
 
-self.onmessage = async function(e) {
-    const { 
-        command, 
-        packableGroups, 
-        vehicleType, 
-        optimizationLevel, 
-        configs, 
-        pedidosPrioritarios, 
-        pedidosRecall 
+self.onmessage = async function (e) {
+    const {
+        command,
+        packableGroups,
+        vehicleType,
+        optimizationLevel,
+        configs,
+        pedidosPrioritarios,
+        pedidosRecall
     } = e.data;
 
     if (command === 'start-optimization') {
@@ -46,7 +46,7 @@ self.onmessage = async function(e) {
             self.postMessage({ status: 'error', message: error.message, stack: error.stack });
         }
     }
-    
+
     if (command === 'optimize-route-sequence') {
         try {
             const result = runSequenceOptimization(packableGroups, vehicleType, configs);
@@ -62,15 +62,17 @@ let cityCoordsCache = {};
 async function getCityCoordinates(cidade, uf, apiKey) {
     const key = `${cidade.trim().toUpperCase()}-${uf.trim().toUpperCase()}`;
     if (cityCoordsCache[key]) return cityCoordsCache[key];
-    if (!apiKey) return null;
+
+    // Usando Nominatim (OpenStreetMap)
     try {
         const query = `${cidade}, ${uf}, Brasil`;
-        const response = await fetch(`https://graphhopper.com/api/1/geocode?q=${encodeURIComponent(query)}&key=${apiKey}`);
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
+            headers: { 'User-Agent': 'ApexLogApp/3.0' }
+        });
         if (!response.ok) return null;
         const data = await response.json();
-        if (data.hits && data.hits.length > 0) {
-            const point = data.hits[0].point;
-            const coords = { lat: point.lat, lng: point.lng };
+        if (data && data.length > 0) {
+            const coords = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
             cityCoordsCache[key] = coords;
             return coords;
         }
@@ -79,6 +81,8 @@ async function getCityCoordinates(cidade, uf, apiKey) {
     }
     return null;
 }
+
+
 
 const specialClientNames = ['IRMAOS MUFFATO S.A', 'IRMAOS MUFFATO & CIA LTDA', 'FINCO & FINCO', 'BOM DIA', 'CASA VISCARD S/A COM. E IMPORTACAO', 'PRIMATO COOPERATIVA AGROINDUSTRIAL'];
 
@@ -165,7 +169,7 @@ function createSolutionFromHeuristic(itemsParaEmpacotar, vehicleType, configs, p
         if (item.totalKg > config.hardMaxKg || item.totalCubagem > config.hardMaxCubage) {
             leftoverItems.push(item); return;
         }
-        
+
         let bestFit = null;
         for (const load of loads) {
             if (isMoveValid(load, item, vehicleType, configs)) {
@@ -191,14 +195,14 @@ function createSolutionFromHeuristic(itemsParaEmpacotar, vehicleType, configs, p
             });
         }
     });
-    
+
     let finalLoads = [];
     let unplacedGroups = [];
 
     loads.forEach(load => {
         // A validação da carga agora depende apenas de atingir o peso mínimo.
         // A prioridade de um pedido é usada para ordenar e tentar encaixá-lo primeiro, mas não para forçar uma carga sub-mínima.
-        if (load.pedidos.length > 0 && load.totalKg >= config.minKg) { 
+        if (load.pedidos.length > 0 && load.totalKg >= config.minKg) {
             finalLoads.push(load);
         } else if (load.pedidos.length > 0) {
             const clientGroupsInFailedLoad = Object.values(load.pedidos.reduce((acc, p) => {
@@ -212,7 +216,7 @@ function createSolutionFromHeuristic(itemsParaEmpacotar, vehicleType, configs, p
             unplacedGroups.push(...clientGroupsInFailedLoad);
         }
     });
-    
+
     const leftovers = [...leftoverItems, ...unplacedGroups];
     return { loads: finalLoads, leftovers };
 }
@@ -232,25 +236,33 @@ function runHeuristicOptimization(packableGroups, vehicleType, configs, pedidosP
     };
 
     const strategies = [
-        { name: 'priority-weight-desc', sorter: (a, b) => { // prettier-ignore
-            const dateCompare = dateSorter(a, b); if (dateCompare !== 0) return dateCompare;
-            const aHasPrio = a.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido))); const bHasPrio = b.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido)));
-            if (aHasPrio && !bHasPrio) return -1; if (!aHasPrio && bHasPrio) return 1;
-            return b.totalKg - a.totalKg; }
+        {
+            name: 'priority-weight-desc', sorter: (a, b) => { // prettier-ignore
+                const dateCompare = dateSorter(a, b); if (dateCompare !== 0) return dateCompare;
+                const aHasPrio = a.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido))); const bHasPrio = b.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido)));
+                if (aHasPrio && !bHasPrio) return -1; if (!aHasPrio && bHasPrio) return 1;
+                return b.totalKg - a.totalKg;
+            }
         },
-        { name: 'scheduled-weight-desc', sorter: (a, b) => { // prettier-ignore
-            const dateCompare = dateSorter(a, b); if (dateCompare !== 0) return dateCompare;
-            const aHasSched = a.pedidos.some(p => p.Agendamento === 'Sim'); const bHasSched = b.pedidos.some(p => p.Agendamento === 'Sim');
-            if (aHasSched && !bHasSched) return -1; if (!aHasSched && bHasSched) return 1;
-            return b.totalKg - a.totalKg; }
+        {
+            name: 'scheduled-weight-desc', sorter: (a, b) => { // prettier-ignore
+                const dateCompare = dateSorter(a, b); if (dateCompare !== 0) return dateCompare;
+                const aHasSched = a.pedidos.some(p => p.Agendamento === 'Sim'); const bHasSched = b.pedidos.some(p => p.Agendamento === 'Sim');
+                if (aHasSched && !bHasSched) return -1; if (!aHasSched && bHasSched) return 1;
+                return b.totalKg - a.totalKg;
+            }
         },
-        { name: 'weight-desc', sorter: (a, b) => { // prettier-ignore
-            const dateCompare = dateSorter(a, b); if (dateCompare !== 0) return dateCompare;
-            return b.totalKg - a.totalKg; }
+        {
+            name: 'weight-desc', sorter: (a, b) => { // prettier-ignore
+                const dateCompare = dateSorter(a, b); if (dateCompare !== 0) return dateCompare;
+                return b.totalKg - a.totalKg;
+            }
         },
-        { name: 'weight-asc', sorter: (a, b) => { // prettier-ignore
-            const dateCompare = dateSorter(a, b); if (dateCompare !== 0) return dateCompare;
-            return a.totalKg - b.totalKg; }
+        {
+            name: 'weight-asc', sorter: (a, b) => { // prettier-ignore
+                const dateCompare = dateSorter(a, b); if (dateCompare !== 0) return dateCompare;
+                return a.totalKg - b.totalKg;
+            }
         }
     ];
 
@@ -259,14 +271,14 @@ function runHeuristicOptimization(packableGroups, vehicleType, configs, pedidosP
     for (const strategy of strategies) {
         const sortedGroups = [...packableGroups].sort(strategy.sorter);
         const result = createSolutionFromHeuristic(sortedGroups, vehicleType, configs, pedidosPrioritarios, pedidosRecall);
-        
+
         const leftoverWeight = result.leftovers.reduce((sum, g) => sum + g.totalKg, 0);
 
         if (bestResult === null || leftoverWeight < bestResult.leftoverWeight) {
             bestResult = { ...result, leftoverWeight: leftoverWeight, strategy: strategy.name };
         }
     }
-    
+
     return bestResult;
 }
 
@@ -291,7 +303,7 @@ function getSolutionEnergy(solution, vehicleType, configs) {
         }
         return sum + (group.totalKg * weightMultiplier);
     }, 0);
-    
+
     const loadPenalty = solution.loads.reduce((sum, load) => {
         if (load.totalKg > 0 && load.totalKg < config.minKg) {
             return sum + 1000 + (config.minKg - load.totalKg);
@@ -322,8 +334,8 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
             if (a.oldestDate && b.oldestDate) {
                 if (a.oldestDate < b.oldestDate) return -1;
                 if (a.oldestDate > b.oldestDate) return 1;
-            } else if (a.oldestDate) { return -1; } 
-              else if (b.oldestDate) { return 1; }
+            } else if (a.oldestDate) { return -1; }
+            else if (b.oldestDate) { return 1; }
             const aHasPrio = a.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido))); const bHasPrio = b.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido)));
             if (aHasPrio && !bHasPrio) return -1; if (!aHasPrio && bHasPrio) return 1;
             return b.totalKg - a.totalKg;
@@ -333,79 +345,79 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
         let currentSolution = JSON.parse(JSON.stringify(bestSolution));
 
         let currentTemp = initialTemp;
-        
+
         while (currentTemp > 1) {
-             for (let i = 0; i < iterationsPerTemp; i++) {
-                 let neighborSolution = JSON.parse(JSON.stringify(currentSolution));
-                 let moveMade = false;
+            for (let i = 0; i < iterationsPerTemp; i++) {
+                let neighborSolution = JSON.parse(JSON.stringify(currentSolution));
+                let moveMade = false;
 
-                 const moveType = Math.random();
-                 if (moveType < 0.7 && neighborSolution.leftovers.length > 0) {
-                     const leftoverIndex = Math.floor(Math.random() * neighborSolution.leftovers.length);
-                     const groupToPlace = neighborSolution.leftovers[leftoverIndex];
-                     const targetLoadIndex = neighborSolution.loads.length > 0 ? Math.floor(Math.random() * (neighborSolution.loads.length + 1)) : 0;
+                const moveType = Math.random();
+                if (moveType < 0.7 && neighborSolution.leftovers.length > 0) {
+                    const leftoverIndex = Math.floor(Math.random() * neighborSolution.leftovers.length);
+                    const groupToPlace = neighborSolution.leftovers[leftoverIndex];
+                    const targetLoadIndex = neighborSolution.loads.length > 0 ? Math.floor(Math.random() * (neighborSolution.loads.length + 1)) : 0;
 
-                     if (targetLoadIndex < neighborSolution.loads.length) {
-                         const targetLoad = neighborSolution.loads[targetLoadIndex];
-                         if(isMoveValid(targetLoad, groupToPlace, vehicleType, configs)) {
-                             targetLoad.pedidos.push(...groupToPlace.pedidos);
-                             targetLoad.totalKg += groupToPlace.totalKg;
-                             targetLoad.totalCubagem += groupToPlace.totalCubagem;
-                             neighborSolution.leftovers.splice(leftoverIndex, 1);
-                             moveMade = true;
-                         }
-                     } else if (isMoveValid({pedidos:[], totalKg:0, totalCubagem:0}, groupToPlace, vehicleType, configs)) { 
-                         neighborSolution.loads.push(groupToPlace);
-                         neighborSolution.leftovers.splice(leftoverIndex, 1);
-                         moveMade = true;
-                     }
-                 } else if (neighborSolution.loads.length > 0) {
-                     const loadIndex = Math.floor(Math.random() * neighborSolution.loads.length);
-                     const load = neighborSolution.loads[loadIndex];
-                     
-                     if (load.pedidos.length > 0) {
-                         const clientGroupsInLoad = Object.values(load.pedidos.reduce((acc, p) => {
-                             const cId = normalizeClientId(p.Cliente);
-                             if (!acc[cId]) acc[cId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) };
-                             acc[cId].pedidos.push(p); acc[cId].totalKg += p.Quilos_Saldo; acc[cId].totalCubagem += p.Cubagem;
-                             return acc;
-                         }, {}));
+                    if (targetLoadIndex < neighborSolution.loads.length) {
+                        const targetLoad = neighborSolution.loads[targetLoadIndex];
+                        if (isMoveValid(targetLoad, groupToPlace, vehicleType, configs)) {
+                            targetLoad.pedidos.push(...groupToPlace.pedidos);
+                            targetLoad.totalKg += groupToPlace.totalKg;
+                            targetLoad.totalCubagem += groupToPlace.totalCubagem;
+                            neighborSolution.leftovers.splice(leftoverIndex, 1);
+                            moveMade = true;
+                        }
+                    } else if (isMoveValid({ pedidos: [], totalKg: 0, totalCubagem: 0 }, groupToPlace, vehicleType, configs)) {
+                        neighborSolution.loads.push(groupToPlace);
+                        neighborSolution.leftovers.splice(leftoverIndex, 1);
+                        moveMade = true;
+                    }
+                } else if (neighborSolution.loads.length > 0) {
+                    const loadIndex = Math.floor(Math.random() * neighborSolution.loads.length);
+                    const load = neighborSolution.loads[loadIndex];
 
-                         if(clientGroupsInLoad.length > 0) {
-                             const groupIndexToRemove = Math.floor(Math.random() * clientGroupsInLoad.length);
-                             const groupToMove = clientGroupsInLoad[groupIndexToRemove];
-                             
-                             const idsToRemove = new Set(groupToMove.pedidos.map(p => p.Num_Pedido));
-                             load.pedidos = load.pedidos.filter(p => !idsToRemove.has(p.Num_Pedido));
-                             load.totalKg -= groupToMove.totalKg;
-                             load.totalCubagem -= groupToMove.totalCubagem;
-                             if(load.pedidos.length === 0) neighborSolution.loads.splice(loadIndex,1);
+                    if (load.pedidos.length > 0) {
+                        const clientGroupsInLoad = Object.values(load.pedidos.reduce((acc, p) => {
+                            const cId = normalizeClientId(p.Cliente);
+                            if (!acc[cId]) acc[cId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) };
+                            acc[cId].pedidos.push(p); acc[cId].totalKg += p.Quilos_Saldo; acc[cId].totalCubagem += p.Cubagem;
+                            return acc;
+                        }, {}));
 
-                             neighborSolution.leftovers.push(groupToMove);
-                             moveMade = true;
-                         }
-                     }
-                 }
-                 
-                 if(moveMade){
-                     const currentEnergy = getSolutionEnergy(currentSolution, vehicleType, configs);
-                     const neighborEnergy = getSolutionEnergy(neighborSolution, vehicleType, configs);
+                        if (clientGroupsInLoad.length > 0) {
+                            const groupIndexToRemove = Math.floor(Math.random() * clientGroupsInLoad.length);
+                            const groupToMove = clientGroupsInLoad[groupIndexToRemove];
 
-                     if (neighborEnergy < currentEnergy || Math.random() < Math.exp((currentEnergy - neighborEnergy) / currentTemp)) {
-                         currentSolution = neighborSolution;
-                         if (getSolutionEnergy(currentSolution, vehicleType, configs) < getSolutionEnergy(bestSolution, vehicleType, configs)) {
-                             bestSolution = JSON.parse(JSON.stringify(currentSolution));
-                         }
-                     }
-                 }
-             }
+                            const idsToRemove = new Set(groupToMove.pedidos.map(p => p.Num_Pedido));
+                            load.pedidos = load.pedidos.filter(p => !idsToRemove.has(p.Num_Pedido));
+                            load.totalKg -= groupToMove.totalKg;
+                            load.totalCubagem -= groupToMove.totalCubagem;
+                            if (load.pedidos.length === 0) neighborSolution.loads.splice(loadIndex, 1);
 
-             currentTemp *= coolingRate;
-             const progress = Math.min(100, 100 * (1 - Math.log(currentTemp) / Math.log(initialTemp)));
-             self.postMessage({ status: 'progress', progress: progress });
-             
-             // Pausa brevemente para permitir que a thread do worker envie mensagens e não trave.
-             await new Promise(r => setTimeout(r, 0));
+                            neighborSolution.leftovers.push(groupToMove);
+                            moveMade = true;
+                        }
+                    }
+                }
+
+                if (moveMade) {
+                    const currentEnergy = getSolutionEnergy(currentSolution, vehicleType, configs);
+                    const neighborEnergy = getSolutionEnergy(neighborSolution, vehicleType, configs);
+
+                    if (neighborEnergy < currentEnergy || Math.random() < Math.exp((currentEnergy - neighborEnergy) / currentTemp)) {
+                        currentSolution = neighborSolution;
+                        if (getSolutionEnergy(currentSolution, vehicleType, configs) < getSolutionEnergy(bestSolution, vehicleType, configs)) {
+                            bestSolution = JSON.parse(JSON.stringify(currentSolution));
+                        }
+                    }
+                }
+            }
+
+            currentTemp *= coolingRate;
+            const progress = Math.min(100, 100 * (1 - Math.log(currentTemp) / Math.log(initialTemp)));
+            self.postMessage({ status: 'progress', progress: progress });
+
+            // Pausa brevemente para permitir que a thread do worker envie mensagens e não trave.
+            await new Promise(r => setTimeout(r, 0));
         }
 
         let finalLoads = [];
@@ -416,26 +428,26 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
 
             if (!config) {
                 if (load.pedidos.length > 0) {
-                    const groups = Object.values(load.pedidos.reduce((acc, p) => { 
+                    const groups = Object.values(load.pedidos.reduce((acc, p) => {
                         const cId = normalizeClientId(p.Cliente);
                         if (!acc[cId]) acc[cId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) };
                         acc[cId].pedidos.push(p); acc[cId].totalKg += p.Quilos_Saldo; acc[cId].totalCubagem += p.Cubagem;
-                        return acc; 
+                        return acc;
                     }, {}));
                     finalLeftovers.push(...groups);
                 }
                 return;
             }
 
-        // A validação da carga agora depende apenas de atingir o peso mínimo.
-        if (load.pedidos.length > 0 && load.totalKg >= config.minKg) {
+            // A validação da carga agora depende apenas de atingir o peso mínimo.
+            if (load.pedidos.length > 0 && load.totalKg >= config.minKg) {
                 finalLoads.push(load);
             } else if (load.pedidos.length > 0) {
-                const groups = Object.values(load.pedidos.reduce((acc, p) => { 
+                const groups = Object.values(load.pedidos.reduce((acc, p) => {
                     const cId = normalizeClientId(p.Cliente);
                     if (!acc[cId]) acc[cId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) };
                     acc[cId].pedidos.push(p); acc[cId].totalKg += p.Quilos_Saldo; acc[cId].totalCubagem += p.Cubagem;
-                    return acc; 
+                    return acc;
                 }, {}));
                 finalLeftovers.push(...groups);
             }
@@ -469,16 +481,16 @@ function runSequenceOptimization(orderedGroups, vehicleType, configs) {
                 loads.push(currentLoad);
             }
             // Inicia nova carga com o grupo atual
-            currentLoad = { 
-                pedidos: [...group.pedidos], 
-                totalKg: group.totalKg, 
-                totalCubagem: group.totalCubagem, 
+            currentLoad = {
+                pedidos: [...group.pedidos],
+                totalKg: group.totalKg,
+                totalCubagem: group.totalCubagem,
                 vehicleType: vehicleType,
                 usedHardLimit: (group.totalKg > config.softMaxKg || group.totalCubagem > config.softMaxCubage)
             };
         }
     });
-    
+
     // Adiciona a última carga se não estiver vazia
     if (currentLoad.pedidos.length > 0) {
         loads.push(currentLoad);
@@ -541,13 +553,14 @@ async function processarRoteirizacaoNoWorker(pedidosEncontrados, vehicleType, us
             if (coords) cityCoords.push({ key: cityKey, ...coords });
             else cityCoords.push({ key: cityKey, lat: 0, lng: 0 });
             self.postMessage({ status: 'progress', progress: 30 + (i / sortedCities.length) * 40 });
+            await new Promise(r => setTimeout(r, 1000)); // Delay para Nominatim
         }
-        
+
         const depot = { lat: -23.31461, lng: -51.36963 };
         let current = depot;
         const unvisited = [...cityCoords];
         const path = [];
-        
+
         while (unvisited.length > 0) {
             let nearestIdx = -1;
             let minDist = Infinity;
@@ -559,9 +572,9 @@ async function processarRoteirizacaoNoWorker(pedidosEncontrados, vehicleType, us
                 path.push(unvisited[nearestIdx].key);
                 current = unvisited[nearestIdx];
                 unvisited.splice(nearestIdx, 1);
-            } else { 
-                path.push(unvisited[0].key); 
-                unvisited.splice(0, 1); 
+            } else {
+                path.push(unvisited[0].key);
+                unvisited.splice(0, 1);
             }
         }
         sortedCities = path;
@@ -576,10 +589,10 @@ async function processarRoteirizacaoNoWorker(pedidosEncontrados, vehicleType, us
         const ordersInCity = cityGroups[cityKey].sort((a, b) => (a.Nome_Cliente || '').localeCompare(b.Nome_Cliente || ''));
         sortedOrders.push(...ordersInCity);
     });
-    
+
     const packableGroups = [];
     const clientMap = new Map();
-    
+
     sortedOrders.forEach(p => {
         const cId = normalizeClientId(p.Cliente);
         if (!clientMap.has(cId)) {
@@ -605,7 +618,7 @@ async function processarRoteirizacaoNoWorker(pedidosEncontrados, vehicleType, us
         const distanceLimit = vehicleType === 'fiorino' ? 500 : 1000;
         const validLoads = [];
         const depot = { lat: -23.31461, lng: -51.36963 };
-        
+
         for (const load of loads) {
             const citiesInLoad = [...new Set(load.pedidos.map(p => `${(p.Cidade || '').trim().toUpperCase()} - ${(p.UF || '').trim().toUpperCase()}`))];
             let totalDistKm = 0;
@@ -617,12 +630,12 @@ async function processarRoteirizacaoNoWorker(pedidosEncontrados, vehicleType, us
             }
             totalDistKm += calculateDistance(currentPos.lat, currentPos.lng, depot.lat, depot.lng);
             const estimatedRoadDist = totalDistKm * 1.3;
-            if (estimatedRoadDist <= distanceLimit) { validLoads.push(load); } 
+            if (estimatedRoadDist <= distanceLimit) { validLoads.push(load); }
             else { packingResult.discardedMessages.push(`Carga ${vehicleType} descartada: Rota estimada em ${estimatedRoadDist.toFixed(0)}km (>${distanceLimit}km).`); }
         }
         loads = validLoads;
     }
-    
+
     self.postMessage({ status: 'progress', progress: 100 });
     packingResult.loads = loads;
     packingResult.sortedCities = sortedCities;

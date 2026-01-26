@@ -886,12 +886,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Restaura o estado da aplicaá§á£o a partir do localStorage ao carregar a pá¡gina.
-    // REATIVADO: Garante persistáªncia em F5
-    loadStateFromLocalStorage();
-
     // Restaura a áºltima view e aba ativas
     const lastView = localStorage.getItem('lastActiveView');
+
     if (lastView) {
         document.querySelector(`a[href="${lastView}"]`)?.click();
     }
@@ -1039,8 +1036,8 @@ const rotasEspeciaisFiorino = {
         'PRESIDENTE CASTELO BRANCO'
     ],
     '11102': [
-        'IBAITI', 'FIGUEIRA', 'NOVA SANTA BARBARA',
-        'PINHALAO', 'CURTIUVA'
+        'FIGUEIRA', 'NOVA SANTA BARBARA',
+        'CURTIUVA'
     ],
     '11331': [
         'TERRA BOA', 'ENGENHEIRO BELTRAO', 'PEABIRU', 'CAMPO MOURAO',
@@ -1049,7 +1046,7 @@ const rotasEspeciaisFiorino = {
     ],
     '11551': [
         'IVAIPORA', 'JARDIM ALEGRE', 'SAO JOAO DO IVAI',
-        'NOVA TEBAS'
+
     ],
     '11571': [
         'ORTIGUEIRA', 'IMBAU', 'TELEMACO BORBA'
@@ -4017,11 +4014,12 @@ function renderLoadCard(load, vehicleType, vInfo) {
                                     <span class="load-meta-item" title="Peso Total"><i class="bi bi-database"></i> ${totalKgFormatado} kg</span>
                                     <span class="load-meta-item" title="Cubagem Total"><i class="bi bi-rulers"></i> ${totalCubagemFormatado} m³</span>
                                     ${distanciaHtml}
-                                    <span id="freight-${load.id}" class="load-meta-item badge bg-success text-white border border-success fw-bold ms-2 ${load.freightValue ? '' : 'd-none'}" title="Valor Estimado do Frete">
-                                        ${load.freightValue ? `<i class="bi bi-cash-stack me-1"></i>R$ ${Number(load.freightValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : ''}
+                                    <span id="freight-${load.id}" class="load-meta-item badge bg-dark text-muted border border-secondary fw-normal ms-2" title="Valor Estimado do Frete">
+                                        <i class="bi bi-calculator me-1"></i>Calc. KM p/ Frete
                                     </span>
                                 </div>
                             </div>
+
                             <div class="d-flex flex-column align-items-end gap-1">
                                 <div class="no-print mb-1">${vehicleSelectDropdown}</div>
                                 <div class="load-actions no-print">
@@ -4253,12 +4251,8 @@ async function showRouteOnMap(loadId) {
 
     mapModal.show();
 
-    const apiKey = document.getElementById('graphhopperApiKey').value;
-    if (!apiKey) {
-        mapStatus.innerHTML = '<span class="text-danger">API Key ná£o configurada.</span>';
-        mapContainer.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100 text-danger">API Key do GraphHopper necessá¡ria.</div>';
-        return;
-    }
+    // Valhalla/Nominatim não usam chaves de API obrigatórias do GraphHopper
+    const apiKey = document.getElementById('graphhopperApiKey')?.value || "";
 
     if (!load || !load.pedidos || load.pedidos.length === 0) {
         mapStatus.innerHTML = '<span class="text-warning">Sem pedidos na carga.</span>';
@@ -4266,102 +4260,220 @@ async function showRouteOnMap(loadId) {
     }
 
     try {
-        // 1. Origem
-        if (!origemCoords) {
-            const origemResponse = await fetch(`https://graphhopper.com/api/1/geocode?q=${encodeURIComponent("Empresa Selmi, Rolá¢ndia, Paraná¡")}&key=${apiKey}`);
-            const origemData = await origemResponse.json();
-            if (!origemData.hits || origemData.hits.length === 0) throw new Error("Origem ná£o encontrada.");
-            origemCoords = { lat: origemData.hits[0].point.lat, lng: origemData.hits[0].point.lng };
-        }
+        // 1. Origem (Fixa: Empresa Selmi - Rolândia - Centro da Fábrica/Área Industrial)
+        origemCoords = { lat: -23.3002, lng: -51.3358 };
 
-        // 2. Destinos
-        const locations = [{ name: "Origem (Selmi)", coords: origemCoords, isOrigin: true }];
+        // 2. Geocodificação dos Destinos (Nominatim)
+        const selmiAddress = "Empresa Selmi, BR-369, Rolândia - PR, 86181-570, Brasil";
+        const locations = [{ name: selmiAddress, coords: origemCoords, isOrigin: true }];
         const uniqueCities = [...new Set(load.pedidos.map(p => `${p.Cidade}, ${p.UF}`))];
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
+        mapStatus.innerHTML = '<span class="text-info">Buscando coordenadas das cidades...</span>';
+
         for (const city of uniqueCities) {
             const cleanedCity = city.replace(/\s+/g, ' ').trim();
-            const geoResponse = await fetch(`https://graphhopper.com/api/1/geocode?q=${encodeURIComponent(cleanedCity)}&key=${apiKey}`);
-            const geoData = await geoResponse.json();
-            if (geoData.hits && geoData.hits.length > 0) {
-                locations.push({ name: city, coords: { lat: geoData.hits[0].point.lat, lng: geoData.hits[0].point.lng } });
+            try {
+                // Nominatim requer um User-Agent e delay entre requisições
+                const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanedCity + ', Brasil')}&format=json&limit=1`;
+                const geoResponse = await fetch(geoUrl, { headers: { 'User-Agent': 'ApexLogApp/3.0' } });
+                const geoData = await geoResponse.json();
+
+                if (geoData && geoData.length > 0) {
+                    locations.push({
+                        name: city,
+                        coords: { lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) }
+                    });
+                }
+            } catch (err) {
+                console.warn(`Erro ao geocodificar ${city}:`, err);
             }
-            await delay(250);
+            await delay(1000); // Respeita rate limit de 1 req/sec do Nominatim
         }
 
         if (locations.length <= 1) {
-            mapStatus.innerHTML = '<span class="text-warning">Destinos ná£o encontrados.</span>';
+            mapStatus.innerHTML = '<span class="text-warning">Cidades não encontradas no mapa.</span>';
             return;
         }
 
         // 3. Inicializa Mapa
+        if (mapInstance) { mapInstance.remove(); }
         mapInstance = L.map(mapContainer).setView(origemCoords, 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(mapInstance);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mapInstance);
 
+        const markersMap = new Map();
         const bounds = L.latLngBounds();
-        locations.forEach((loc, index) => {
+        locations.forEach((loc, idx) => {
             const marker = L.marker(loc.coords).addTo(mapInstance).bindPopup(`<b>${loc.name}</b>`);
             if (loc.isOrigin) {
-                marker.setIcon(L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] }));
+                marker.setIcon(L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+                }));
             }
+            markersMap.set(idx, marker);
             bounds.extend(loc.coords);
         });
 
-        // 4. Rota
-        const useOptimization = locations.length <= 5;
-        let orderedLocations = [...locations];
-        let routeUrl;
+        // 4. Rota Otimizada (Valhalla)
+        mapStatus.innerHTML = '<span class="text-info">Otimizando rota...</span>';
 
-        if (useOptimization) {
-            const points = orderedLocations.map(loc => `point=${loc.coords.lat},${loc.coords.lng}`);
-            points.push(`point=${origemCoords.lat},${origemCoords.lng}`);
-            routeUrl = `https://graphhopper.com/api/1/route?${points.join('&')}&vehicle=car&key=${apiKey}&points_encoded=true&optimize=true`;
-        } else {
-            const dests = orderedLocations.slice(1).sort((a, b) => a.name.localeCompare(b.name));
-            orderedLocations = [orderedLocations[0], ...dests];
-            const points = orderedLocations.map(loc => `point=${loc.coords.lat},${loc.coords.lng}`);
-            points.push(`point=${origemCoords.lat},${origemCoords.lng}`);
-            routeUrl = `https://graphhopper.com/api/1/route?${points.join('&')}&vehicle=car&key=${apiKey}&points_encoded=true&optimize=false`;
-        }
+        const valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
+        valhallaPoints.push({ lat: origemCoords.lat, lon: origemCoords.lng });
 
+        const valhallaQuery = {
+            locations: valhallaPoints,
+            costing: "auto", // Padrão 'auto' busca o equilíbrio ideal entre tempo e distância
+            units: "kilometers",
+            language: "pt-BR"
+        };
+
+        const routeUrl = `https://valhalla1.openstreetmap.de/optimized_route?json=${JSON.stringify(valhallaQuery)}`;
         const resp = await fetch(routeUrl);
         const data = await resp.json();
 
-        if (data.paths && data.paths.length > 0) {
-            const path = data.paths[0];
-            const decoded = decodePolyline(path.points);
-            L.polyline(decoded, { color: 'blue', weight: 4, opacity: 0.7 }).addTo(mapInstance);
+        if (data.trip && data.trip.legs) {
+            const trip = data.trip;
+            let allDecodedPoints = [];
+
+            // Valhalla divide a rota em trechos (legs). Percorremos todos para desenhar a rota completa.
+            trip.legs.forEach(leg => {
+                const legPoints = decodePolyline(leg.shape, 6);
+                allDecodedPoints = allDecodedPoints.concat(legPoints);
+            });
+
+            // Numera a sequência de entregas nos popups
+            if (trip.locations) {
+                let deliveryNum = 1;
+                trip.locations.forEach((locPoint, idx) => {
+                    // Ignora o primeiro ponto (Selmi - Origem) e o último (Selmi - Retorno)
+                    if (idx > 0 && idx < trip.locations.length - 1) {
+                        const originalIdx = locPoint.original_index;
+                        const marker = markersMap.get(originalIdx);
+                        if (marker) {
+                            marker.setPopupContent(`<b>Entrega ${deliveryNum}:</b><br>${locations[originalIdx].name}`);
+                            // Opcional: Abre o popup para o primeiro destino
+                            if (deliveryNum === 1) marker.openPopup();
+                            deliveryNum++;
+                        }
+                    } else if (idx === 0) {
+                        const marker = markersMap.get(0);
+                        if (marker) marker.setPopupContent(`<b>Início:</b><br>${locations[0].name}`);
+                    }
+                });
+            }
+
+            L.polyline(allDecodedPoints, { color: 'blue', weight: 4, opacity: 0.7 }).addTo(mapInstance);
             mapInstance.fitBounds(bounds, { padding: [50, 50] });
 
-            const distKm = (path.distance / 1000).toFixed(1);
-            const timeStr = formatTime(path.time);
-            mapStatus.innerHTML = `<span class="text-success fw-bold">Distá¢ncia: ${distKm} km | Tempo: ${timeStr}</span>`;
+            const distKm = trip.summary.length.toFixed(1);
+            const timeStr = formatTime(trip.summary.time * 1000); // Valhalla retorna segundos
+            mapStatus.innerHTML = `<span class="text-success fw-bold">Distância: ${distKm} km | Tempo: ${timeStr}</span>`;
 
-            // Info para WhatsApp
-            const allPoints = orderedLocations.map(l => `${l.coords.lat},${l.coords.lng}`);
-            allPoints.push(`${orderedLocations[0].coords.lat},${orderedLocations[0].coords.lng}`);
+            // Info para WhatsApp e Google Maps (seguindo a sequência OTIMIZADA do Valhalla)
+            const optimizedPoints = trip.locations.map(loc => `${loc.lat},${loc.lon}`);
+            const optimizedStopsNames = trip.locations
+                .slice(1, -1) // Remove o início e o fim (Selmi)
+                .map(loc => locations[loc.original_index].name);
+
             currentRouteInfo = {
                 loadName: `Carga ${load.numero}`,
-                stops: orderedLocations.slice(1).map(l => l.name),
-                googleMapsUrl: `https://www.google.com/maps/dir/${allPoints.join('/')}`,
+                stops: optimizedStopsNames,
+                googleMapsUrl: `https://www.google.com/maps/dir/${optimizedPoints.join('/')}`,
                 distancia: distKm,
                 tempo: timeStr
             };
 
-            // NOVO: Atualiza o frete assim que a rota é exibida/calculada no mapa
+            // Atualiza o frete
+            console.log(`Calculando frete para carga ${loadId} com ${distKm} km`);
             if (typeof updateLoadFreightDisplay === 'function') {
-                updateLoadFreightDisplay(loadId, distKm);
+                updateLoadFreightDisplay(loadId, parseFloat(distKm));
             }
         } else {
-            mapStatus.innerHTML = '<span class="text-danger">Náo foi possá­vel traá§ar a rota.</span>';
+            mapStatus.innerHTML = '<span class="text-danger">Não foi possível traçar a rota com Valhalla.</span>';
         }
 
-        // Forá§a resize do mapa apá³s modal abrir totalmente
-        setTimeout(() => { mapInstance.invalidateSize(); }, 500);
+        // Força resize do mapa
+        setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 500);
 
+        // ... (restante da lógica do mapa interno)
     } catch (e) {
         console.error("Erro mapa modal:", e);
         mapStatus.innerHTML = `<span class="text-danger">Erro: ${e.message}</span>`;
+    }
+}
+
+/**
+ * NOVO: Função para calcular quilometragem e frete em background via Valhalla.
+ * Chamada tanto pelo mapa interno quanto pelo botão de mapa externo.
+ */
+async function refreshLoadFreight(loadId) {
+    const load = activeLoads[loadId];
+    if (!load || !load.pedidos || load.pedidos.length === 0) return;
+
+    try {
+        load.isCalculatingFreight = true;
+        updateLoadFreightDisplay(loadId);
+
+        // Usa as coordenadas exatas da Selmi que definimos
+        const centroSelmi = { lat: -23.3002, lng: -51.3358 };
+        const uniqueCities = [...new Set(load.pedidos.map(p => `${p.Cidade}, ${p.UF}`))];
+        const locations = [{ coords: centroSelmi }];
+        const delay = ms => new Promise(res => setTimeout(res, ms));
+
+        console.log(`Iniciando cálculo de frete background para carga ${loadId}`);
+
+        // Busca coordenadas das cidades com delay para evitar bloqueio do Nominatim
+        for (const city of uniqueCities) {
+            try {
+                const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', Brasil')}&format=json&limit=1`;
+                const response = await fetch(geoUrl, { headers: { 'User-Agent': 'ApexLogApp/3.0' } });
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    locations.push({ coords: { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) } });
+                }
+                await delay(1000); // CRITICAL: Nominatim exige 1 req/sec
+            } catch (err) {
+                console.warn(`Erro geocode background para ${city}:`, err);
+            }
+        }
+
+        if (locations.length <= 1) {
+            load.isCalculatingFreight = false;
+            updateLoadFreightDisplay(loadId);
+            return;
+        }
+
+        // Rota Otimizada (Valhalla) - Round Trip Otimizado Padrão
+        const valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
+        valhallaPoints.push({ lat: centroSelmi.lat, lon: centroSelmi.lng });
+
+        const valhallaQuery = {
+            locations: valhallaPoints,
+            costing: "auto",
+            units: "kilometers",
+            language: "pt-BR"
+        };
+
+        const routeUrl = `https://valhalla1.openstreetmap.de/optimized_route?json=${JSON.stringify(valhallaQuery)}`;
+        const resp = await fetch(routeUrl);
+        const data = await resp.json();
+
+        load.isCalculatingFreight = false;
+        if (data.trip && data.trip.summary) {
+            const distKm = data.trip.summary.length.toFixed(1);
+            console.log(`Cálculo background concluído: ${distKm} km para carga ${loadId}`);
+            updateLoadFreightDisplay(loadId, parseFloat(distKm));
+        } else {
+            updateLoadFreightDisplay(loadId);
+        }
+    } catch (e) {
+        console.warn(`Erro no cálculo de frete background para carga ${loadId}:`, e);
+        load.isCalculatingFreight = false;
+        updateLoadFreightDisplay(loadId);
     }
 }
 
@@ -4369,9 +4481,12 @@ async function showRouteOnMap(loadId) {
 function abrirMapaCarga(loadId) {
     const load = activeLoads[loadId];
     if (!load) {
-        showToast("Carga ná£o encontrada.", 'error');
+        showToast("Carga não encontrada.", 'error');
         return;
     }
+
+    // DISPARA CÁLCULO DE FRETE EM BACKGROUND
+    refreshLoadFreight(loadId);
 
     const cidadesMap = new Map();
     const pedidoIdsNaCarga = new Set(load.pedidos.map(p => String(p.Num_Pedido)));
@@ -4385,24 +4500,30 @@ function abrirMapaCarga(loadId) {
             }
         }
     });
-    const cidadesComEstado = Array.from(cidadesMap.entries());
 
+    const cidadesComEstado = Array.from(cidadesMap.entries());
     if (cidadesComEstado.length === 0) {
-        showToast("Nenhuma cidade vá¡lida encontrada para roteirizar.", 'warning');
+        showToast("Nenhuma cidade válida encontrada para roteirizar.", 'warning');
         return;
     }
 
-    const origem = "Empresa Selmi, BR-369, 86181-570 Rolá¢ndia, Paraná¡, Brasil";
-    const destino = origem;
+    // Nome e endereço da Selmi para visualização amigável no link externo
+    const pontoSelmi = "Empresa Selmi, BR-369, Rolândia - PR, 86181-570, Brasil";
     const baseUrl = "https://graphhopper.com/maps/";
     const params = new URLSearchParams();
-    params.append('point', origem);
-    cidadesComEstado.forEach(([cidade, uf]) => { let pontoParada = `${cidade}, ${uf}, Brasil`; if (cidade.toLowerCase().trim() === 'rolá¢ndia') { pontoParada = `Centro, Rolá¢ndia, ${uf}, Brasil`; } params.append('point', pontoParada); });
-    params.append('point', destino);
-    // Usa 'car' como perfil de veá­culo padrá£o para roteirizaá§á£o.
-    const url = `${baseUrl}?${params.toString()}&profile=car&layer=OpenStreetMap`;
 
-    // Abre a URL em uma nova aba
+    // Adiciona Selmi como ponto inicial
+    params.append('point', pontoSelmi);
+
+    // Adiciona cidades
+    cidadesComEstado.forEach(([cidade, uf]) => {
+        params.append('point', `${cidade}, ${uf}, Brasil`);
+    });
+
+    // Adiciona Selmi como ponto final (Retorno)
+    params.append('point', pontoSelmi);
+
+    const url = `${baseUrl}?${params.toString()}&profile=car&layer=OpenStreetMap`;
     window.open(url, '_blank');
 }
 
@@ -4411,10 +4532,10 @@ function abrirMapaCarga(loadId) {
  * @param {string} str A string da polilinha codificada.
  * @returns {Array<[number, number]>} Um array de pares [latitude, longitude].
  */
-function decodePolyline(str) {
+function decodePolyline(str, precision = 5) {
     let index = 0, lat = 0, lng = 0, array = [];
     let shift = 0, result = 0, byte, latitude_change, longitude_change;
-    const factor = Math.pow(10, 5);
+    const factor = Math.pow(10, precision);
 
     while (index < str.length) {
         byte = null; shift = 0; result = 0;
@@ -6573,7 +6694,13 @@ async function processarRoteirizacaoLista() {
 //  Lá“GICA DE PERSISTáŠNCIA DE ESTADO
 // ================================================================================================
 
+let isRestoringState = false;
+
 async function saveStateToLocalStorage() {
+    if (isRestoringState) {
+        console.log("Ignorando salvamento automático: restauração em curso.");
+        return;
+    }
     if (typeof (Storage) === "undefined") {
         console.warn("Seu navegador ná£o suporta Local Storage. O progresso ná£o será¡ salvo.");
         return;
@@ -6627,6 +6754,8 @@ async function saveRouteContext(context) {
 
 async function loadStateFromLocalStorage() {
     if (typeof (Storage) === "undefined") return;
+
+    isRestoringState = true;
 
     const savedStateJSON = localStorage.getItem('logisticsAppState');
     if (!savedStateJSON) {
@@ -6798,11 +6927,15 @@ async function loadStateFromLocalStorage() {
         recalcAllFreights();
 
         console.log("Estado da aplicaá§á£o restaurado do Local Storage.");
+        isRestoringState = false;
+        console.log("Restauração de estado concluída. Flags de segurança liberadas.");
     } catch (e) {
+        isRestoringState = false;
         console.error("Erro ao carregar o estado do Local Storage:", e);
         localStorage.removeItem('logisticsAppState'); // Limpa estado corrompido
     }
 }
+
 
 function reRenderManualLoads() {
     const manualLoads = Object.values(activeLoads).filter(load => load.id.includes('venda-antecipada') || load.id.includes('especial'));
@@ -6916,58 +7049,7 @@ if (processingModal) {
 }
 
 
-// --- FREIGHT SYSTEM LOGIC ---
 
-const defaultFreightConfig = {
-    fiorino: { limit: 300, fixed: 225.00, rate: 1.80 },
-    van: { limit: 500, tableValue: 0.00, rate: 1.80 },
-    tresQuartos: { limit: 500, tableValue: 0.00, rate: 2.85 },
-    toco: { limit: 500, tableValue: 0.00, rate: 3.45 }
-};
-
-function getFreightConfig() {
-    const stored = localStorage.getItem('apexFreightConfig');
-    if (stored) return { ...defaultFreightConfig, ...JSON.parse(stored) };
-    return defaultFreightConfig;
-}
-
-function saveFreightConfig() {
-    const config = {
-        fiorino: {
-            limit: parseFloat(document.getElementById('fiorinoLimit').value) || 0,
-            fixed: parseFloat(document.getElementById('fiorinoFixed').value) || 0,
-            rate: parseFloat(document.getElementById('fiorinoRate').value) || 0
-        },
-        van: {
-            limit: parseFloat(document.getElementById('vanLimit').value) || 0,
-            tableValue: parseFloat(document.getElementById('vanTableValue').value) || 0,
-            rate: parseFloat(document.getElementById('vanRate').value) || 0
-        },
-        tresQuartos: {
-            limit: parseFloat(document.getElementById('truck34Limit').value) || 0,
-            tableValue: parseFloat(document.getElementById('truck34TableValue').value) || 0,
-            rate: parseFloat(document.getElementById('truck34Rate').value) || 0
-        },
-        toco: {
-            limit: parseFloat(document.getElementById('tocoLimit').value) || 0,
-            tableValue: parseFloat(document.getElementById('tocoTableValue').value) || 0,
-            rate: parseFloat(document.getElementById('tocoRate').value) || 0
-        }
-    };
-    localStorage.setItem('apexFreightConfig', JSON.stringify(config));
-
-    // Atualiza a tabela visual
-    if (typeof updateFreightTableUI === 'function') {
-        updateFreightTableUI();
-    }
-
-    // Recalcula fretes de todas as cargas ativas se tiverem distância
-    if (typeof recalcAllFreights === 'function') {
-        recalcAllFreights();
-    }
-
-    showToast("Configurações de frete salvas com sucesso!", "success");
-}
 
 
 
