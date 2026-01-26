@@ -17,3 +17,8 @@ export const supabase = createClient ? createClient(SUPABASE_URL, SUPABASE_ANON_
     }
 }) : null;
 
+// EXPOSE TO GLOBAL SCOPE FOR NON-MODULE SCRIPTS (like freight_logic.js)
+if (supabase) {
+    window.supabaseClient = supabase;
+}
+

@@ -53,6 +53,61 @@ let freightTables = {
 // Carrega configurações ao iniciar
 loadFreightConfig();
 
+async function getFreightConfigFromSupabase() {
+    try {
+        const sb = window.supabaseClient || window.supabase; // Fallback ou uso do client correto
+        if (!sb || !sb.auth) return null; // Verifica se tem .auth (é o client inicializado)
+
+        const user = await sb.auth.getUser();
+        if (!user || !user.data || !user.data.user) return null;
+
+        // Tenta buscar a configuração mais recente (assumindo uma global ou por usuário)
+        // Por simplicidade, pega a última criada/atualizada
+        const { data, error } = await sb
+            .from('freight_configs')
+            .select('config_json')
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (error) {
+            // Se o erro for "zero rows", é normal na primeira vez
+            if (error.code !== 'PGRST116') console.warn("Supabase load error:", error);
+            return null;
+        }
+        return data?.config_json;
+    } catch (e) {
+        console.error("Erro ao conectar Supabase:", e);
+        return null;
+    }
+}
+
+async function loadFreightConfig() {
+    try {
+        // 1. Tenta carregar do Supabase (prioridade)
+        const cloudConfig = await getFreightConfigFromSupabase();
+
+        if (cloudConfig) {
+            freightTables = cloudConfig;
+            console.log("Configuração de fretes carregada do Supabase.");
+            // Atualiza localStorage para manter sincronia offline
+            localStorage.setItem('apexFreightTables', JSON.stringify(freightTables));
+        } else {
+            // 2. Fallback para LocalStorage
+            const stored = localStorage.getItem('apexFreightTables');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed && parsed.fiorino && parsed.van) {
+                    freightTables = parsed;
+                    console.log("Configuração de fretes carregada do armazenamento local.");
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Erro ao carregar fretes:", e);
+    }
+}
+
 function getFreightConfig() {
     // Retorna a estrutura adaptada para a UI antiga, mas baseada nos dados reais de 'freightTables'
     // Isso garante que os inputs mostrem os valores reais de taxa excedente
@@ -80,24 +135,7 @@ function getFreightConfig() {
     };
 }
 
-function loadFreightConfig() {
-    try {
-        const stored = localStorage.getItem('apexFreightTables');
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            // Merge cuidadoso: apenas taxas e limites básicos se a estrutura bater
-            // Como a estrutura é complexa, vou assumir que o salvo sobrescreve o padrão se existir
-            if (parsed && parsed.fiorino && parsed.van) {
-                freightTables = parsed;
-                console.log("Configuração de fretes carregada do armazenamento local.");
-            }
-        }
-    } catch (e) {
-        console.error("Erro ao carregar fretes:", e);
-    }
-}
-
-function saveFreightConfig() {
+async function saveFreightConfig() {
     try {
         // 1. Atualiza Fiorino (Simples)
         const fiorinoLimit = parseFloat(document.getElementById('fiorinoLimit').value);
@@ -109,9 +147,6 @@ function saveFreightConfig() {
         if (!isNaN(fiorinoRate)) freightTables.fiorino.exceedingRate = fiorinoRate;
 
         // 2. Atualiza Outros (Apenas Taxa Excedente por enquanto, pois a tabela é complexa)
-        // Se o usuário quisesse editar a tabela inteira, precisaria de uma UI melhor.
-        // Vou assumir que ele quer editar a TAXA de excedente e talvez o limite onde ela começa.
-
         const updateComplexVehicle = (idRate, type) => {
             const valRate = parseFloat(document.getElementById(idRate).value);
             if (!isNaN(valRate)) freightTables[type].exceedingRate = valRate;
@@ -121,15 +156,36 @@ function saveFreightConfig() {
         updateComplexVehicle('truck34Rate', 'tresQuartos');
         updateComplexVehicle('tocoRate', 'toco');
 
-        // Salva no LocalStorage
+        // 3. Salva no LocalStorage
         localStorage.setItem('apexFreightTables', JSON.stringify(freightTables));
+
+        // 4. Salva no Supabase
+        const sb = window.supabaseClient || window.supabase;
+        if (sb && sb.auth) {
+            const user = await sb.auth.getUser();
+            if (user && user.data && user.data.user) {
+                const { error } = await sb
+                    .from('freight_configs')
+                    .insert([
+                        {
+                            config_json: freightTables,
+                            updated_by: user.data.user.id
+                        }
+                    ]);
+                // Nota: Idealmente seria um UPSERT ou Update do ID existente, 
+                // mas Insert com Order By desc no Load funciona como log de histórico.
+
+                if (error) console.error("Erro ao salvar no Supabase:", error);
+                else console.log("Configuração salva no Supabase.");
+            }
+        }
 
         // Atualiza UI e Recalcula
         updateFreightTableUI();
         recalcAllFreights();
 
         if (typeof showToast === 'function') {
-            showToast("Valores de frete atualizados e salvos!", "success");
+            showToast("Valores de frete atualizados e salvos (Nuvem + Local)!", "success");
         }
     } catch (e) {
         console.error("Erro ao salvar valores:", e);
