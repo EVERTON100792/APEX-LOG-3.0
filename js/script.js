@@ -3340,6 +3340,18 @@ function refinarCargasComTrocas(initialLoads, initialLeftovers, vehicleType) {
         return { refinedLoads: loads, remainingLeftovers: leftovers };
     }
 
+    // Classifica sobras por antiguidade (Mais antigos primeiro)
+    leftovers.sort((a, b) => {
+        if (a.oldestDate && b.oldestDate) {
+            const dateA = new Date(a.oldestDate);
+            const dateB = new Date(b.oldestDate);
+            if (dateA < dateB) return -1;
+            if (dateA > dateB) return 1;
+        } else if (a.oldestDate) return -1;
+        else if (b.oldestDate) return 1;
+        return b.totalKg - a.totalKg;
+    });
+
     let attempts = 0;
     const maxAttempts = (leftovers.length * loads.length) || 1;
 
@@ -3348,13 +3360,31 @@ function refinarCargasComTrocas(initialLoads, initialLeftovers, vehicleType) {
         attempts++;
         for (let i = 0; i < leftovers.length; i++) {
             const leftoverGroup = leftovers[i];
+            const leftoverDate = leftoverGroup.oldestDate ? new Date(leftoverGroup.oldestDate) : null;
 
             for (let j = 0; j < loads.length; j++) {
                 const load = loads[j];
 
+                // Recria grupos da carga, rastreando a data mais antiga
                 const clientGroupsInLoad = Object.values(load.pedidos.reduce((acc, pedido) => {
                     const clienteId = normalizeClientId(pedido.Cliente);
-                    if (!acc[clienteId]) acc[clienteId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(pedido) };
+                    const pDate = pedido.Dat_Ped ? new Date(pedido.Dat_Ped) : null;
+
+                    if (!acc[clienteId]) {
+                        acc[clienteId] = {
+                            pedidos: [],
+                            totalKg: 0,
+                            totalCubagem: 0,
+                            isSpecial: isSpecialClient(pedido),
+                            oldestDate: pDate
+                        };
+                    }
+                    if (pDate && acc[clienteId].oldestDate) {
+                        if (pDate < acc[clienteId].oldestDate) acc[clienteId].oldestDate = pDate;
+                    } else if (pDate && !acc[clienteId].oldestDate) {
+                        acc[clienteId].oldestDate = pDate;
+                    }
+
                     acc[clienteId].pedidos.push(pedido);
                     acc[clienteId].totalKg += pedido.Quilos_Saldo;
                     acc[clienteId].totalCubagem += pedido.Cubagem;
@@ -3363,6 +3393,12 @@ function refinarCargasComTrocas(initialLoads, initialLeftovers, vehicleType) {
 
                 for (let k = 0; k < clientGroupsInLoad.length; k++) {
                     const groupToSwapOut = clientGroupsInLoad[k];
+                    const outDate = groupToSwapOut.oldestDate ? new Date(groupToSwapOut.oldestDate) : null;
+
+                    // Proteção de antiguidade: Não troca se o que sai é mais velho que o que entra
+                    if (outDate && leftoverDate && outDate < leftoverDate) {
+                        continue;
+                    }
 
                     const tempLoadAfterRemoval = {
                         pedidos: load.pedidos.filter(p => !groupToSwapOut.pedidos.some(gp => gp.Num_Pedido === p.Num_Pedido)),
@@ -3383,7 +3419,7 @@ function refinarCargasComTrocas(initialLoads, initialLeftovers, vehicleType) {
                         leftovers.splice(i, 1);
                         leftovers.push(groupToSwapOut);
 
-                        console.log(`POLIMENTO (Ná­vel 3): Encaixou grupo de ${leftoverGroup.totalKg.toFixed(2)}kg trocando por um de ${groupToSwapOut.totalKg.toFixed(2)}kg.`);
+                        console.log(`POLIMENTO (Nível 3): Troca realizada. Saiu ${groupToSwapOut.totalKg.toFixed(2)}kg, Entrou ${leftoverGroup.totalKg.toFixed(2)}kg.`);
                         improvementMade = true;
                         break;
                     }
@@ -3394,7 +3430,7 @@ function refinarCargasComTrocas(initialLoads, initialLeftovers, vehicleType) {
         }
     } while (improvementMade && leftovers.length > 0 && attempts < maxAttempts);
 
-    if (attempts >= maxAttempts) console.warn("Polimento (Ná­vel 3) interrompido para evitar loop infinito.");
+    if (attempts >= maxAttempts) console.warn("Polimento (Nível 3) interrompido para evitar loop infinito.");
 
     return { refinedLoads: loads, remainingLeftovers: leftovers };
 }
@@ -3984,8 +4020,27 @@ function refineLoadsWithSimpleFit(initialLoads, initialLeftovers) {
     let refinedLoads = deepClone(initialLoads);
     let remainingLeftovers = deepClone(initialLeftovers);
 
-    for (let i = remainingLeftovers.length - 1; i >= 0; i--) {
+    // 1. Classificar sobras por antiguidade (Mais antigos primeiro)
+    remainingLeftovers.sort((a, b) => {
+        if (a.oldestDate && b.oldestDate) {
+            const dateA = new Date(a.oldestDate);
+            const dateB = new Date(b.oldestDate);
+            if (dateA < dateB) return -1;
+            if (dateA > dateB) return 1;
+        } else if (a.oldestDate) {
+            return -1;
+        } else if (b.oldestDate) {
+            return 1;
+        }
+        // Desempate por peso (maior primeiro para tentar encaixar os "tijolos" grandes antes)
+        return b.totalKg - a.totalKg;
+    });
+
+    // 2. Iterar para frente (0 -> length) para respeitar a prioridade de data
+    let i = 0;
+    while (i < remainingLeftovers.length) {
         const leftoverGroup = remainingLeftovers[i];
+        let inserted = false;
 
         for (const load of refinedLoads) {
             const vehicleType = load.vehicleType;
@@ -3995,10 +4050,22 @@ function refineLoadsWithSimpleFit(initialLoads, initialLeftovers) {
                 load.pedidos.push(...leftoverGroup.pedidos);
                 load.totalKg += leftoverGroup.totalKg;
                 load.totalCubagem += leftoverGroup.totalCubagem;
+                // isMoveValid garante os hard limits, mas podemos atualizar flag se necessário
+                const config = getVehicleConfig(vehicleType);
+                load.usedHardLimit = (load.totalKg > config.softMaxKg || load.totalCubagem > config.softMaxCubage);
 
-                remainingLeftovers.splice(i, 1);
+                inserted = true;
                 break;
             }
+        }
+
+        if (inserted) {
+            // Remove do array de sobras
+            remainingLeftovers.splice(i, 1);
+            // Não incrementa i, pois o próximo elemento agora ocupa o índice atual
+        } else {
+            // Avança para o próximo
+            i++;
         }
     }
     return { refinedLoads, remainingLeftovers };
@@ -4173,6 +4240,33 @@ function renderLoadCard(load, vehicleType, vInfo) {
     else if (vehicleType === 'van') titleIconColor = '#3b82f6';
     else if (vehicleType === 'tresQuartos') titleIconColor = '#f59e0b';
 
+    // --- LÓGICA DE DETECÇÃO DE ROTA "FIORINO - VAN" ---
+    let specialRouteBadge = '';
+    if (vehicleType === 'fiorino') {
+        const loadCities = new Set(load.pedidos.map(p => {
+            return String(p.Cidade || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim().split(',')[0];
+        }));
+
+        // Verifica se alguma cidade da carga pertence a uma lista de rotas especiais de Fiorino
+        let isSpecialFiorinoRoute = false;
+        for (const rotaId in rotasEspeciaisFiorino) {
+            const allowedCities = new Set(rotasEspeciaisFiorino[rotaId]);
+            // Se pelo menos uma cidade da carga está na lista de especiais, sinaliza como híbrida
+            if ([...loadCities].some(city => allowedCities.has(city))) {
+                isSpecialFiorinoRoute = true;
+                break;
+            }
+        }
+
+        if (isSpecialFiorinoRoute) {
+            specialRouteBadge = `
+                <span class="badge rounded-pill ms-2" 
+                      style="background: linear-gradient(45deg, #10b981, #3b82f6); color: white; font-size: 0.7em; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <i class="bi bi-shuffle me-1"></i>FIORINO - VAN
+                </span>`;
+        }
+    }
+
     // --- Identificar Data Mais Antiga (Predat) ---
     let oldestDate = null;
     let oldestOrders = [];
@@ -4226,7 +4320,7 @@ function renderLoadCard(load, vehicleType, vInfo) {
                     </div>
                     <div class="load-main-title">
                         ${vInfo.name}${spDescription}
-                        <div class="badge-group">${priorityBadge}${hardLimitBadge}</div>
+                        <div class="badge-group">${priorityBadge}${hardLimitBadge}${specialRouteBadge}</div>
                     </div>
                 </div>
                 
@@ -6799,8 +6893,26 @@ async function processarRoteirizacaoLista() {
                             // Se exceder a distá¢ncia, desmonta a carga e joga para sobras (para tentar upgrade)
                             const groups = Object.values(load.pedidos.reduce((acc, p) => {
                                 const cId = normalizeClientId(p.Cliente);
-                                if (!acc[cId]) acc[cId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) };
-                                acc[cId].pedidos.push(p); acc[cId].totalKg += p.Quilos_Saldo; acc[cId].totalCubagem += p.Cubagem;
+                                const pDate = p.Dat_Ped ? new Date(p.Dat_Ped) : null;
+
+                                if (!acc[cId]) {
+                                    acc[cId] = {
+                                        pedidos: [],
+                                        totalKg: 0,
+                                        totalCubagem: 0,
+                                        isSpecial: isSpecialClient(p),
+                                        oldestDate: pDate
+                                    };
+                                }
+                                if (pDate && acc[cId].oldestDate) {
+                                    if (pDate < acc[cId].oldestDate) acc[cId].oldestDate = pDate;
+                                } else if (pDate && !acc[cId].oldestDate) {
+                                    acc[cId].oldestDate = pDate;
+                                }
+
+                                acc[cId].pedidos.push(p);
+                                acc[cId].totalKg += p.Quilos_Saldo;
+                                acc[cId].totalCubagem += p.Cubagem;
                                 return acc;
                             }, {}));
                             stageLeftovers.push(...groups);

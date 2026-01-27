@@ -298,7 +298,11 @@ function getSolutionEnergy(solution, vehicleType, configs) {
             if (!isNaN(date.getTime())) {
                 const ageInMillis = Math.max(0, now - date.getTime());
                 const ageInDays = ageInMillis / oneDay;
-                weightMultiplier = 1 + (ageInDays * 0.1); // 10% de penalidade extra por dia de atraso
+                // AUMENTO DRÁSTICO DA PENALIDADE:
+                // Antes: 1 + (dias * 0.1) -> 10 dias = 2x peso
+                // Agora: 10 + (dias * 100) -> 10 dias = 1010x peso
+                // Isso torna IMPOSSÍVEL matematika o algoritmo preferir deixar um antigo de fora
+                weightMultiplier = 10 + (ageInDays * 100);
             }
         }
         return sum + (group.totalKg * weightMultiplier);
@@ -328,15 +332,17 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
         const coolingRate = 0.993;
         const iterationsPerTemp = 200;
 
-        // A ordenação inicial agora também prioriza a data mais antiga como critério principal,
-        // seguido por prioridade manual e depois peso.
-        const initialSortedGroups = [...packableGroups].sort((a, b) => { // prettier-ignore
+        // A ordenação inicial prioriza data mais antiga, seguida prioritários, depois peso
+        const initialSortedGroups = [...packableGroups].sort((a, b) => {
             if (a.oldestDate && b.oldestDate) {
-                if (a.oldestDate < b.oldestDate) return -1;
-                if (a.oldestDate > b.oldestDate) return 1;
+                const dateA = new Date(a.oldestDate);
+                const dateB = new Date(b.oldestDate);
+                if (dateA < dateB) return -1;
+                if (dateA > dateB) return 1;
             } else if (a.oldestDate) { return -1; }
             else if (b.oldestDate) { return 1; }
-            const aHasPrio = a.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido))); const bHasPrio = b.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido)));
+            const aHasPrio = a.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido)));
+            const bHasPrio = b.pedidos.some(p => pedidosPrioritarios.includes(String(p.Num_Pedido)));
             if (aHasPrio && !bHasPrio) return -1; if (!aHasPrio && bHasPrio) return 1;
             return b.totalKg - a.totalKg;
         });
@@ -345,14 +351,18 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
         let currentSolution = JSON.parse(JSON.stringify(bestSolution));
 
         let currentTemp = initialTemp;
+        let iterationCount = 0;
 
         while (currentTemp > 1) {
+            iterationCount++;
             for (let i = 0; i < iterationsPerTemp; i++) {
                 let neighborSolution = JSON.parse(JSON.stringify(currentSolution));
                 let moveMade = false;
 
                 const moveType = Math.random();
-                if (moveType < 0.7 && neighborSolution.leftovers.length > 0) {
+
+                // MOVE 1: INSERT (50% chance if leftovers exist)
+                if (moveType < 0.5 && neighborSolution.leftovers.length > 0) {
                     const leftoverIndex = Math.floor(Math.random() * neighborSolution.leftovers.length);
                     const groupToPlace = neighborSolution.leftovers[leftoverIndex];
                     const targetLoadIndex = neighborSolution.loads.length > 0 ? Math.floor(Math.random() * (neighborSolution.loads.length + 1)) : 0;
@@ -366,12 +376,65 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
                             neighborSolution.leftovers.splice(leftoverIndex, 1);
                             moveMade = true;
                         }
-                    } else if (isMoveValid({ pedidos: [], totalKg: 0, totalCubagem: 0 }, groupToPlace, vehicleType, configs)) {
-                        neighborSolution.loads.push(groupToPlace);
+                    } else if (isMoveValid({ pedidos: [], totalKg: 0, totalCubagem: 0, vehicleType: vehicleType }, groupToPlace, vehicleType, configs)) {
+                        neighborSolution.loads.push({
+                            pedidos: [...groupToPlace.pedidos],
+                            totalKg: groupToPlace.totalKg,
+                            totalCubagem: groupToPlace.totalCubagem,
+                            vehicleType: vehicleType,
+                            usedHardLimit: false
+                        });
                         neighborSolution.leftovers.splice(leftoverIndex, 1);
                         moveMade = true;
                     }
-                } else if (neighborSolution.loads.length > 0) {
+                }
+                // MOVE 2: SWAP (30% chance) - NOVO: Troca item da carga por item da sobra
+                else if (moveType < 0.8 && neighborSolution.loads.length > 0 && neighborSolution.leftovers.length > 0) {
+                    const loadIndex = Math.floor(Math.random() * neighborSolution.loads.length);
+                    const targetLoad = neighborSolution.loads[loadIndex];
+
+                    if (targetLoad.pedidos.length > 0) {
+                        // Recria grupos para escolher um para remover
+                        const clientGroupsInLoad = Object.values(targetLoad.pedidos.reduce((acc, p) => {
+                            const cId = normalizeClientId(p.Cliente);
+                            if (!acc[cId]) acc[cId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) };
+                            acc[cId].pedidos.push(p); acc[cId].totalKg += p.Quilos_Saldo; acc[cId].totalCubagem += p.Cubagem;
+                            return acc;
+                        }, {}));
+
+                        if (clientGroupsInLoad.length > 0) {
+                            const groupOutIndex = Math.floor(Math.random() * clientGroupsInLoad.length);
+                            const groupOut = clientGroupsInLoad[groupOutIndex];
+
+                            const leftoverIndex = Math.floor(Math.random() * neighborSolution.leftovers.length);
+                            const groupIn = neighborSolution.leftovers[leftoverIndex];
+
+                            // Cria carga temporária sem o grupo que sai
+                            const idsToRemove = new Set(groupOut.pedidos.map(p => p.Num_Pedido));
+                            const tempLoad = {
+                                ...targetLoad,
+                                pedidos: targetLoad.pedidos.filter(p => !idsToRemove.has(p.Num_Pedido)),
+                                totalKg: targetLoad.totalKg - groupOut.totalKg,
+                                totalCubagem: targetLoad.totalCubagem - groupOut.totalCubagem
+                            };
+
+                            if (isMoveValid(tempLoad, groupIn, vehicleType, configs)) {
+                                // Aplica a troca
+                                neighborSolution.loads[loadIndex] = tempLoad;
+                                neighborSolution.loads[loadIndex].pedidos.push(...groupIn.pedidos);
+                                neighborSolution.loads[loadIndex].totalKg += groupIn.totalKg;
+                                neighborSolution.loads[loadIndex].totalCubagem += groupIn.totalCubagem;
+
+                                neighborSolution.leftovers.splice(leftoverIndex, 1); // Remove In da sobra
+                                neighborSolution.leftovers.push(groupOut); // Adiciona Out na sobra
+
+                                moveMade = true;
+                            }
+                        }
+                    }
+                }
+                // MOVE 3: REMOVE (20% chance)
+                else if (neighborSolution.loads.length > 0) {
                     const loadIndex = Math.floor(Math.random() * neighborSolution.loads.length);
                     const load = neighborSolution.loads[loadIndex];
 
@@ -391,6 +454,7 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
                             load.pedidos = load.pedidos.filter(p => !idsToRemove.has(p.Num_Pedido));
                             load.totalKg -= groupToMove.totalKg;
                             load.totalCubagem -= groupToMove.totalCubagem;
+
                             if (load.pedidos.length === 0) neighborSolution.loads.splice(loadIndex, 1);
 
                             neighborSolution.leftovers.push(groupToMove);
@@ -414,9 +478,8 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
 
             currentTemp *= coolingRate;
             const progress = Math.min(100, 100 * (1 - Math.log(currentTemp) / Math.log(initialTemp)));
-            self.postMessage({ status: 'progress', progress: progress });
+            if (iterationCount % 5 === 0) self.postMessage({ status: 'progress', progress: progress });
 
-            // Pausa brevemente para permitir que a thread do worker envie mensagens e não trave.
             await new Promise(r => setTimeout(r, 0));
         }
 
@@ -430,8 +493,26 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
                 if (load.pedidos.length > 0) {
                     const groups = Object.values(load.pedidos.reduce((acc, p) => {
                         const cId = normalizeClientId(p.Cliente);
-                        if (!acc[cId]) acc[cId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) };
-                        acc[cId].pedidos.push(p); acc[cId].totalKg += p.Quilos_Saldo; acc[cId].totalCubagem += p.Cubagem;
+                        const pDate = p.Dat_Ped ? new Date(p.Dat_Ped) : null;
+
+                        if (!acc[cId]) {
+                            acc[cId] = {
+                                pedidos: [],
+                                totalKg: 0,
+                                totalCubagem: 0,
+                                isSpecial: isSpecialClient(p),
+                                oldestDate: pDate
+                            };
+                        }
+                        if (pDate && acc[cId].oldestDate && pDate < acc[cId].oldestDate) {
+                            acc[cId].oldestDate = pDate;
+                        } else if (pDate && !acc[cId].oldestDate) {
+                            acc[cId].oldestDate = pDate;
+                        }
+
+                        acc[cId].pedidos.push(p);
+                        acc[cId].totalKg += p.Quilos_Saldo;
+                        acc[cId].totalCubagem += p.Cubagem;
                         return acc;
                     }, {}));
                     finalLeftovers.push(...groups);
@@ -439,14 +520,31 @@ async function runSimulatedAnnealing(packableGroups, vehicleType, configs, pedid
                 return;
             }
 
-            // A validação da carga agora depende apenas de atingir o peso mínimo.
             if (load.pedidos.length > 0 && load.totalKg >= config.minKg) {
                 finalLoads.push(load);
             } else if (load.pedidos.length > 0) {
                 const groups = Object.values(load.pedidos.reduce((acc, p) => {
                     const cId = normalizeClientId(p.Cliente);
-                    if (!acc[cId]) acc[cId] = { pedidos: [], totalKg: 0, totalCubagem: 0, isSpecial: isSpecialClient(p) };
-                    acc[cId].pedidos.push(p); acc[cId].totalKg += p.Quilos_Saldo; acc[cId].totalCubagem += p.Cubagem;
+                    const pDate = p.Dat_Ped ? new Date(p.Dat_Ped) : null;
+
+                    if (!acc[cId]) {
+                        acc[cId] = {
+                            pedidos: [],
+                            totalKg: 0,
+                            totalCubagem: 0,
+                            isSpecial: isSpecialClient(p),
+                            oldestDate: pDate
+                        };
+                    }
+                    if (pDate && acc[cId].oldestDate) {
+                        if (pDate < acc[cId].oldestDate) acc[cId].oldestDate = pDate;
+                    } else if (pDate && !acc[cId].oldestDate) {
+                        acc[cId].oldestDate = pDate;
+                    }
+
+                    acc[cId].pedidos.push(p);
+                    acc[cId].totalKg += p.Quilos_Saldo;
+                    acc[cId].totalCubagem += p.Cubagem;
                     return acc;
                 }, {}));
                 finalLeftovers.push(...groups);
