@@ -2694,6 +2694,34 @@ function displayGerais(div, grupos) {
     }
 }
 
+function expandAllGeralAccordions() {
+    const accordionGeral = document.getElementById('accordionGeral');
+    if (!accordionGeral) return;
+    const items = accordionGeral.querySelectorAll('.accordion-collapse');
+    items.forEach(el => {
+        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
+        bsCollapse.show();
+    });
+}
+
+function selectAllDisponiveis() {
+    const container = document.getElementById('resultado-geral');
+    if (!container) return;
+    const checkboxes = container.querySelectorAll('.row-checkbox');
+    checkboxes.forEach(cb => cb.checked = true);
+    updateBulkActionsPanel();
+}
+
+function collapseAllGeralAccordions() {
+    const accordionGeral = document.getElementById('accordionGeral');
+    if (!accordionGeral) return;
+    const items = accordionGeral.querySelectorAll('.accordion-collapse');
+    items.forEach(el => {
+        const bsCollapse = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
+        bsCollapse.hide();
+    });
+}
+
 function displayAccordionGerais(div, grupos) {
     if (!div) return;
 
@@ -5859,6 +5887,30 @@ function bulkAction(action) {
             selectedPedidos.forEach(num => { if (!pedidosPrioritarios.includes(num)) pedidosPrioritarios.push(num); if (!pedidosRecall.includes(num)) pedidosRecall.push(num); });
             requiresReprocessing = true;
             break;
+        case 'special':
+            const specialInput = document.getElementById('pedidosEspeciaisInput');
+            if (specialInput) {
+                // Junta os pedidos selecionados no textarea (um por linha)
+                specialInput.value = selectedPedidos.join('\n');
+
+                // Abre o offcanvas de montagens especiais
+                const offcanvasEl = document.getElementById('offcanvasMontagens');
+                if (offcanvasEl) {
+                    const bsOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+                    bsOffcanvas.show();
+                }
+
+                // Dispara a montagem automaticamente
+                montarCargaPredefinida('pedidosEspeciaisInput', 'resultado-carga-especial', pedidosEspeciaisProcessados, 'Especial');
+
+                showToast(`${selectedPedidos.length} pedidos enviados para Montagem Especial.`, 'success');
+            }
+            clearBulkSelection();
+            return;
+        case 'recall':
+            selectedPedidos.forEach(num => { if (!pedidosRecall.includes(num)) pedidosRecall.push(num); });
+            requiresReprocessing = true;
+            break;
         case 'block':
             selectedPedidos.forEach(num => pedidosBloqueados.add(num));
             requiresReprocessing = true;
@@ -5866,7 +5918,7 @@ function bulkAction(action) {
         case 'copy':
             const textToCopy = selectedPedidos.join('\n');
             navigator.clipboard.writeText(textToCopy).then(() => {
-                showToast(`${selectedPedidos.length} náºmero(s) de pedido copiado(s) para a á¡rea de transferáªncia.`, 'success');
+                showToast(`${selectedPedidos.length} número(s) de pedido copiado(s).`, 'success');
             }).catch(err => {
                 console.error('Erro ao copiar náºmeros dos pedidos: ', err);
                 showToast('Falha ao copiar os náºmeros. Verifique o console para mais detalhes.', 'danger');
@@ -5882,7 +5934,7 @@ function bulkAction(action) {
         atualizarUIAposAcao(`${selectedPedidos.length} pedido(s) foram atualizados.`);
 
         // AUDIT LOG
-        import('./js/realtime.js').then(m => m.logActivity('ACAO_EM_MASSA', { tipo: action, qtd: selectedPedidos.length }));
+        import('./realtime.js').then(m => m.logActivity('ACAO_EM_MASSA', { tipo: action, qtd: selectedPedidos.length }));
         // Local toast for immediate feedback
         if (window.showLocalToast) window.showLocalToast('Vocáª', `Aá§á£o em massa: ${action} (${selectedPedidos.length})`, 'info');
     }
@@ -6011,7 +6063,7 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
         }
 
         // AUDIT LOG
-        import('./js/realtime.js').then(m => m.logActivity('CARGA_MANUAL', { carga: nomeCarga, veiculo: veiculoEscolhido.nome }));
+        import('./realtime.js').then(m => m.logActivity('CARGA_MANUAL', { carga: nomeCarga, veiculo: veiculoEscolhido.nome }));
         if (window.showLocalToast) window.showLocalToast('Vocáª', `Carga Manual Criada: ${nomeCarga}`, 'success');
 
         showToast(`Carga ${nomeCarga} montada com sucesso em um(a) ${veiculoEscolhido.nome}!`, 'success');

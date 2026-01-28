@@ -1357,15 +1357,36 @@
                                 <div class="tab-pane fade show active p-3 drop-zone-card" id="disponiveis-tab-pane"
                                     role="tabpanel" ondragover="dragOver(event)" ondragleave="dragLeave(event)"
                                     ondrop="drop(event)" data-load-id="geral">
-                                    <!-- NOVA LEGENDA DE CORES -->
-                                    <div class="d-flex flex-wrap gap-2 mb-3 no-print">
-                                        <div class="legend-item"><span class="legend-color text-success"><i
-                                                    class="bi bi-circle-fill"></i></span> Fiorino</div>
-                                        <div class="legend-item"><span class="legend-color"
-                                                style="color: var(--dark-primary);"><i
-                                                    class="bi bi-circle-fill"></i></span> Van</div>
-                                        <div class="legend-item"><span class="legend-color text-warning"><i
-                                                    class="bi bi-circle-fill"></i></span> 3/4</div>
+                                    <!-- NOVA LEGENDA DE CORES E CONTROLES -->
+                                    <div
+                                        class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 no-print">
+                                        <div class="d-flex gap-3">
+                                            <div class="legend-item"><span class="legend-color text-success"><i
+                                                        class="bi bi-circle-fill"></i></span> Fiorino</div>
+                                            <div class="legend-item"><span class="legend-color"
+                                                    style="color: var(--dark-primary);"><i
+                                                        class="bi bi-circle-fill"></i></span> Van</div>
+                                            <div class="legend-item"><span class="legend-color text-warning"><i
+                                                        class="bi bi-circle-fill"></i></span> 3/4</div>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-xs btn-outline-info"
+                                                onclick="selectAllDisponiveis()">
+                                                <i class="bi bi-check-all me-1"></i>Selecionar Tudo
+                                            </button>
+                                            <button class="btn btn-xs btn-outline-secondary"
+                                                onclick="clearBulkSelection()">
+                                                <i class="bi bi-x-circle me-1"></i>Limpar
+                                            </button>
+                                            <button class="btn btn-xs btn-outline-secondary"
+                                                onclick="expandAllGeralAccordions()">
+                                                <i class="bi bi-arrows-expand me-1"></i>Expandir
+                                            </button>
+                                            <button class="btn btn-xs btn-outline-secondary"
+                                                onclick="collapseAllGeralAccordions()">
+                                                <i class="bi bi-arrows-collapse me-1"></i>Recolher
+                                            </button>
+                                        </div>
                                     </div>
                                     <!-- FIM DA LEGENDA -->
                                     <div id="resultado-geral">
@@ -1520,10 +1541,12 @@
                 <div class="btn-group btn-group-sm">
                     <button class="btn btn-outline-warning" onclick="bulkAction('prioritize')"><i
                             class="bi bi-star-fill me-1"></i> Priorizar</button>
+                    <button class="btn btn-outline-info" onclick="bulkAction('special')"><i
+                            class="bi bi-magic me-1"></i> Especial</button>
                     <button class="btn btn-outline-info" onclick="bulkAction('recall')"><i
-                            class="bi bi-arrow-repeat me-1"></i> Marcar Recall</button>
+                            class="bi bi-arrow-repeat me-1"></i> Recall</button>
                     <button class="btn btn-outline-secondary" onclick="bulkAction('copy')"><i
-                            class="bi bi-clipboard-check me-1"></i> Copiar Náºmeros</button>
+                            class="bi bi-clipboard-check me-1"></i> Copiar</button>
                     <button class="btn btn-outline-danger" onclick="bulkAction('block')"><i
                             class="bi bi-slash-circle me-1"></i> Bloquear</button>
                 </div>
