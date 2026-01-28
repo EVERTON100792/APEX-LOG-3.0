@@ -159,6 +159,16 @@ window.renderSessionLists = async () => {
     mySessionsEl.innerHTML = '<div class="text-center p-3 text-muted"><div class="spinner-border spinner-border-sm" role="status"></div> Carregando...</div>';
     sharedSessionsEl.innerHTML = '<div class="text-center p-3 text-muted"><div class="spinner-border spinner-border-sm" role="status"></div> Carregando...</div>';
 
+    // Helper para formatar data BR (Garante que o timezone seja respeitado)
+    const formatDateBR = (dateString) => {
+        if (!dateString) return 'Data desconhecida';
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('pt-BR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        }).format(date);
+    };
+
     try {
         const [mySessions, sharedSessions] = await Promise.all([
             getMySessions(),
@@ -169,35 +179,45 @@ window.renderSessionLists = async () => {
         if (mySessions.length === 0) {
             mySessionsEl.innerHTML = '<div class="text-center p-3 text-muted">Nenhuma sessão salva.</div>';
         } else {
-            mySessionsEl.innerHTML = mySessions.map(s => `
-                            <div class="list-group-item list-group-item-action bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="fw-bold">${s.name}</div>
-                                    <small class="text-muted">${new Date(s.created_at).toLocaleString()}</small>
-                                </div>
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-info" onclick="window.openShareModal('${s.id}', this.getAttribute('data-name'))" data-name="${s.name.replace(/"/g, '&quot;')}" title="Compartilhar"><i class="bi bi-share-fill"></i></button>
-                                    <button class="btn btn-outline-primary" onclick="window.performLoadSession('${s.id}')" title="Carregar"><i class="bi bi-upload"></i></button>
-                                    <button class="btn btn-outline-danger" onclick="window.performDeleteSession('${s.id}')" title="Excluir"><i class="bi bi-trash-fill"></i></button>
-                                </div>
-                            </div>
-                        `).join('');
+            mySessionsEl.innerHTML = mySessions.map(s => {
+                // Tenta extrair metadados se disponíveis (retrocompatibilidade)
+                const veiculosCount = s.data?.appState?.activeLoads ? Object.keys(s.data.appState.activeLoads).length : 0;
+                const pesoTotal = s.data?.appState?.activeLoads ? Object.values(s.data.appState.activeLoads).reduce((acc, l) => acc + (l.totalKg || 0), 0) : 0;
+                const details = veiculosCount > 0 ? ` &bull; <small class="text-info">${veiculosCount} Veículos (${(pesoTotal / 1000).toFixed(1)}t)</small>` : '';
+
+                return `
+                <div class="list-group-item list-group-item-action bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold">${s.name} ${details}</div>
+                        <small class="text-muted"><i class="bi bi-clock me-1"></i>${formatDateBR(s.created_at)}</small>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-info" onclick="window.openShareModal('${s.id}', '${s.name.replace(/'/g, "\\'")}')" title="Compartilhar"><i class="bi bi-share-fill"></i></button>
+                        <button class="btn btn-outline-primary" onclick="window.performLoadSession('${s.id}')" title="Carregar"><i class="bi bi-upload"></i></button>
+                        <button class="btn btn-outline-danger" onclick="window.performDeleteSession('${s.id}')" title="Excluir"><i class="bi bi-trash-fill"></i></button>
+                    </div>
+                </div>
+            `}).join('');
         }
 
         // Render Shared Sessions
         if (sharedSessions.length === 0) {
             sharedSessionsEl.innerHTML = '<div class="text-center p-3 text-muted">Nenhum compartilhamento recebido.</div>';
         } else {
-            sharedSessionsEl.innerHTML = sharedSessions.map(s => `
-                            <div class="list-group-item list-group-item-action bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="fw-bold">${s.name}</div>
-                                    <small class="text-muted">De: ${s.owner?.email || 'Desconhecido'}</small><br>
-                                    <small class="text-muted">${new Date(s.created_at).toLocaleString()}</small>
-                                </div>
-                                <button class="btn btn-sm btn-primary" onclick="window.performLoadSession('${s.id}')"><i class="bi bi-upload me-1"></i>Carregar</button>
-                            </div>
-                        `).join('');
+            sharedSessionsEl.innerHTML = sharedSessions.map(s => {
+                const veiculosCount = s.data?.appState?.activeLoads ? Object.keys(s.data.appState.activeLoads).length : 0;
+                const details = veiculosCount > 0 ? ` &bull; <small class="text-info">${veiculosCount} Veículos</small>` : '';
+
+                return `
+                <div class="list-group-item list-group-item-action bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold text-info">${s.name} ${details}</div>
+                        <small class="text-muted">De: ${s.owner?.email || 'Desconhecido'}</small><br>
+                        <small class="text-muted"><i class="bi bi-clock me-1"></i>${formatDateBR(s.created_at)}</small>
+                    </div>
+                    <button class="btn btn-sm btn-primary" onclick="window.performLoadSession('${s.id}')"><i class="bi bi-upload me-1"></i>Carregar</button>
+                </div>
+            `}).join('');
         }
 
     } catch (error) {

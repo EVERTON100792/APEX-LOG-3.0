@@ -610,9 +610,9 @@ async function saveConfigurations() {
             }
         }
 
-        configStatus.innerHTML = '<p class="text-success">Configuraçőes salvas com sucesso!</p>';
+        configStatus.innerHTML = '<p class="text-success">Configurações salvas com sucesso!</p>';
         setTimeout(() => { configStatus.innerHTML = ''; }, 3000);
-        showToast('Configuraçőes salvas com sucesso (Local + Nuvem)!', 'success');
+        showToast('Configurações salvas com sucesso (Local + Nuvem)!', 'success');
     } catch (error) {
         console.error("Erro ao salvar configuraçőes:", error);
         configStatus.innerHTML = `<p class="text-danger">Erro ao salvar: ${error.message}</p>`;
@@ -644,7 +644,7 @@ async function loadConfigurations() { // prettier-ignore
 
                 if (data && data.config_json) {
                     configs = data.config_json;
-                    console.log("Configuraçőes de veículo carregadas do Supabase.");
+                    console.log("Configurações de veículo carregadas do Supabase.");
                     // Atualiza cache local
                     localStorage.setItem('vehicleConfigs', JSON.stringify(configs));
                 }
@@ -657,7 +657,7 @@ async function loadConfigurations() { // prettier-ignore
         if (!configs) {
             const savedConfigs = localStorage.getItem('vehicleConfigs');
             configs = savedConfigs ? JSON.parse(savedConfigs) : defaultConfigs;
-            console.log("Configuraçőes de veículo carregadas do Local Storage.");
+            console.log("Configurações de veículo carregadas do Local Storage.");
         }
 
         // 3. Aplica na UI
@@ -668,11 +668,11 @@ async function loadConfigurations() { // prettier-ignore
             }
         });
 
-        configStatus.innerHTML = '<p class="text-success">Configuraçőes carregadas!</p>';
+        configStatus.innerHTML = '<p class="text-success">Configurações carregadas!</p>';
         setTimeout(() => { configStatus.innerHTML = ''; }, 2000);
     } catch (error) {
-        console.error("Erro ao carregar configuraçőes:", error);
-        configStatus.innerHTML = `<p class="text-warning">Erro ao carregar. Usando padrőes.</p>`;
+        console.error("Erro ao carregar configurações:", error);
+        configStatus.innerHTML = `<p class="text-warning">Erro ao carregar. Usando padrões.</p>`;
         Object.keys(defaultConfigs).forEach(key => {
             const element = document.getElementById(key);
             if (element) { element.value = defaultConfigs[key]; }
@@ -1041,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         e.preventDefault();
 
-        // Verifica se há¡ máºltiplos pedidos selecionados (via checkbox)
+        // Verifica se há pedidos selecionados (via checkbox)
         const selectedCheckboxes = Array.from(document.querySelectorAll('.row-checkbox:checked'));
         const isMultiSelect = selectedCheckboxes.length > 0;
         const pedidoId = targetRow.dataset.pedidoId; // Pega o ID da linha clicada
@@ -1206,7 +1206,7 @@ function handleFile(file, isReload = false) {
                 }
             }
 
-            if (headerRowIndex === -1) throw new Error("Náo foi possá­vel encontrar a linha de cabeá§alho com 'Cod_Rota'. Verifique o arquivo.");
+            if (headerRowIndex === -1) throw new Error("Não foi possível encontrar a linha de cabeçalho com 'Cod_Rota'. Verifique o arquivo.");
 
             const dataRows = rawData.slice(headerRowIndex + 1);
             planilhaData = dataRows.map(row => {
@@ -2265,7 +2265,7 @@ function updateTabCounts() {
 
 function navigateToSection(viewId, tabId, elementId) {
     // 1. Navegar para a View principal
-    const targetLink = document.querySelector(`#sidebar-nav a.nav-link[href="#${viewId}"]`);
+    const targetLink = document.querySelector(`.sidebar-nav a.sidebar-link[href="#${viewId}"]`);
     if (targetLink) targetLink.click();
 
     // 2. Navegar para a aba interna (se houver)
@@ -3042,7 +3042,7 @@ function imprimirTocoIndividual(cf) {
     // VERIFICAá‡áƒO: Impede a impressá£o e montagem se houver qualquer pedido bloqueado no grupo.
     const hasBlockedOrder = grupo.pedidos.some(p => isPedidoBloqueado(p));
     if (hasBlockedOrder) {
-        showToast(`Náo á© possá­vel montar a carga Toco (CF: ${cf}) pois ela contá©m pedidos bloqueados.`, 'danger');
+        showToast(`Não é possível montar a carga Toco (CF: ${cf}) pois ela contém pedidos bloqueados.`, 'danger');
         return;
     }
 
@@ -3064,7 +3064,7 @@ function imprimirTocoIndividual(cf) {
     showToast(`Carga Toco (CF: ${cf}) impressa e considerada montada.`, 'success');
 }
 function imprimirCargaManualIndividual(loadId) {
-    const load = activeLoads[loadId]; const cardToPrint = document.getElementById(loadId); if (!load || !cardToPrint) { showToast(`Erro: Carga com ID ${loadId} ná£o encontrada.`, 'error'); return; }
+    const load = activeLoads[loadId]; const cardToPrint = document.getElementById(loadId); if (!load || !cardToPrint) { showToast(`Erro: Carga com ID ${loadId} não encontrada.`, 'error'); return; }
     const cardClone = cardToPrint.cloneNode(true);
     const observationText = load?.observation || '';
     const clonePrintDiv = cardClone.querySelector('.print-only-observation');
@@ -3097,7 +3097,7 @@ function imprimirCargaIndividual(loadId) {
     const cardToPrint = document.getElementById(loadId);
 
     if (!load || !cardToPrint) {
-        showToast(`Erro: Carga com ID ${loadId} náo encontrada para impressáo.`, 'error');
+        showToast(`Erro: Carga com ID ${loadId} não encontrada para impressão.`, 'error');
         return;
     }
 
@@ -3784,7 +3784,7 @@ async function separarCargasGeneric(routeOrRoutes, divId, title, vehicleType, bu
 function reprocessarRota(routesKey, event) {
     event.stopPropagation(); // Impede que o clique dispare a exibiá§á£o da rota
 
-    if (!confirm(`Tem certeza que deseja reprocessar a rota ${routesKey}? As cargas atuais para esta rota será£o desfeitas.`)) {
+    if (!confirm(`Tem certeza que deseja reprocessar a rota ${routesKey}? As cargas atuais para esta rota serão desfeitas.`)) {
         return;
     }
 
@@ -4002,17 +4002,17 @@ function exportarSobrasSP_PDF() {
 async function runExpertOptimizer(packableGroups, vehicleType) {
     console.log(`Executando Ná­vel 2: Otimizaá§á£o Especialista para ${vehicleType}...`);
 
-    // Fase 1: Otimizaá§á£o principal com Recozimento Simulado
-    const saResult = await runSimulatedAnnealing(packableGroups, vehicleType, 'Otimizando... (Fase 1/3: Aná¡lise Profunda)');
+    // Fase 1: Otimização principal com Recozimento Simulado
+    const saResult = await runSimulatedAnnealing(packableGroups, vehicleType, 'Otimizando... (Fase 1/3: Análise Profunda)');
 
-    // Fase 2: Tenta reconstruir a pior carga para melhorar a soluá§á£o
-    document.getElementById('processing-status-text').textContent = 'Otimizando... (Fase 2/3: Reconstruá§á£o)';
+    // Fase 2: Tenta reconstruir a pior carga para melhorar a solução
+    document.getElementById('processing-status-text').textContent = 'Otimizando... (Fase 2/3: Reconstrução)';
     document.getElementById('thinking-text').textContent = 'Analisando e reestruturando cargas ineficientes.';
     const reconstructed = await refinarComReconstrucao(saResult.loads, saResult.leftovers, vehicleType);
 
     // Fase 3: Faz um polimento final, tentando trocar sobras com itens de menor peso nas cargas
     document.getElementById('processing-status-text').textContent = 'Otimizando... (Fase 3/3: Polimento Final)';
-    document.getElementById('thinking-text').textContent = 'Buscando áºltimas oportunidades de encaixe.';
+    document.getElementById('thinking-text').textContent = 'Buscando últimas oportunidades de encaixe.';
     return refinarCargasComTrocas(reconstructed.refinedLoads, reconstructed.remainingLeftovers, vehicleType);
 }
 
@@ -4413,8 +4413,8 @@ async function calculateManualRoute() {
 async function calcularDistanciaCarga(loadId, retries = 2) {
     const apiKey = document.getElementById('graphhopperApiKey').value;
     if (!apiKey) {
-        showToast("Insira sua chave da API do GraphHopper nas Configuraá§áµes.", 'warning');
-        // Abre o modal de configuraá§áµes
+        showToast("Insira sua chave da API do GraphHopper nas Configurações.", 'warning');
+        // Abre o modal de configurações
         const configModal = new bootstrap.Modal(document.getElementById('configModal'));
         configModal.show();
         return;
@@ -4422,7 +4422,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
 
     const load = activeLoads[loadId];
     if (!load) {
-        showToast("Carga ná£o encontrada.", 'error');
+        showToast("Carga não encontrada.", 'error');
         return;
     }
 
@@ -4462,7 +4462,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
             kmBtn.disabled = false;
             kmBtn.innerHTML = `<i class="bi bi-calculator-fill me-1"></i>Calcular KM`;
         }
-        showToast("Nenhuma cidade vá¡lida encontrada para roteirizar.", 'warning');
+        showToast("Nenhuma cidade válida encontrada para roteirizar.", 'warning');
         return;
     }
 
@@ -4483,7 +4483,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
             }
             const origemData = await origemResponse.json();
             if (!origemData.hits || origemData.hits.length === 0) {
-                throw new Error("Náo foi possá­vel encontrar as coordenadas da origem (Empresa Selmi). Verifique o endereá§o ou a chave da API.");
+                throw new Error("Não foi possível encontrar as coordenadas da origem (Empresa Selmi). Verifique o endereço ou a chave da API.");
             }
             origemPoint = origemData.hits[0].point;
             origemCoords = origemPoint; // Salva em cache para uso futuro
@@ -4542,7 +4542,7 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
             return calcularDistanciaCarga(loadId, retries - 1);
         }
         showToast(`Falha ao calcular a rota: ${error.message}`, 'error');
-        if (distanciaSpan) distanciaSpan.innerHTML = `<span class="text-danger small">Falha no cá¡lculo</span>`;
+        if (distanciaSpan) distanciaSpan.innerHTML = `<span class="text-danger small">Falha no cálculo</span>`;
     } finally {
         // Restaura o botá£o
         if (kmBtn) {
@@ -4580,6 +4580,15 @@ async function showRouteOnMap(loadId) {
     }
 
     mapModal.show();
+
+    // CORREÇÃO DEFINITIVA: Ouve o evento do Bootstrap quando o modal termina de abrir
+    mapModalEl.addEventListener('shown.bs.modal', function () {
+        if (mapInstance) {
+            mapInstance.invalidateSize();
+            // Tenta ajustar o zoom novamente se já tiver bounds
+            // (Opção extra de segurança)
+        }
+    }, { once: true }); // Executa apenas uma vez por abertura
 
     // Valhalla/Nominatim não usam chaves de API obrigatórias do GraphHopper
     const apiKey = document.getElementById('graphhopperApiKey')?.value || "";
@@ -4627,8 +4636,19 @@ async function showRouteOnMap(loadId) {
         }
 
         // 3. Inicializa Mapa
-        if (mapInstance) { mapInstance.remove(); }
+        if (mapInstance) {
+            mapInstance.off();
+            mapInstance.remove();
+        }
+
+        // CORREÇÃO: Delay mínimo para garantir que o container tenha tamanho
+        await new Promise(r => setTimeout(r, 100));
+
         mapInstance = L.map(mapContainer).setView(origemCoords, 6);
+
+        // CORREÇÃO CRÍTICA: Força resize imediato
+        mapInstance.invalidateSize();
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(mapInstance);
@@ -4636,14 +4656,27 @@ async function showRouteOnMap(loadId) {
         const markersMap = new Map();
         const bounds = L.latLngBounds();
         locations.forEach((loc, idx) => {
-            const marker = L.marker(loc.coords).addTo(mapInstance).bindPopup(`<b>${loc.name}</b>`);
+            const marker = L.marker(loc.coords).addTo(mapInstance).bindPopup(`<b>${idx === 0 ? 'Origem' : idx + 'ª Entrega'}:</b> ${loc.name}`);
+
             if (loc.isOrigin) {
                 marker.setIcon(L.icon({
                     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
                     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
                     iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
                 }));
+            } else {
+                // Marcadores numerados para as entregas (Círculo Vermelho com Número Branco)
+                const number = idx;
+                const numberedIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: #d63031; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); font-weight: bold; font-family: sans-serif; font-size: 11px;">${number}</div>`,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12],
+                    popupAnchor: [0, -12]
+                });
+                marker.setIcon(numberedIcon);
             }
+
             markersMap.set(idx, marker);
             bounds.extend(loc.coords);
         });
@@ -4651,90 +4684,167 @@ async function showRouteOnMap(loadId) {
         // 4. Rota Otimizada (Valhalla)
         mapStatus.innerHTML = '<span class="text-info">Otimizando rota...</span>';
 
-        const valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
+        let valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
         valhallaPoints.push({ lat: origemCoords.lat, lon: origemCoords.lng });
 
-        const valhallaQuery = {
+        // Valhalla tem limites. Para rotas MUITO grandes (muitas paradas), simplificamos ou usamos chunks.
+        // Aqui, aplicamos uma estratégia de fallback se falhar.
+        // E mudamos o costing para 'auto' com preferência por distância curta.
+
+        // CORREÇÃO: Se houver muitos pontos (>6), pula otimização para evitar timeout (504)
+        // Heurística: API Demo engasga com >6 pontos.
+        const USE_OPTIMIZATION_LIMIT = 6;
+        let useOptimized = valhallaPoints.length <= USE_OPTIMIZATION_LIMIT;
+
+        let valhallaQuery = {
             locations: valhallaPoints,
-            costing: "auto", // Padrão 'auto' busca o equilíbrio ideal entre tempo e distância
+            costing: "auto",
+            costing_options: {
+                auto: {
+                    use_highways: 0.5, // Tenta balancear
+                    // shortest só funciona se a API aceitar, optimized_route ignora ordem, mas usa matriz custo
+                }
+            },
             units: "kilometers",
             language: "pt-BR"
         };
 
-        const routeUrl = `https://valhalla1.openstreetmap.de/optimized_route?json=${JSON.stringify(valhallaQuery)}`;
-        const resp = await fetch(routeUrl);
-        const data = await resp.json();
-
-        if (data.trip && data.trip.legs) {
-            const trip = data.trip;
-            let allDecodedPoints = [];
-
-            // Valhalla divide a rota em trechos (legs). Percorremos todos para desenhar a rota completa.
-            trip.legs.forEach(leg => {
-                const legPoints = decodePolyline(leg.shape, 6);
-                allDecodedPoints = allDecodedPoints.concat(legPoints);
-            });
-
-            // Numera a sequência de entregas nos popups
-            if (trip.locations) {
-                let deliveryNum = 1;
-                trip.locations.forEach((locPoint, idx) => {
-                    // Ignora o primeiro ponto (Selmi - Origem) e o último (Selmi - Retorno)
-                    if (idx > 0 && idx < trip.locations.length - 1) {
-                        const originalIdx = locPoint.original_index;
-                        const marker = markersMap.get(originalIdx);
-                        if (marker) {
-                            marker.setPopupContent(`<b>Entrega ${deliveryNum}:</b><br>${locations[originalIdx].name}`);
-                            // Opcional: Abre o popup para o primeiro destino
-                            if (deliveryNum === 1) marker.openPopup();
-                            deliveryNum++;
-                        }
-                    } else if (idx === 0) {
-                        const marker = markersMap.get(0);
-                        if (marker) marker.setPopupContent(`<b>Início:</b><br>${locations[0].name}`);
-                    }
-                });
-            }
-
-            L.polyline(allDecodedPoints, { color: 'blue', weight: 4, opacity: 0.7 }).addTo(mapInstance);
-            mapInstance.fitBounds(bounds, { padding: [50, 50] });
-
-            const distKm = trip.summary.length.toFixed(1);
-            const timeStr = formatTime(trip.summary.time * 1000); // Valhalla retorna segundos
-            mapStatus.innerHTML = `<span class="text-success fw-bold">Distância: ${distKm} km | Tempo: ${timeStr}</span>`;
-
-            // Info para WhatsApp e Google Maps (seguindo a sequência OTIMIZADA do Valhalla)
-            const optimizedPoints = trip.locations.map(loc => `${loc.lat},${loc.lon}`);
-            const optimizedStopsNames = trip.locations
-                .slice(1, -1) // Remove o início e o fim (Selmi)
-                .map(loc => locations[loc.original_index].name);
-
-            currentRouteInfo = {
-                loadName: `Carga ${load.numero}`,
-                stops: optimizedStopsNames,
-                googleMapsUrl: `https://www.google.com/maps/dir/${optimizedPoints.join('/')}`,
-                distancia: distKm,
-                tempo: timeStr
-            };
-
-            // Atualiza o frete
-            console.log(`Calculando frete para carga ${loadId} com ${distKm} km`);
-            if (typeof updateLoadFreightDisplay === 'function') {
-                updateLoadFreightDisplay(loadId, parseFloat(distKm));
-            }
-        } else {
-            mapStatus.innerHTML = '<span class="text-danger">Não foi possível traçar a rota com Valhalla.</span>';
+        // Se for rota sequencial direta, ajustamos as opções
+        if (!useOptimized) {
+            valhallaQuery.costing_options.auto.shortest = true;
         }
 
-        // Força resize do mapa
-        setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 500);
+        let routeResponse;
 
-        // ... (restante da lógica do mapa interno)
+        if (useOptimized) {
+            routeResponse = await fetch(`https://valhalla1.openstreetmap.de/optimized_route?json=${JSON.stringify(valhallaQuery)}`);
+        }
+
+        // Fallback ou Execução Direta de 'route'
+        if (!useOptimized || !routeResponse.ok) {
+            if (useOptimized) console.warn("Falha na rota otimizada (504/Limit). Usando rota sequencial...");
+
+            // Configura para rota sequencial
+            valhallaQuery = {
+                locations: valhallaPoints,
+                costing: "auto",
+                costing_options: { auto: { shortest: true } },
+                units: "kilometers",
+                language: "pt-BR"
+            };
+            routeResponse = await fetch(`https://valhalla1.openstreetmap.de/route?json=${JSON.stringify(valhallaQuery)}`);
+        }
+
+        if (!routeResponse.ok) throw new Error("Não foi possível traçar a rota (API Valhalla).");
+
+        const routeData = await routeResponse.json();
+        let geometry = "";
+        let tripInfo = {};
+
+        if (routeData.trip) {
+            geometry = routeData.trip.legs.reduce((acc, leg) => acc + (acc ? "" : "") + leg.shape, ""); // Valhalla is polyline6 usually, verifying...
+            tripInfo = routeData.trip.summary;
+
+            // Valhalla returns individual legs. We need to decode them.
+            // A API retorna 'shape' comprimido (polyline6). O Leaflet precisa de array de coords.
+            // Vamos usar o decode nativo ou uma função auxiliar simples.
+            const decoded = decodePolyline(routeData.trip.legs[0].shape); // Simplificação: assume 1 leg ou concatena
+            // Correção: Valhalla optimized_route retorna trip.trip com locations reordenados? 
+            // Não, optimized retorna a sequência. E route retorna a sequencia dada.
+            // Para desenhar tudo:
+            // Limpa polylines anteriores para evitar riscos e glitches
+            mapInstance.eachLayer((layer) => {
+                if (layer instanceof L.Polyline && !(layer instanceof L.Marker)) {
+                    mapInstance.removeLayer(layer);
+                }
+            });
+
+            const allPoints = [];
+            routeData.trip.legs.forEach(leg => {
+                // Valhalla usa precisão 6 por padrão para polylines encoded
+                allPoints.push(...decodePolyline(leg.shape, 6));
+            });
+
+            if (allPoints.length > 0) {
+                const polyline = L.polyline(allPoints, { color: 'blue', weight: 5 }).addTo(mapInstance);
+                mapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+                // Força resize para garantir renderização correta no modal
+                setTimeout(() => { mapInstance.invalidateSize(); }, 300);
+            }
+
+            const distKm = tripInfo.length;
+            const timeMin = Math.round(tripInfo.time / 60);
+
+            // Salva info da rota
+            currentRouteInfo = { distance: distKm, time: timeMin };
+
+            // Atualiza UI do Modal
+            document.getElementById('map-distancia').textContent = `${distKm.toFixed(1)} km`;
+            document.getElementById('map-tempo').textContent = `${Math.floor(timeMin / 60)}h ${timeMin % 60}min`;
+
+            mapStatus.innerHTML = '<span class="text-success">Rota traçada! (Caminho mais curto)</span>';
+
+            // Atualiza frete no card se existir (aproveita o cálculo)
+            if (activeLoads[loadId]) {
+                activeLoads[loadId].distance = distKm;
+                updateLoadFreightDisplay(loadId); // Atualiza com o valor real calculado
+            }
+
+        } else {
+            throw new Error("Dados de rota inválidos.");
+        }
+
     } catch (e) {
-        console.error("Erro mapa modal:", e);
+        console.error("Erro no mapa:", e);
         mapStatus.innerHTML = `<span class="text-danger">Erro: ${e.message}</span>`;
     }
 }
+
+// Decodificador Polyline6 (padrão Valhalla/OSRM)
+function decodePolyline(str, precision) {
+    var index = 0,
+        lat = 0,
+        lng = 0,
+        coordinates = [],
+        shift = 0,
+        result = 0,
+        byte = null,
+        latitude_change,
+        longitude_change,
+        factor = Math.pow(10, precision || 6);
+
+    while (index < str.length) {
+        byte = null;
+        shift = 0;
+        result = 0;
+
+        do {
+            byte = str.charCodeAt(index++) - 63;
+            result |= (byte & 0x1f) << shift;
+            shift += 5;
+        } while (byte >= 0x20);
+
+        latitude_change = ((result & 1) ? ~(result >> 1) : (result >> 1));
+
+        shift = result = 0;
+
+        do {
+            byte = str.charCodeAt(index++) - 63;
+            result |= (byte & 0x1f) << shift;
+            shift += 5;
+        } while (byte >= 0x20);
+
+        longitude_change = ((result & 1) ? ~(result >> 1) : (result >> 1));
+
+        lat += latitude_change;
+        lng += longitude_change;
+
+        coordinates.push([lat / factor, lng / factor]);
+    }
+
+    return coordinates;
+}
+
 
 /**
  * NOVO: Função para calcular quilometragem e frete em background via Valhalla.
@@ -4785,15 +4895,40 @@ async function refreshLoadFreight(loadId) {
         const valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
         valhallaPoints.push({ lat: centroSelmi.lat, lon: centroSelmi.lng });
 
-        const valhallaQuery = {
+        // CORREÇÃO: Valhalla Público (Demo) tem rate limit e timeout para muitos pontos.
+        // Se houver mais de 5 cidades, usamos 'route' (sequencial) direto para evitar erro 504.
+        const useOptimized = valhallaPoints.length <= 6; // 5 cidades + 1 origem
+
+        let endpoint = useOptimized ? 'optimized_route' : 'route';
+
+        let valhallaQuery = {
             locations: valhallaPoints,
             costing: "auto",
             units: "kilometers",
             language: "pt-BR"
         };
 
-        const routeUrl = `https://valhalla1.openstreetmap.de/optimized_route?json=${JSON.stringify(valhallaQuery)}`;
-        const resp = await fetch(routeUrl);
+        // Ajusta opções dependendo do endpoint
+        if (useOptimized) {
+            // Otimização real
+        } else {
+            // Rota sequencial (respeita a ordem do array)
+            // Tenta shortest:true para garantir caminho curto entre os pontos
+            valhallaQuery.costing_options = { auto: { shortest: true } };
+        }
+
+        let routeUrl = `https://valhalla1.openstreetmap.de/${endpoint}?json=${JSON.stringify(valhallaQuery)}`;
+
+        let resp = await fetch(routeUrl);
+
+        // Fallback robusto se optimization falhar (504 ou 400)
+        if (!resp.ok && useOptimized) {
+            console.warn("Otimalização falhou/timeout. Usando rota sequencial...");
+            endpoint = 'route';
+            valhallaQuery.costing_options = { auto: { shortest: true } };
+            routeUrl = `https://valhalla1.openstreetmap.de/${endpoint}?json=${JSON.stringify(valhallaQuery)}`;
+            resp = await fetch(routeUrl);
+        }
         const data = await resp.json();
 
         load.isCalculatingFreight = false;
