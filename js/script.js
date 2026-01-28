@@ -830,7 +830,8 @@ function limparEstadoAtual() {
         resetElement('resultado-roteirizados', emptyStateHTML('map', 'Nenhuma carga roteirizada por lista.'));
         resetElement('resultado-funcionarios', emptyStateHTML('people-fill', 'Nenhum pedido de funcioná¡rio encontrado.'));
         resetElement('resultado-transferencias', emptyStateHTML('arrow-left-right', 'Nenhum pedido de transferáªncia encontrado.'));
-        document.getElementById('export-sobras-sp-btn').disabled = true; // NOVO: Desabilita o botá£o de exportar sobras
+        const exportBtn = document.getElementById('export-sobras-sp-btn');
+        if (exportBtn) exportBtn.disabled = true; // NOVO: Desabilita o botá£o de exportar sobras com segurança
         resetElement('resultado-exportacao', emptyStateHTML('box-arrow-up-right', 'Nenhum pedido de exportaá§á£o encontrado.'));
         resetElement('resultado-marca-propria', emptyStateHTML('tags-fill', 'Nenhum pedido de Marca Prá³pria encontrado.'));
 
@@ -954,9 +955,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Mostra a nova view
-            const targetView = document.querySelector(targetViewId);
-            if (targetView) {
-                targetView.classList.add('active-view');
+            if (targetViewId !== '#') {
+                const targetView = document.querySelector(targetViewId);
+                if (targetView) {
+                    targetView.classList.add('active-view');
+                }
             }
 
             // Salva a áºltima view ativa
