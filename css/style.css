@@ -1,141 +1,109 @@
         /* --- AJUSTE GLOBAL DE FONTE --- */
         html {
             font-size: 11.5px;
-            /* Reduzido para 11.5px para simular zoom de 80% (Modo Compacto Profissional) */
         }
 
         :root {
-            /* Paleta de Cores "Midnight Pro" - Mais equilibrada, moderna e menos escura */
-            --dark-bg: #030712;
-            /* Blue Gray 950 - Quase preto profundo */
-            --dark-surface: rgba(17, 24, 39, 0.7);
-            /* Gray 900 translúcido */
-            --dark-surface-secondary: rgba(31, 41, 55, 0.4);
-            /* Gray 800 */
-            --dark-border: rgba(255, 255, 255, 0.08);
-            --dark-primary: #3b82f6;
-            /* Blue 500 */
-            --dark-primary-hover: #60a5fa;
-            /* Blue 400 */
-            --dark-primary-glow: rgba(59, 130, 246, 0.4);
-            --dark-accent: #a855f7;
-            /* Purple 500 */
-            --dark-accent-secondary: #f472b6;
-            /* Pink 400 */
-            --dark-accent-glow: rgba(168, 85, 247, 0.4);
-            --dark-text-primary: #f9fafb;
-            --dark-text-secondary: #9ca3af;
-            --box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-            --backdrop-blur: 12px;
-            --border-radius: 18px;
-            --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            /* --- TEMA: COMMAND CENTER (Industrial HUD) --- */
+            /* Paleta Tática: Amber alert, Slate dark, Precision borders */
+
+            --dark-bg: #0b1120;
+            /* Gunmetal Black (Mais técnico que o azulado anterior) */
+            --dark-surface: rgba(15, 23, 42, 0.9);
+            /* Slate 900 quase sólido for legibilidade */
+            --dark-surface-secondary: #1e293b;
+            /* Slate 800 */
+
+            /* Cores de Ação */
+            --dark-primary: #f59e0b;
+            /* Safety Amber (Laranja Industrial) */
+            --dark-primary-hover: #d97706;
+            /* Amber 600 */
+            --dark-primary-glow: rgba(245, 158, 11, 0.2);
+            /* Glow contido */
+
+            --dark-accent: #0ea5e9;
+            /* Sky Blue (Status/Info) - Substitui o Roxo */
+            --dark-accent-secondary: #10b981;
+            /* Emerald (Sucesso/Confirmado) */
+            --dark-accent-glow: rgba(14, 165, 233, 0.2);
+
+            --dark-text-primary: #f1f5f9;
+            /* Slate 100 */
+            --dark-text-secondary: #94a3b8;
+            /* Slate 400 */
+
+            /* Geometria Industrial */
+            --box-shadow: 0 4px 0 rgba(0, 0, 0, 0.5);
+            /* Sombra dura (Hard Shadow) */
+            --backdrop-blur: 8px;
+            /* Menos blur, mais sólido */
+            --border-radius: 2px;
+            /* Sharp edges (Corte técnico) */
+            --glass-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+
+            /* Bordas de Precisão */
+            --dark-border: rgba(245, 158, 11, 0.15);
+            /* Borda sutilmente laranja */
         }
 
-        /* --- NOVO: Variáveis para o Tema Claro --- */
+        /* --- NOVO: Variáveis para o Tema Claro (Ajustado para Engenharia/Papel) --- */
         [data-bs-theme="light"] {
-            --dark-bg: #f1f5f9;
-            /* Slate 100 - Fundo claro e limpo */
+            --dark-bg: #f8fafc;
             --dark-surface: #ffffff;
-            /* Branco puro */
-            --dark-surface-secondary: #f8fafc;
-            /* Slate 50 */
+            --dark-surface-secondary: #e2e8f0;
             --dark-border: #cbd5e1;
-            /* Slate 300 */
-            --dark-primary: #2563eb;
-            /* Blue 600 - Mais contraste no claro */
-            --dark-primary-hover: #1d4ed8;
-            --dark-primary-glow: rgba(37, 99, 235, 0.2);
-            --dark-accent: #7c3aed;
-            /* Violet 600 */
-            --dark-accent-secondary: #db2777;
-            /* Pink 600 */
-            --dark-accent-glow: rgba(124, 58, 237, 0.2);
+
+            --dark-primary: #ea580c;
+            /* Orange 600 (High vis) */
+            --dark-primary-hover: #c2410c;
+            --dark-primary-glow: rgba(234, 88, 12, 0.1);
+
+            --dark-accent: #0284c7;
+            /* Sky 600 */
+            --dark-accent-secondary: #059669;
+            --dark-accent-glow: rgba(2, 132, 199, 0.1);
+
             --dark-text-primary: #0f172a;
-            /* Slate 900 */
             --dark-text-secondary: #64748b;
-            /* Slate 500 */
-            --box-shadow: 0 10px 25px -5px rgba(148, 163, 184, 0.2);
-            --backdrop-blur: 12px;
+
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --backdrop-blur: 0px;
+            /* Sólido no claro */
         }
 
-        /* --- NOVAS ANIMAÇÕES DE FUNDO --- */
-        @keyframes move-aurora-glow {
-            0% {
-                background-position: 0% 50%, 50% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%, 50% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%, 50% 50%;
-            }
-        }
-
-        @keyframes scanline {
-            0% {
-                transform: translateY(0);
-            }
-
-            100% {
-                transform: translateY(50px);
-            }
-        }
-
-        /* --- NOVO FUNDO ANIMADO PARA TEMA ESCURO --- */
+        /* --- FUNDO TÉCNICO (GRID) --- */
         [data-bs-theme="dark"] body {
             background-color: var(--dark-bg);
+            /* Grid Técnico Tático - Aumentada opacidade para 0.07 para ser visível */
             background-image:
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.12) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(244, 114, 182, 0.1) 0px, transparent 50%),
-                radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
-            background-size: 100% 100%;
+                linear-gradient(rgba(245, 158, 11, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(245, 158, 11, 0.07) 1px, transparent 1px);
+            background-size: 40px 40px;
+            /* Grid milimetrado */
             background-attachment: fixed;
-            animation: move-aurora-glow 20s ease-in-out infinite alternate;
         }
 
-        /* Ambient Nebula Styles */
-        body::before {
-            content: "";
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.03) 0%, transparent 80%);
-            animation: nebula-rotate 60s linear infinite;
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        @keyframes nebula-rotate {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
+        /* Remove animações de Aurora (distração) e nebulosas */
+        [data-bs-theme="dark"] body::before {
+            display: none;
         }
 
         /* --- MELHORIAS GERAIS --- */
         body {
             background-color: var(--dark-bg);
-            background-repeat: no-repeat, no-repeat, no-repeat, repeat, repeat, repeat;
-            background-attachment: fixed;
-            font-family: 'Inter', sans-serif;
+            font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+            /* Fonte mono para dados? Não, vamos usar Inter com trechos mono */
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            /* Mantém legibilidade */
             color: var(--dark-text-primary);
             text-rendering: optimizeLegibility;
             -webkit-font-smoothing: antialiased;
             overflow: hidden;
-            /* REMOVE BARRA DE ROLAGEM GLOBAL */
             height: 100vh;
             width: 100vw;
             font-size: 0.9rem;
             display: block !important;
-            /* PREVINE FLEXBOX WEIRDNESS NO BODY */
         }
 
         /* Scrollbar Moderna e Elegante */
@@ -645,9 +613,93 @@
             }
         }
 
-        /* Atraso para cada parte do logo se desenhar em sequência */
-        #animated-logo #line-1 {
-            animation-delay: 0s;
+        /* --- BOTÃO TÁTICO V3 (VIBRANT HEADER) --- */
+        .btn-tactical {
+            background-color: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--dark-border);
+            /* Default border */
+            color: var(--dark-text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem 0.5rem 0;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.2s ease-out;
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+        }
+
+        .btn-tactical i {
+            margin-right: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* Variantes de Veículo (Cor Dominante) */
+
+        /* FIORINO (Verde) */
+        .btn-tactical.fiorino {
+            border-color: var(--dark-accent-secondary);
+            color: var(--dark-accent-secondary);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.05);
+        }
+
+        .btn-tactical.fiorino:hover,
+        .btn-tactical.fiorino.active {
+            background-color: var(--dark-accent-secondary);
+            color: #000;
+            /* Contraste preto no verde */
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+
+        /* VAN (Azul) */
+        .btn-tactical.van {
+            border-color: var(--dark-accent);
+            color: var(--dark-accent);
+            box-shadow: 0 0 10px rgba(14, 165, 233, 0.05);
+        }
+
+        .btn-tactical.van:hover,
+        .btn-tactical.van.active {
+            background-color: var(--dark-accent);
+            color: #000;
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+        }
+
+        /* 3/4 TOCO (Laranja) */
+        .btn-tactical.toco,
+        .btn-tactical.tresQuartos {
+            border-color: var(--dark-primary);
+            color: var(--dark-primary);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.05);
+        }
+
+        .btn-tactical.toco:hover,
+        .btn-tactical.toco.active,
+        .btn-tactical.tresQuartos:hover,
+        .btn-tactical.tresQuartos.active {
+            background-color: var(--dark-primary);
+            color: #000;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Ajuste de ícones no hover/active para preto */
+        .btn-tactical:hover i,
+        .btn-tactical.active i {
+            color: #000 !important;
+        }
+
+        .btn-tactical:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Estado Ativo/Processado */
+        .btn-tactical.active {
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+            font-weight: 700;
         }
 
         #animated-logo #line-2 {
@@ -748,56 +800,46 @@
             position: relative;
             background-color: var(--dark-surface);
             border: 1px solid var(--dark-border);
-            /* Borda um pouco mais visível para contraste */
+            border-left: 3px solid var(--dark-primary);
+            /* Tactical Indicator */
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.3s ease,
-                border-color 0.4s ease,
-                background-color 0.4s ease;
+            transition: all 0.2s ease-out;
             overflow: hidden;
             backdrop-filter: blur(var(--backdrop-blur));
             -webkit-backdrop-filter: blur(var(--backdrop-blur));
         }
 
-        .card::before {
+        /* Technical Corner Markers (Optional decoration) */
+        .card::after {
             content: '';
             position: absolute;
             top: 0;
             right: 0;
-            bottom: 0;
-            left: 0;
-            border-radius: inherit;
-            border: 1px solid transparent;
-            background: radial-gradient(circle at top left, var(--dark-primary), var(--dark-accent)) border-box;
-            -webkit-mask:
-                linear-gradient(#fff 0 0) padding-box,
-                linear-gradient(#fff 0 0);
-            mask:
-                linear-gradient(#fff 0 0) padding-box,
-                linear-gradient(#fff 0 0);
-            -webkit-mask-composite: destination-out;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
+            width: 8px;
+            height: 8px;
+            border-top: 2px solid var(--dark-primary);
+            border-right: 2px solid var(--dark-primary);
+            opacity: 0.5;
         }
 
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.3);
-        }
-
-        .card:hover::before {
-            opacity: 1;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            border-color: var(--dark-primary);
         }
 
         .card-header {
-            background-color: transparent;
-            /* Header transparente para limpeza */
+            background-color: rgba(0, 0, 0, 0.2);
+            /* Darker header */
             border-bottom: 1px solid var(--dark-border);
-            font-weight: 600;
-            padding: 1rem 1.25rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
         }
 
         .card-body {
@@ -834,37 +876,84 @@
             overflow-y: auto;
         }
 
-        /* --- BOTÕES E CONTROLES --- */
+        /* --- BOTÕES (ESTILO INDUSTRIAL) --- */
         .btn {
+            border-radius: var(--border-radius);
             font-weight: 600;
-            font-size: 0.85rem;
-            transition: all 0.3s ease-in-out;
-            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.75rem;
             padding: 0.5rem 1rem;
+            transition: all 0.15s ease-out;
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn:hover {
-            transform: translateY(-1px);
-            /* Efeito mais sutil */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        /* Efeito de hover técnico (sublinhado ou border) */
+        .btn:active {
+            transform: translateY(1px);
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--dark-primary), var(--dark-accent));
-            border: none;
-            box-shadow: 0 0 15px var(--dark-accent-glow);
+            background-color: var(--dark-primary);
+            border-color: var(--dark-primary);
+            color: #000;
+            /* Contraste preto no laranja/amber */
         }
 
-        .btn-primary#processarBtn {
-            animation: glow 2s ease-in-out infinite;
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background-color: var(--dark-primary-hover);
+            border-color: var(--dark-primary-hover);
+            color: #000;
+            box-shadow: 0 0 10px var(--dark-primary-glow);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px) scale(1.02);
+        .btn-outline-secondary {
+            border-color: var(--dark-surface-secondary);
+            color: var(--dark-text-secondary);
+            background: transparent;
         }
 
-        .btn-primary:hover {
-            box-shadow: 0 4px 20px var(--dark-primary-glow);
+        .btn-outline-secondary:hover {
+            background-color: var(--dark-surface-secondary);
+            color: var(--dark-text-primary);
+            border-color: var(--dark-text-secondary);
+        }
+
+        /* Botão Mágico (Atualizado para HUD) */
+        .btn-magic {
+            background: linear-gradient(45deg, #b45309, #d97706);
+            /* Dark amber gradient */
+            border: 1px solid #f59e0b;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+            position: relative;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-magic:hover {
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* Hazard Striping for Magic Button */
+        .btn-magic::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(45deg,
+                    rgba(0, 0, 0, 0.1),
+                    rgba(0, 0, 0, 0.1) 10px,
+                    transparent 10px,
+                    transparent 20px);
+            pointer-events: none;
         }
 
         .form-control,

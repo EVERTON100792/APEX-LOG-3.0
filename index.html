@@ -158,6 +158,70 @@
             padding: 0.4rem;
         }
 
+        /* --- MAGIC BUTTON (Von Restorff Effect) --- */
+        .btn-magic {
+            background: linear-gradient(135deg, var(--dark-primary) 0%, var(--dark-accent) 100%);
+            border: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-weight: 600;
+            box-shadow: 0 4px 15px var(--dark-primary-glow);
+        }
+
+        .btn-magic::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-magic:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 25px var(--dark-primary-glow);
+            color: white;
+        }
+
+        .btn-magic:hover::before {
+            left: 100%;
+        }
+
+        /* --- PREMIUM EMPTY STATE --- */
+        .empty-state-premium {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .empty-state-premium:hover {
+            border-color: var(--dark-primary);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.2);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .empty-state-premium:hover .empty-state-icon {
+            color: var(--dark-primary);
+            transform: scale(1.1) rotate(5deg);
+        }
+
         color: var(--dark-text-secondary);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -1022,14 +1086,14 @@
                         <div class="workspace-header">
                             <h2 class="workspace-title"><i class="bi bi-layers-fill"></i>Painel de Montagem</h2>
                             <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-success" onclick="montarTodasAsRotas()"
-                                    title="Montar cargas para todas as rotas disponá­veis automaticamente">
-                                    <i class="bi bi-magic me-1"></i>Auto
+                                <button class="btn btn-sm btn-magic" onclick="montarTodasAsRotas()"
+                                    title="Montar cargas para todas as rotas disponíveis automaticamente">
+                                    <i class="bi bi-stars me-1"></i>Auto Montar
                                 </button>
                                 <button id="start-manual-routing-btn" class="btn btn-sm btn-outline-secondary"
                                     data-bs-toggle="modal" data-bs-target="#manualRoutingModal"
                                     title="Roteirização Manual">
-                                    <i class="bi bi-signpost-split-fill"></i>
+                                    <i class="bi bi-signpost-split-fill me-1"></i>Manual
                                 </button>
                             </div>
                         </div>
@@ -1084,14 +1148,19 @@
                                         class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
                                         <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
                                             para montar as Fiorinos ou crie uma carga manual.</p>
-                                        <button class="btn btn-sm btn-outline-light"
-                                            onclick="imprimirCargasGeneric('resultado-fiorino-geral', 'Cargas de Fiorino (Varejo)')"><i
-                                                class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
+                                        <div class="btn-group">
+                                            <button class="btn btn-primary"
+                                                onclick="imprimirCargasGeneric('resultado-fiorino-geral', 'Cargas de Fiorino (Varejo)')">
+                                                <i class="bi bi-printer-fill me-1"></i>IMPRIMIR CARGAS MONTADAS
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="mb-3 no-print" id="botoes-fiorino">
-                                        <div class="empty-state"><i class="bi bi-box"></i>
-                                            <p>Nenhuma rota de Fiorino disponá­vel. Processe um arquivo para comeá§ar.
-                                            </p>
+                                        <div class="empty-state-premium">
+                                            <i class="bi bi-box-seam empty-state-icon"></i>
+                                            <h5 class="text-light">Nenhuma rota de Fiorino disponível</h5>
+                                            <p class="text-muted small">Processe um arquivo na lateral esquerda para
+                                                começar.</p>
                                         </div>
                                     </div>
                                     <hr class="no-print">
@@ -1102,15 +1171,11 @@
                                         class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
                                         <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
                                             para montar as Vans ou utilize as opções de exportação.</p>
-                                        <div class="btn-group btn-group-sm">
-                                            <button id="export-sobras-sp-btn" class="btn btn-sm btn-outline-warning"
-                                                onclick="exportarSobrasSP_PDF()" disabled>
-                                                <i class="bi bi-file-earmark-pdf-fill me-1"></i>Exportar Sobras SP
-                                                (PDF)
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-light"
+                                        <div class="btn-group">
+                                            <!-- Botão de Exportar Sobras removido a pedido do usuário -->
+                                            <button class="btn btn-primary"
                                                 onclick="imprimirCargasGeneric('resultado-van-geral', 'Cargas de Van (Varejo)')">
-                                                <i class="bi bi-printer-fill me-1"></i>Imprimir Cargas Montadas
+                                                <i class="bi bi-printer-fill me-1"></i>IMPRIMIR CARGAS MONTADAS
                                             </button>
                                         </div>
                                     </div>
@@ -1128,9 +1193,12 @@
                                         class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
                                         <p class="card-subtitle text-body-secondary small mb-0">Selecione uma rota
                                             para montar as cargas 3/4.</p>
-                                        <button class="btn btn-sm btn-outline-light"
-                                            onclick="imprimirCargasGeneric('resultado-34-geral', 'Cargas de 3/4 (Varejo)')"><i
-                                                class="bi bi-printer-fill me-1"></i>Imprimir Cargas</button>
+                                        <div class="btn-group">
+                                            <button class="btn btn-primary"
+                                                onclick="imprimirCargasGeneric('resultado-34-geral', 'Cargas de 3/4 (Varejo)')">
+                                                <i class="bi bi-printer-fill me-1"></i>IMPRIMIR CARGAS MONTADAS
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="mb-3 no-print" id="botoes-34">
                                         <div class="empty-state"><i class="bi bi-truck-flatbed"></i>
@@ -1141,6 +1209,17 @@
                                     <div id="resultado-34-geral" class="mt-3"></div>
                                 </div>
                                 <div class="tab-pane fade" id="toco-tab-pane" role="tabpanel">
+                                    <div
+                                        class="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print gap-2">
+                                        <p class="card-subtitle text-body-secondary small mb-0">Gerencie as cargas de
+                                            Toco.</p>
+                                        <div class="btn-group">
+                                            <button class="btn btn-primary"
+                                                onclick="imprimirCargasGeneric('resultado-toco', 'Cargas de Toco')">
+                                                <i class="bi bi-printer-fill me-1"></i>IMPRIMIR CARGAS MONTADAS
+                                            </button>
+                                        </div>
+                                    </div>
                                     <div id="resultado-toco">
                                         <div class="empty-state"><i class="bi bi-inboxes-fill"></i>
                                             <p>Nenhuma carga "Toco" encontrada. Processe um arquivo.</p>

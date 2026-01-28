@@ -177,7 +177,7 @@ window.renderSessionLists = async () => {
 
         // Render My Sessions
         if (mySessions.length === 0) {
-            mySessionsEl.innerHTML = '<div class="text-center p-3 text-muted">Nenhuma sessão salva.</div>';
+            mySessionsEl.innerHTML = '<div class="empty-state-premium py-4"><i class="bi bi-cloud-slash empty-state-icon fs-2 mb-2"></i><p class="text-muted mb-0 small">Nenhuma sessão salva.</p></div>';
         } else {
             mySessionsEl.innerHTML = mySessions.map(s => {
                 // Tenta extrair metadados se disponíveis (retrocompatibilidade)
@@ -202,7 +202,7 @@ window.renderSessionLists = async () => {
 
         // Render Shared Sessions
         if (sharedSessions.length === 0) {
-            sharedSessionsEl.innerHTML = '<div class="text-center p-3 text-muted">Nenhum compartilhamento recebido.</div>';
+            sharedSessionsEl.innerHTML = '<div class="empty-state-premium py-4"><i class="bi bi-inbox empty-state-icon fs-2 mb-2"></i><p class="text-muted mb-0 small">Nenhum compartilhamento recebido.</p></div>';
         } else {
             sharedSessionsEl.innerHTML = sharedSessions.map(s => {
                 const veiculosCount = s.data?.appState?.activeLoads ? Object.keys(s.data.appState.activeLoads).length : 0;
@@ -222,7 +222,7 @@ window.renderSessionLists = async () => {
 
     } catch (error) {
         console.error(error);
-        const errMsg = '<div class="text-center p-3 text-danger">Erro ao carregar sessões.</div>';
+        const errMsg = '<div class="empty-state-premium py-4 border-danger"><i class="bi bi-exclamation-triangle text-danger empty-state-icon fs-2 mb-2"></i><p class="text-danger mb-0 small">Erro ao carregar sessões.</p></div>';
         mySessionsEl.innerHTML = errMsg;
         sharedSessionsEl.innerHTML = errMsg;
     }

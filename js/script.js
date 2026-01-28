@@ -2572,10 +2572,15 @@ function displayGerais(div, grupos) {
     const todasRotas = new Set([...rotasPendentes, ...rotasProcessadas]);
 
     if (todasRotas.size === 0) {
-        div.innerHTML = '<div class="empty-state"><i class="bi bi-file-earmark-excel"></i><p>Nenhum pedido de varejo disponá­vel.</p></div>';
-        document.getElementById('botoes-fiorino').innerHTML = '<div class="empty-state"><i class="bi bi-box"></i><p>Nenhuma rota de Fiorino disponá­vel. Processe um arquivo para comeá§ar.</p></div>';
-        document.getElementById('botoes-van').innerHTML = '<div class="empty-state"><i class="bi bi-truck-front-fill"></i><p>Nenhuma rota de Van disponá­vel. Processe um arquivo para comeá§ar.</p></div>';
-        document.getElementById('botoes-34').innerHTML = '<div class="empty-state"><i class="bi bi-truck-flatbed"></i><p>Nenhuma rota de 3/4 disponá­vel. Processe um arquivo para comeá§ar.</p></div>';
+        div.innerHTML = '<div class="empty-state-premium"><i class="bi bi-file-earmark-excel empty-state-icon"></i><h5 class="text-light">Nenhum pedido de varejo disponível</h5><p class="text-muted small">Não encontramos pedidos para roteirização na planilha.</p></div>';
+
+        const emptyStateFio = '<div class="empty-state-premium"><i class="bi bi-box-seam empty-state-icon"></i><h5 class="text-light">Nenhuma rota de Fiorino disponível</h5><p class="text-muted small">Processe um arquivo para começar.</p></div>';
+        const emptyStateVan = '<div class="empty-state-premium"><i class="bi bi-truck-front-fill empty-state-icon"></i><h5 class="text-light">Nenhuma rota de Van disponível</h5><p class="text-muted small">Processe um arquivo para começar.</p></div>';
+        const emptyState34 = '<div class="empty-state-premium"><i class="bi bi-truck-flatbed empty-state-icon"></i><h5 class="text-light">Nenhuma rota de 3/4 disponível</h5><p class="text-muted small">Processe um arquivo para começar.</p></div>';
+
+        document.getElementById('botoes-fiorino').innerHTML = emptyStateFio;
+        document.getElementById('botoes-van').innerHTML = emptyStateVan;
+        document.getElementById('botoes-34').innerHTML = emptyState34;
         return;
     }
 
@@ -2622,21 +2627,23 @@ function displayGerais(div, grupos) {
             const routesKeyString = rotaValue.replace(/\[|\]|'|\s/g, ''); // Transforma ['1', '2'] em 1,2 (sem espaá§os)
 
             // Verifica se a rota já¡ foi processada para renderizar o botá£o no estado correto
+            // Verifica se a rota já¡ foi processada para renderizar o botá£o no estado correto
+            // UX Tática: Botoes menores e mais tecnicos
             if (processedRoutes.has(routesKeyString)) {
                 botoes[vehicleType] += `
                             <div class="btn-group mt-2 me-2" role="group">
-                                <button id="${btnId}" class="btn btn-${colorClass} active" onclick="exibirCargasDaRota('${routesKeyString}')"><i class="bi bi-eye-fill me-2"></i>${buttonTitle}</button>
-                                <button class="btn btn-${colorClass} active" onclick="reprocessarRota('${routesKeyString}', event)" title="Reprocessar Rota"><i class="bi bi-arrow-clockwise"></i></button>
+                                <button id="${btnId}" class="btn btn-tactical ${vehicleType} active" onclick="exibirCargasDaRota('${routesKeyString}')"><i class="bi bi-check2-circle"></i>${buttonTitle}</button>
+                                <button class="btn btn-tactical ${vehicleType} active" onclick="reprocessarRota('${routesKeyString}', event)" title="Reprocessar Rota"><i class="bi bi-arrow-clockwise"></i></button>
                             </div>`;
             } else {
                 const functionCall = `separarCargasGeneric(${rotaValue}, '${divId}', '${buttonTitle}', '${vehicleType}', this)`;
-                botoes[vehicleType] += `<button id="${btnId}" class="btn btn-outline-${colorClass} mt-2 me-2" onclick="${functionCall}">${buttonTitle}</button>`;
+                botoes[vehicleType] += `<button id="${btnId}" class="btn btn-tactical ${vehicleType} mt-2 me-2" onclick="${functionCall}"><i class="bi bi-play-fill"></i>${buttonTitle}</button>`;
             }
         }
     });
-    document.getElementById('botoes-fiorino').innerHTML = botoes.fiorino || '<div class="empty-state"><i class="bi bi-box"></i><p>Nenhuma rota de Fiorino encontrada.</p></div>';
-    document.getElementById('botoes-van').innerHTML = botoes.van || '<div class="empty-state"><i class="bi bi-truck-front-fill"></i><p>Nenhuma rota de Van encontrada.</p></div>';
-    document.getElementById('botoes-34').innerHTML = botoes.tresQuartos || '<div class="empty-state"><i class="bi bi-truck-flatbed"></i><p>Nenhuma rota de 3/4 encontrada.</p></div>';
+    document.getElementById('botoes-fiorino').innerHTML = botoes.fiorino || '<div class="empty-state-premium"><i class="bi bi-box-seam empty-state-icon"></i><h5 class="text-light">Nenhuma rota de Fiorino encontrada</h5><p class="text-muted small">Não há rotas para este veículo na carga atual.</p></div>';
+    document.getElementById('botoes-van').innerHTML = botoes.van || '<div class="empty-state-premium"><i class="bi bi-truck-front-fill empty-state-icon"></i><h5 class="text-light">Nenhuma rota de Van encontrada</h5><p class="text-muted small">Não há rotas para este veículo na carga atual.</p></div>';
+    document.getElementById('botoes-34').innerHTML = botoes.tresQuartos || '<div class="empty-state-premium"><i class="bi bi-truck-flatbed empty-state-icon"></i><h5 class="text-light">Nenhuma rota de 3/4 encontrada</h5><p class="text-muted small">Não há rotas para este veículo na carga atual.</p></div>';
     let accordionHtml = '<div class="accordion accordion-flush" id="accordionGeral">';
     let hasPendingItems = false;
 
@@ -4958,19 +4965,28 @@ function abrirMapaCarga(loadId) {
     refreshLoadFreight(loadId);
 
     const cidadesMap = new Map();
-    const pedidoIdsNaCarga = new Set(load.pedidos.map(p => String(p.Num_Pedido)));
+    // Usa diretamente os pedidos da carga, sem buscar na planilhaData
+    load.pedidos.forEach(pedido => {
+        const cidade = (String(pedido.Cidade || '')).split(',')[0].trim();
+        // Tenta obter UF de várias fontes possíveis
+        let uf = (String(pedido.UF || pedido.Estado || '')).trim().toUpperCase();
 
-    planilhaData.forEach(pedidoOriginal => {
-        if (pedidoIdsNaCarga.has(String(pedidoOriginal.Num_Pedido))) {
-            const cidade = (String(pedidoOriginal.Cidade || '')).split(',')[0].trim();
-            const uf = (String(pedidoOriginal.UF || '')).trim().toUpperCase();
-            if (cidade && uf && !cidadesMap.has(cidade)) {
-                cidadesMap.set(cidade, uf);
+        // Fallback genérico se UF estiver vazio (assume PR para simplificar, ou tenta extrair da cidade)
+        if (!uf && cidade) {
+            // Lógica simples: se cidade não tem UF, não adiciona ou assume padrão?
+            // Melhor tentar extrair.
+        }
+
+        if (cidade) {
+            // Chave única: Cidade + UF
+            const key = uf ? `${cidade} - ${uf}` : cidade;
+            if (!cidadesMap.has(key)) {
+                cidadesMap.set(key, { cidade, uf });
             }
         }
     });
 
-    const cidadesComEstado = Array.from(cidadesMap.entries());
+    const cidadesComEstado = Array.from(cidadesMap.values());
     if (cidadesComEstado.length === 0) {
         showToast("Nenhuma cidade válida encontrada para roteirizar.", 'warning');
         return;
@@ -4985,8 +5001,9 @@ function abrirMapaCarga(loadId) {
     params.append('point', pontoSelmi);
 
     // Adiciona cidades
-    cidadesComEstado.forEach(([cidade, uf]) => {
-        params.append('point', `${cidade}, ${uf}, Brasil`);
+    cidadesComEstado.forEach(({ cidade, uf }) => {
+        const local = uf ? `${cidade}, ${uf}, Brasil` : `${cidade}, Brasil`;
+        params.append('point', local);
     });
 
     // Adiciona Selmi como ponto final (Retorno)
