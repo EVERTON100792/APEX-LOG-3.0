@@ -4564,7 +4564,10 @@ async function calcularDistanciaCarga(loadId, retries = 2) {
 
 
 
-// Variá¡vel global para a instá¢ncia do mapa no modal
+// Variável global para cache de coordenadas (elevada para uso em todo o script)
+var cityCoordsCache = JSON.parse(localStorage.getItem('cityCoordsCache')) || {};
+
+// Variáveis globais para a instância do mapa
 let mapInstance = null;
 
 async function showRouteOnMap(loadId) {
@@ -4614,14 +4617,31 @@ async function showRouteOnMap(loadId) {
 
         // 2. Geocodificação dos Destinos (Nominatim)
         const selmiAddress = "Empresa Selmi, BR-369, Rolândia - PR, 86181-570, Brasil";
-        const locations = [{ name: selmiAddress, coords: origemCoords, isOrigin: true }];
-        const uniqueCities = [...new Set(load.pedidos.map(p => `${p.Cidade}, ${p.UF}`))];
+        const locations = [{ name: selmiAddress, coords: origemCoords, isOrigin: true, pedidos: [] }];
+        const cityGroups = {};
+        load.pedidos.forEach(p => {
+            const key = `${p.Cidade}, ${p.UF}`;
+            if (!cityGroups[key]) cityGroups[key] = [];
+            cityGroups[key].push(p);
+        });
+        const uniqueCities = Object.keys(cityGroups);
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
         mapStatus.innerHTML = '<span class="text-info">Buscando coordenadas das cidades...</span>';
 
         for (const city of uniqueCities) {
             const cleanedCity = city.replace(/\s+/g, ' ').trim();
+
+            // Verifica no cache global primeiro
+            if (cityCoordsCache[cleanedCity]) {
+                locations.push({
+                    name: city,
+                    coords: cityCoordsCache[cleanedCity],
+                    pedidos: cityGroups[city]
+                });
+                continue;
+            }
+
             try {
                 // Nominatim requer um User-Agent e delay entre requisições
                 const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanedCity + ', Brasil')}&format=json&limit=1`;
@@ -4629,10 +4649,13 @@ async function showRouteOnMap(loadId) {
                 const geoData = await geoResponse.json();
 
                 if (geoData && geoData.length > 0) {
+                    const coords = { lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) };
+                    cityCoordsCache[cleanedCity] = coords; // Salva no cache
                     locations.push({
-                        name: city,
-                        coords: { lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) }
+                        name: city, coords, pedidos: cityGroups[city]
                     });
+                } else {
+                    console.warn(`Cidade não encontrada: ${city}`);
                 }
             } catch (err) {
                 console.warn(`Erro ao geocodificar ${city}:`, err);
@@ -4666,7 +4689,17 @@ async function showRouteOnMap(loadId) {
         const markersMap = new Map();
         const bounds = L.latLngBounds();
         locations.forEach((loc, idx) => {
-            const marker = L.marker(loc.coords).addTo(mapInstance).bindPopup(`<b>${idx === 0 ? 'Origem' : idx + 'ª Entrega'}:</b> ${loc.name}`);
+            let popupContent = `<b>${idx === 0 ? 'Origem (Selmi)' : idx + 'ª Entrega'}:</b><br>${loc.name}`;
+
+            if (!loc.isOrigin) {
+                const totalKgParada = loc.pedidos.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
+                popupContent += `<br><span class="text-info">${loc.pedidos.length} Pedido(s)</span> | <b>${totalKgParada.toFixed(2)}kg</b>`;
+                popupContent += `<hr class="my-2"><button class="btn btn-xs btn-danger w-100" onclick="removerParadaDoMapa('${loadId}', '${loc.name.replace("'", "\\'")}')">
+                    <i class="bi bi-trash-fill me-1"></i>Remover Entrega
+                </button>`;
+            }
+
+            const marker = L.marker(loc.coords).addTo(mapInstance).bindPopup(popupContent);
 
             if (loc.isOrigin) {
                 marker.setIcon(L.icon({
@@ -4679,10 +4712,10 @@ async function showRouteOnMap(loadId) {
                 const number = idx;
                 const numberedIcon = L.divIcon({
                     className: 'custom-div-icon',
-                    html: `<div style="background-color: #d63031; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3); font-weight: bold; font-family: sans-serif; font-size: 11px;">${number}</div>`,
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 12],
-                    popupAnchor: [0, -12]
+                    html: `<div style="background-color: #d63031; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-weight: bold; font-family: sans-serif; font-size: 13px;">${number}</div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14],
+                    popupAnchor: [0, -14]
                 });
                 marker.setIcon(numberedIcon);
             }
@@ -4853,6 +4886,66 @@ function decodePolyline(str, precision) {
     }
 
     return coordinates;
+}
+
+/**
+ * Remove todos os pedidos de uma determinada cidade desta carga e os devolve para a lista de varejo.
+ */
+function removerParadaDoMapa(loadId, cityKey) {
+    const load = activeLoads[loadId];
+    if (!load) return;
+
+    const pedidosParaRemover = load.pedidos.filter(p => `${p.Cidade}, ${p.UF}` === cityKey);
+    if (pedidosParaRemover.length === 0) return;
+
+    const orderIdsParaRemover = new Set(pedidosParaRemover.map(p => p.Num_Pedido));
+    const kgRemovido = pedidosParaRemover.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
+    const cubagemRemovida = pedidosParaRemover.reduce((sum, p) => sum + (p.Cubagem || 0), 0);
+
+    // 1. Remove da carga ativa
+    load.pedidos = load.pedidos.filter(p => !orderIdsParaRemover.has(p.Num_Pedido));
+    load.totalKg -= kgRemovido;
+    load.totalCubagem -= cubagemRemovida;
+
+    // 2. Devolve para pedidos gerais ativos
+    pedidosGeraisAtuais.push(...pedidosParaRemover);
+
+    // 3. Verifica se a carga ficou vazia e deve ser deletada
+    if (load.pedidos.length === 0) {
+        delete activeLoads[loadId];
+        bootstrap.Modal.getInstance(document.getElementById('mapModal'))?.hide();
+        showToast(`Entrega em ${cityKey} removida. A carga ficou vazia e foi excluída.`, 'info');
+    } else {
+        showToast(`Removida entrega de ${cityKey} (${pedidosParaRemover.length} pedidos). Re-traçando rota...`, 'success');
+        // Re-abre o mapa para atualizar (mais simples que tentar apagar camadas seletivamente)
+        showRouteOnMap(loadId);
+    }
+
+    // 4. Atualiza UI e Estados
+    const containerGeral = document.getElementById('resultado-geral');
+    if (containerGeral) {
+        const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
+        displayGerais(containerGeral, gruposGerais);
+    }
+
+    // Se a carga ainda existir, atualiza seu card
+    if (activeLoads[loadId]) {
+        const cardElement = document.getElementById(loadId);
+        if (cardElement) {
+            const vehicleInfo = {
+                fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
+                van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
+                tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
+                toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
+            };
+            const vInfo = vehicleInfo[load.vehicleType];
+            cardElement.outerHTML = renderLoadCard(load, load.vehicleType, vInfo);
+        }
+    }
+
+    updateAndRenderKPIs();
+    updateAndRenderChart();
+    saveStateToLocalStorage();
 }
 
 
@@ -6651,7 +6744,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-const cityCoordsCache = JSON.parse(localStorage.getItem('cityCoordsCache')) || {};
+// Cache de coordenadas agora inicializado no topo do arquivo (Seção Mapa)
 
 async function getCityCoordinates(cidade, uf) {
     const key = `${cidade.trim().toUpperCase()}-${uf.trim().toUpperCase()}`;
