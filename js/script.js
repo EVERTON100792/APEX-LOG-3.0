@@ -4722,8 +4722,22 @@ async function showRouteOnMap(loadId) {
             if (!loc.isOrigin) {
                 const totalKgParada = loc.pedidos.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
                 popupContent += `<br><span class="text-info">${loc.pedidos.length} Pedido(s)</span> | <b>${totalKgParada.toFixed(2)}kg</b>`;
+
+                // Lista detalhada dos pedidos com botão de remover individual
+                popupContent += `<div style="max-height: 150px; overflow-y: auto; margin: 5px 0; border-top: 1px solid #eee;">`;
+                loc.pedidos.forEach(p => {
+                    popupContent += `
+                    <div class="d-flex justify-content-between align-items-center my-1 small text-dark">
+                        <span>#${p.Num_Pedido} (${p.Quilos_Saldo.toFixed(1)}kg)</span>
+                        <button class="btn btn-xs btn-outline-danger py-0 px-1" onclick="removerPedidoDoMapa('${loadId}', '${p.Num_Pedido}')" title="Remover apenas este pedido">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>`;
+                });
+                popupContent += `</div>`;
+
                 popupContent += `<hr class="my-2"><button class="btn btn-xs btn-danger w-100" onclick="removerParadaDoMapa('${loadId}', '${loc.name.replace("'", "\\'")}')">
-                    <i class="bi bi-trash-fill me-1"></i>Remover Entrega
+                    <i class="bi bi-trash-fill me-1"></i>Remover Toda Entrega
                 </button>`;
             }
 
@@ -4853,6 +4867,16 @@ async function showRouteOnMap(loadId) {
             document.getElementById('map-distancia').textContent = `${distKm.toFixed(1)} km`;
             document.getElementById('map-tempo').textContent = `${Math.floor(timeMin / 60)}h ${timeMin % 60}min`;
 
+            // NOVO: Exibir Peso e Cubagem totais da carga
+            const totalKg = load.pedidos.reduce((sum, p) => sum + (p.Quilos_Saldo || 0), 0);
+            const totalCubagem = load.pedidos.reduce((sum, p) => sum + (p.Cubagem || 0), 0);
+
+            const formatKg = totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const formatCub = totalCubagem.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+            document.getElementById('map-peso').textContent = `${formatKg} kg`;
+            document.getElementById('map-cubagem').textContent = `${formatCub} m³`;
+
             mapStatus.innerHTML = '<span class="text-success">Rota traçada! (Caminho mais curto)</span>';
 
             // Atualiza frete no card se existir (aproveita o cálculo)
@@ -4957,6 +4981,70 @@ function removerParadaDoMapa(loadId, cityKey) {
     }
 
     // Se a carga ainda existir, atualiza seu card
+    if (activeLoads[loadId]) {
+        const cardElement = document.getElementById(loadId);
+        if (cardElement) {
+            const vehicleInfo = {
+                fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
+                van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
+                tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
+                toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
+            };
+            const vInfo = vehicleInfo[load.vehicleType];
+            cardElement.outerHTML = renderLoadCard(load, load.vehicleType, vInfo);
+        }
+    }
+
+    updateAndRenderKPIs();
+    updateAndRenderChart();
+    saveStateToLocalStorage();
+}
+
+/**
+ * Remove um pedido específico de uma carga e o devolve para a lista de varejo.
+ */
+function removerPedidoDoMapa(loadId, orderNumber) {
+    const load = activeLoads[loadId];
+    if (!load) return;
+
+    // Converte para string/numero adequadamente para encontrar
+    // Num_Pedido pode ser string ou number dependendo da importação
+    const pedidoParaRemover = load.pedidos.find(p => p.Num_Pedido == orderNumber);
+    if (!pedidoParaRemover) return;
+
+    // 1. Remove da carga ativa
+    load.pedidos = load.pedidos.filter(p => p.Num_Pedido != orderNumber);
+    load.totalKg -= pedidoParaRemover.Quilos_Saldo;
+    load.totalCubagem -= (pedidoParaRemover.Cubagem || 0);
+
+    // 2. Devolve para pedidos gerais ativos
+    pedidosGeraisAtuais.push(pedidoParaRemover);
+
+    // 3. Verifica se a carga ficou vazia
+    if (load.pedidos.length === 0) {
+        delete activeLoads[loadId];
+        bootstrap.Modal.getInstance(document.getElementById('mapModal'))?.hide();
+        showToast(`Pedido ${orderNumber} removido. A carga ficou vazia e foi excluída.`, 'info');
+    } else {
+        showToast(`Pedido ${orderNumber} removido da carga. Re-traçando rota...`, 'success');
+        showRouteOnMap(loadId); // Re-abre para atualizar
+    }
+
+    // 4. Atualiza UI global (tabelas de sobras, KPIs, etc.)
+    const containerGeral = document.getElementById('resultado-geral');
+    if (containerGeral) {
+        // Recalcula agrupamento para exibir nas tabelas de disponiveis
+        const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => {
+            const rota = p.Cod_Rota;
+            if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; }
+            acc[rota].pedidos.push(p);
+            acc[rota].totalKg += p.Quilos_Saldo;
+            return acc;
+        }, {});
+        displayGerais(containerGeral, gruposGerais);
+    }
+
+    // Se a carga ainda existir, atualiza seu card na mesa
     if (activeLoads[loadId]) {
         const cardElement = document.getElementById(loadId);
         if (cardElement) {
