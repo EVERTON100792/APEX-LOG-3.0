@@ -247,6 +247,16 @@
             animation: highlight-change 1.2s ease-in-out;
         }
 
+        /* Flash de atualização para confiabilidade visual */
+        .flash-update {
+            animation: flash-update-anim 0.5s ease-out;
+        }
+
+        @keyframes flash-update-anim {
+            0% { filter: brightness(1.5) sepia(1) hue-rotate(180deg); }
+            100% { filter: brightness(1) sepia(0); }
+        }
+
         .animated-entry:nth-child(1) {
             animation-delay: 0.1s;
         }

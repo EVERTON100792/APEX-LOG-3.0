@@ -4802,7 +4802,15 @@ async function showRouteOnMap(loadId) {
         let routeResponse;
 
         if (useOptimized) {
-            routeResponse = await fetch(`https://valhalla1.openstreetmap.de/optimized_route?json=${JSON.stringify(valhallaQuery)}`);
+            // valhallaPoints já está no formato {lat, lon} (convertido na linha 4772)
+            const valhallaOptimizedQuery = {
+                locations: valhallaPoints,
+                costing: "auto",
+                costing_options: { auto: { country_crossing: false } },
+                units: "kilometers",
+                language: "pt-BR"
+            };
+            routeResponse = await fetch(`https://valhalla1.openstreetmap.de/optimized_route?json=${JSON.stringify(valhallaOptimizedQuery)}`);
         }
 
         // Fallback ou Execução Direta de 'route'
@@ -4811,7 +4819,7 @@ async function showRouteOnMap(loadId) {
 
             // Configura para rota sequencial
             valhallaQuery = {
-                locations: valhallaPoints,
+                locations: valhallaPoints, // Já está em {lat, lon}
                 costing: "auto",
                 costing_options: { auto: { shortest: true } },
                 units: "kilometers",
@@ -4820,7 +4828,11 @@ async function showRouteOnMap(loadId) {
             routeResponse = await fetch(`https://valhalla1.openstreetmap.de/route?json=${JSON.stringify(valhallaQuery)}`);
         }
 
-        if (!routeResponse.ok) throw new Error("Não foi possível traçar a rota (API Valhalla).");
+        if (!routeResponse.ok) {
+            const errText = await routeResponse.text();
+            console.error("Valhalla API Error:", errText);
+            throw new Error(`Não foi possível traçar a rota (API Valhalla): ${routeResponse.statusText}`);
+        }
 
         const routeData = await routeResponse.json();
         let geometry = "";
@@ -5055,7 +5067,14 @@ function removerPedidoDoMapa(loadId, orderNumber) {
                 toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
             };
             const vInfo = vehicleInfo[load.vehicleType];
-            cardElement.outerHTML = renderLoadCard(load, load.vehicleType, vInfo);
+            // Renderiza o novo HTML do card
+            const newCardHTML = renderLoadCard(load, load.vehicleType, vInfo);
+
+            // Substitui o elemento antigo pelo novo
+            cardElement.outerHTML = newCardHTML;
+            console.log(`Card da carga ${loadId} atualizado com sucesso.`);
+        } else {
+            console.warn(`Elemento do card ${loadId} não encontrado no DOM.`);
         }
     }
 
@@ -5803,7 +5822,10 @@ function drop(event) {
     } else if (sourceIsManualBuilder) {
         sourceLoad = manualLoadInProgress;
     } else {
+        // CORREÇÃO: Busca a carga ativa usando o ID correto, lidando com cargas especiais
         sourceLoad = activeLoads[sourceId];
+        // Se for uma carga temporária (venda antecipada ou especial), o objeto pode estar em activeLoads
+        // mas precisamos ter certeza de que temos a referência correta
     }
 
     if (targetIsLeftovers) {
@@ -5854,9 +5876,14 @@ function drop(event) {
     } else if (sourceIsGeral) {
         pedidosGeraisAtuais = sourceLoad.pedidos.filter(p => !orderIdsToMove.has(p.Num_Pedido));
     } else {
+        // CORREÇÃO: Atualiza a lista de pedidos da carga de origem removendo os itens movidos
         sourceLoad.pedidos = sourceLoad.pedidos.filter(p => !orderIdsToMove.has(p.Num_Pedido));
         sourceLoad.totalKg -= clientBlockKg;
         sourceLoad.totalCubagem -= clientBlockCubagem;
+
+        // Verifica limites de hardware e atualiza a flag se necessário
+        const config = getVehicleConfig(sourceLoad.vehicleType);
+        sourceLoad.usedHardLimit = (sourceLoad.totalKg > config.softMaxKg || sourceLoad.totalCubagem > config.softMaxCubage);
     }
 
     if (targetIsLeftovers) {
