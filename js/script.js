@@ -4779,114 +4779,12 @@ async function showRouteOnMap(loadId) {
         // Adiciona a origem no final para fechar o ciclo
         sortedLocations.push(locations[0]);
 
-        // Prepara pontos para API
-        let valhallaPoints = sortedLocations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
-
-        let valhallaQuery = {
-            locations: valhallaPoints,
-            costing: "auto",
-            costing_options: {
-                auto: {
-                    use_highways: 0.5,
-                    shortest: true
-                }
-            },
-            units: "kilometers",
-            language: "pt-BR"
-        };
-
-        const drawFallbackRoute = (points) => {
-            console.warn("Desenhando rota fallback (linhas retas).");
-            mapInstance.eachLayer((layer) => {
-                if (layer instanceof L.Polyline && !(layer instanceof L.Marker)) {
-                    mapInstance.removeLayer(layer);
-                }
-            });
-
-            const latLngs = points.map(p => [p.lat, p.lon]);
-            const polyline = L.polyline(latLngs, { color: 'red', weight: 4, dashArray: '10, 10', opacity: 0.7 }).addTo(mapInstance);
-            mapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
-
-            let totalDistKm = 0;
-            for (let i = 0; i < points.length - 1; i++) {
-                totalDistKm += mapInstance.distance(points[i], points[i + 1]) / 1000;
-            }
-
-            document.getElementById('map-distancia').textContent = `~${totalDistKm.toFixed(1)} km (Linear)`;
-            document.getElementById('map-tempo').textContent = `--`;
-            mapStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle"></i> Rota visual aproximada (Limite API).</span>';
-
-            if (activeLoads[loadId]) {
-                activeLoads[loadId].distance = totalDistKm;
-                updateLoadFreightDisplay(loadId);
-            }
-            removeOverlay();
-        };
-
-        try {
-            routeResponse = await fetch(`https://valhalla1.openstreetmap.de/route?json=${JSON.stringify(valhallaQuery)}`);
-
-            if (!routeResponse.ok) {
-                const errText = await routeResponse.text();
-                // Se for erro de limite (400) ou timeout, usa fallback
-                if (routeResponse.status === 400 || routeResponse.status === 504) {
-                    drawFallbackRoute(valhallaPoints);
-                    return;
-                }
-                throw new Error(`API Valhalla: ${routeResponse.statusText}`);
-            }
-
-            const routeData = await routeResponse.json();
-
-            if (routeData.trip) {
-                mapInstance.eachLayer((layer) => {
-                    if (layer instanceof L.Polyline && !(layer instanceof L.Marker)) {
-                        mapInstance.removeLayer(layer);
-                    }
-                });
-
-                const allPoints = [];
-                routeData.trip.legs.forEach(leg => {
-                    allPoints.push(...decodePolyline(leg.shape, 6));
-                });
-
-                if (allPoints.length > 0) {
-                    const polyline = L.polyline(allPoints, { color: 'blue', weight: 5 }).addTo(mapInstance);
-                    mapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
-                }
-
-                const distKm = routeData.trip.summary.length;
-                const timeMin = Math.round(routeData.trip.summary.time / 60);
-
-                document.getElementById('map-distancia').textContent = `${distKm.toFixed(1)} km`;
-                document.getElementById('map-tempo').textContent = `${Math.floor(timeMin / 60)}h ${timeMin % 60}min`;
-
-                // NOVO: Exibir Peso e Cubagem totais da carga
-                const totalKg = load.pedidos.reduce((sum, p) => sum + (p.Quilos_Saldo || 0), 0);
-                const totalCubagem = load.pedidos.reduce((sum, p) => sum + (p.Cubagem || 0), 0);
-                const formatKg = totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                const formatCub = totalCubagem.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-
-                document.getElementById('map-peso').textContent = `${formatKg} kg`;
-                document.getElementById('map-cubagem').textContent = `${formatCub} m³`;
-
-                mapStatus.innerHTML = '<span class="text-success">Rota Otimizada Traçada!</span>';
-
-                if (activeLoads[loadId]) {
-                    activeLoads[loadId].distance = distKm;
-                    updateLoadFreightDisplay(loadId);
-                }
-                removeOverlay();
-            }
-
-        } catch (e) {
-            console.error("Erro ao traçar rota:", e);
-            drawFallbackRoute(valhallaPoints);
-        }
+        await calculateAndDrawRoute(sortedLocations, loadId);
 
     } catch (e) {
         console.error("Erro geral no mapa:", e);
         mapStatus.innerHTML = `<span class="text-danger">Erro: ${e.message}</span>`;
+    } finally {
         removeOverlay();
     }
 }
@@ -5931,7 +5829,8 @@ function drop(event) {
         fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
         van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
         tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
-        toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
+        toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+        especial: { name: 'Especial', colorClass: 'bg-danger', textColor: 'text-white', icon: 'bi-star-fill' }
     };
 
     // Instead of calling renderAllUI(), we will manually update the UI
@@ -7572,7 +7471,7 @@ async function saveStateToLocalStorage() {
             lastActiveTab: localStorage.getItem('lastActiveTab') || '#fiorino-tab-pane' // Salva a aba ativa
         };
         localStorage.setItem('logisticsAppState', JSON.stringify(state));
-        console.log("Estado da aplicaá§á£o salvo no Local Storage.");
+        // console.log("Estado da aplicação salvo no Local Storage.");
     } catch (e) {
         console.error("Erro ao salvar o estado no Local Storage:", e);
         showToast("Erro ao salvar o estado. O armazenamento pode estar cheio.", 'error');
@@ -8226,3 +8125,414 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// --- INTERACTIVE ROUTE EDITING ---
+let currentRouteLocations = []; // Store current ordered locations
+
+function renderRouteSidebar(locations) {
+    const listContainer = document.getElementById('route-stops-list');
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+
+    locations.forEach((loc, index) => {
+        // Skip last if it's just loop closure
+        if (index === locations.length - 1 && index > 0 && loc.name === locations[0].name) return;
+
+        const isOrigin = loc.isOrigin || index === 0;
+
+        const li = document.createElement('div');
+        // Estilo Premium Dark
+        const bgClass = isOrigin ? 'bg-success bg-opacity-25' : 'bg-dark';
+        const borderClass = 'border-bottom border-secondary';
+        li.className = `list-group-item list-group-item-action d-flex align-items-center justify-content-between ${bgClass} ${borderClass} text-white`;
+        if (!isOrigin) {
+            li.draggable = true;
+            li.style.cursor = 'grab';
+        }
+
+        li.dataset.index = index;
+
+        const countPedidos = loc.pedidos ? loc.pedidos.length : 0;
+
+        li.innerHTML = `
+            <div class="d-flex align-items-center">
+                <span class="badge ${isOrigin ? 'bg-success' : 'bg-secondary'} rounded-pill me-2">${index === 0 ? 'S' : index}</span>
+                <div class="small">
+                    <div class="fw-bold text-truncate" style="max-width: 200px;" title="${loc.name}">${loc.name}</div>
+                    ${!isOrigin ? `<span class="text-muted" style="font-size: 0.75rem;">${countPedidos} pedidos</span>` : ''}
+                </div>
+            </div>
+            ${!isOrigin ? '<i class="bi bi-grip-vertical text-muted"></i>' : ''}
+        `;
+
+        if (!isOrigin) {
+            addDragEvents(li);
+        }
+
+        listContainer.appendChild(li);
+    });
+}
+
+function addDragEvents(item) {
+    item.addEventListener('dragstart', handleDragStart);
+    item.addEventListener('dragover', handleDragOver);
+    item.addEventListener('drop', handleDrop);
+    item.addEventListener('dragenter', handleDragEnter);
+    item.addEventListener('dragleave', handleDragLeave);
+    item.addEventListener('dragend', handleDragEnd);
+}
+
+let dragSrcEl = null;
+
+function handleDragStart(e) {
+    dragSrcEl = this;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+    this.classList.add('opacity-50');
+}
+
+function handleDragOver(e) {
+    if (e.preventDefault) e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+}
+
+function handleDragEnter(e) {
+    this.classList.add('active');
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('active');
+}
+
+function handleDrop(e) {
+    if (e.stopPropagation) e.stopPropagation();
+
+    if (dragSrcEl !== this) {
+        const parent = this.parentNode;
+        const droppedIndex = [...parent.children].indexOf(this);
+        const draggedIndex = [...parent.children].indexOf(dragSrcEl);
+
+        if (draggedIndex < droppedIndex) {
+            parent.insertBefore(dragSrcEl, this.nextSibling);
+        } else {
+            parent.insertBefore(dragSrcEl, this);
+        }
+    }
+    return false;
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('opacity-50');
+    const items = document.querySelectorAll('#route-stops-list .list-group-item');
+    items.forEach(item => item.classList.remove('active'));
+}
+
+// OTIMIZAÇÃO LOCAL (Vizinho Mais Próximo)
+async function optimizeRouteSequence() {
+    if (!currentRouteLocations || currentRouteLocations.length <= 3) {
+        showToast("Poucos pontos para otimizar.", "info");
+        return;
+    }
+
+    const mapStatus = document.getElementById('map-status');
+    mapStatus.innerHTML = '<span class="text-info">Otimizando sequência...</span>';
+
+    // Separa Origem (Mantenha fixo o primeiro)
+    const origin = currentRouteLocations[0];
+    const isLoop = currentRouteLocations[currentRouteLocations.length - 1].name === origin.name;
+
+    // Pontos intermediários para ordenar
+    // Se for loop, ignoramos o último pois ele será recolocado no final
+    let pointsToOptimize = currentRouteLocations.slice(1, isLoop ? -1 : undefined);
+
+    if (pointsToOptimize.length < 2) {
+        showToast("Rota já está direta.", "info");
+        return;
+    }
+
+    // Algoritmo: Nearest Neighbor a partir da Origem
+    let sortedPoints = [];
+    let currentRef = origin;
+    let remaining = [...pointsToOptimize];
+
+    while (remaining.length > 0) {
+        let nearestIdx = -1;
+        let minDistance = Infinity;
+
+        for (let i = 0; i < remaining.length; i++) {
+            const p = remaining[i];
+            // Distância Euclidiana simples (bombando para velocidade)
+            const dist = Math.sqrt(Math.pow(p.coords.lat - currentRef.coords.lat, 2) + Math.pow(p.coords.lng - currentRef.coords.lng, 2));
+
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearestIdx = i;
+            }
+        }
+
+        if (nearestIdx !== -1) {
+            sortedPoints.push(remaining[nearestIdx]);
+            currentRef = remaining[nearestIdx];
+            remaining.splice(nearestIdx, 1);
+        } else {
+            break;
+        }
+    }
+
+    // Reconstrói a lista principal com NN
+    let newLocations = [origin, ...sortedPoints];
+
+    // --- 2-OPT OPTIMIZATION (Refinamento) ---
+    // Tenta descruzar as linhas para reduzir a distância total
+    // Tratamos como um caminho fixo no inicio (Origin)
+    // Se for loop, o custo de volta para a origem deve ser considerado? 
+    // Por simplicidade, otimizamos o caminho de ida, e se for loop, a volta é consequência.
+    // Mas para ser preciso no TSP, o loop importa. Vamos otimizar o PATH completo.
+
+    // Função auxiliar de distância
+    const calcDist = (p1, p2) => Math.sqrt(Math.pow(p1.coords.lat - p2.coords.lat, 2) + Math.pow(p1.coords.lng - p2.coords.lng, 2));
+
+    let run2Opt = true;
+    let maxIterations = 100; // Evita travar o navegador
+    let iter = 0;
+
+    // Removemos qualquer fechamento de loop para facilitar o swap
+    // A rota para otimizar é: Origin -> ...Intermediates...
+    // Se for loop, adicionaremos o fechamento no cálculo de custo se necessário.
+
+    // Trabalhamos com indices de 1 até length-1 (mantendo 0 fixo)
+
+    while (run2Opt && iter < maxIterations) {
+        run2Opt = false;
+        iter++;
+
+        // Percorre arestas (i, i+1) e (j, j+1)
+        // newLocations indexes: 0 (Origin), 1, 2, ... N
+        // Queremos testar swap do segmento entre i+1 e j
+
+        for (let i = 0; i < newLocations.length - 2; i++) {
+            for (let j = i + 2; j < newLocations.length - 1; j++) {
+
+                const p_i = newLocations[i];
+                const p_i_next = newLocations[i + 1];
+                const p_j = newLocations[j];
+                const p_j_next = newLocations[j + 1];
+
+                // Distância atual: (i -> i+1) + (j -> j+1)
+                const currentDist = calcDist(p_i, p_i_next) + calcDist(p_j, p_j_next);
+
+                // Distância se trocar: (i -> j) + (i+1 -> j+1)
+                // O segmento [i+1...j] será invertido
+                const newDist = calcDist(p_i, p_j) + calcDist(p_i_next, p_j_next);
+
+                if (newDist < currentDist) {
+                    // Realiza o 2-opt swap: inverte o segmento do indice i+1 até j
+                    // Exemplo: 0-1-2-3-4-5. Swap(1, 4) -> inverte 2-3-4.
+                    // Resultado: 0-1-4-3-2-5
+
+                    const segment = newLocations.slice(i + 1, j + 1).reverse();
+                    newLocations.splice(i + 1, segment.length, ...segment);
+
+                    run2Opt = true; // Continua otimizando
+                }
+            }
+        }
+    }
+
+    if (isLoop) newLocations.push(origin);
+
+    const loadId = window.currentMapLoadId;
+    showToast(`Rota otimizada! (${iter} passadas)`, "success");
+    await calculateAndDrawRoute(newLocations, loadId, true);
+}
+
+async function applyRouteReorder() {
+    const listItems = document.querySelectorAll('#route-stops-list .list-group-item');
+    if (!listItems || listItems.length === 0) return;
+
+    // Create map of currentLocations for easy access
+    // We used index as dataset, but relying on index might be tricky if content moved.
+    // Better: We moved the DOM elements, so their current order IS the new order.
+    // But we need to map back to the original objects.
+
+    // We stored the ORIGINAL index in dataset.index.
+    const newOrderIndices = Array.from(listItems).map(item => parseInt(item.dataset.index));
+
+    const newLocations = [];
+
+    // 1. Add reordered items (including implicit Origin at 0 if it was in the list)
+    // In our render logic, index 0 (Start) IS in the list.
+    newOrderIndices.forEach(oldIndex => {
+        newLocations.push(currentRouteLocations[oldIndex]);
+    });
+
+    // 2. Handle Loop Closure
+    // If the original route had the Origin at the end (Loop), we should ensure the new route also does.
+    // Typically Valhalla 'route' endpoint doesn't auto-close unless specified or if we provide the point.
+    // Let's ensure the last point is Origin if it was originally.
+
+    const originalFirst = currentRouteLocations[0];
+    const originalLast = currentRouteLocations[currentRouteLocations.length - 1];
+
+    // If original was a loop (First == Last name), append Origin to newLocations if not already there
+    // But wait, applyRouteReorder reconstructs based on list items.
+    // Our list items logic EXCLUDED the last item if it was a duplicate module.
+    // So newLocations currently lacks the closing loop.
+
+    if (originalFirst && originalLast && originalFirst.name === originalLast.name) {
+        newLocations.push(originalFirst);
+    }
+
+    const loadId = window.currentMapLoadId;
+    if (!loadId) return;
+
+    await calculateAndDrawRoute(newLocations, loadId, true);
+}
+
+// Extracted and Adapted Route Drawing Logic
+async function calculateAndDrawRoute(locations, loadId, isManual = false) {
+    const mapStatus = document.getElementById('map-status');
+    const mapContainer = document.getElementById('map-container');
+
+    if (mapStatus) mapStatus.innerHTML = '<span class="text-info">Calculando rota...</span>';
+
+    // 1. Update Global State
+    currentRouteLocations = locations;
+
+    // 2. Render Sidebar
+    renderRouteSidebar(locations);
+
+    // 3. Clear existing layers
+    if (mapInstance) {
+        mapInstance.eachLayer(layer => {
+            if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+                mapInstance.removeLayer(layer);
+            }
+        });
+    } else {
+        // Should exist, but if not initialized...
+        // mapInstance = L.map(mapContainer)...
+        // For now assume initialized by showRouteOnMap
+    }
+
+    // 4. Add Markers
+    const bounds = L.latLngBounds();
+
+    locations.forEach((loc, idx) => {
+        // Skip last if duplicate (loop)
+        if (idx === locations.length - 1 && idx > 0 && loc.name === locations[0].name) return;
+
+        let popupContent = `<b>${idx === 0 ? 'Origem (Selmi)' : idx + 'ª Entrega'}:</b><br>${loc.name}`;
+
+        if (!loc.isOrigin) {
+            const totalKgParada = loc.pedidos ? loc.pedidos.reduce((sum, p) => sum + p.Quilos_Saldo, 0) : 0;
+            const qtdPedidos = loc.pedidos ? loc.pedidos.length : 0;
+            popupContent += `<br><span class="text-info">${qtdPedidos} Pedido(s)</span> | <b>${totalKgParada.toFixed(2)}kg</b>`;
+            popupContent += `<div style="max-height: 150px; overflow-y: auto; margin: 5px 0; border-top: 1px solid #eee;">`;
+            if (loc.pedidos) {
+                loc.pedidos.forEach(p => {
+                    popupContent += `
+                        <div class="d-flex justify-content-between align-items-center my-1 small text-dark">
+                            <span>#${p.Num_Pedido} (${p.Quilos_Saldo.toFixed(1)}kg)</span>
+                            <button class="btn btn-xs btn-outline-danger py-0 px-1" onclick="removerPedidoDoMapa('${loadId}', '${p.Num_Pedido}')" title="Remover apenas este pedido">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>`;
+                });
+            }
+            popupContent += `</div>`;
+            popupContent += `<hr class="my-2"><button class="btn btn-xs btn-danger w-100" onclick="removerParadaDoMapa('${loadId}', '${loc.name ? loc.name.replace("'", "\\'") : ''}')">
+                    <i class="bi bi-trash-fill me-1"></i>Remover Toda Entrega
+                </button>`;
+        }
+
+        const marker = L.marker(loc.coords).addTo(mapInstance).bindPopup(popupContent);
+
+        if (idx === 0) {
+            marker.setIcon(L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+            }));
+        } else {
+            const number = idx;
+            const numberedIcon = L.divIcon({
+                className: 'custom-div-icon',
+                html: `<div style="background-color: ${isManual ? '#e67e22' : '#d63031'}; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-weight: bold; font-family: sans-serif; font-size: 13px;">${number}</div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+                popupAnchor: [0, -14]
+            });
+            marker.setIcon(numberedIcon);
+        }
+        bounds.extend(loc.coords);
+    });
+
+    if (!bounds.isValid()) return;
+    mapInstance.fitBounds(bounds, { padding: [50, 50] });
+
+    // 5. Valhalla API Call
+    let valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
+
+    let valhallaQuery = {
+        locations: valhallaPoints,
+        costing: "auto",
+        costing_options: {
+            auto: {
+                use_highways: 0.5,
+                shortest: true
+            }
+        },
+        units: "kilometers",
+        language: "pt-BR"
+    };
+
+    let endpoint = 'route';
+    let routeUrl = `https://valhalla1.openstreetmap.de/${endpoint}?json=${JSON.stringify(valhallaQuery)}`;
+
+    try {
+        const resp = await fetch(routeUrl);
+        const data = await resp.json();
+
+        if (data.trip && data.trip.legs) {
+            // FIX: Use legs processing like original working code
+            const allPoints = [];
+            data.trip.legs.forEach(leg => {
+                allPoints.push(...decodePolyline(leg.shape, 6));
+            });
+            const polyline = L.polyline(allPoints, { color: isManual ? '#e67e22' : 'blue', weight: 5, opacity: 0.7 }).addTo(mapInstance);
+
+            // Update Stats
+            const totalDistKm = data.trip.summary.length.toFixed(1);
+            const totalTimeMin = (data.trip.summary.time / 60).toFixed(0);
+
+            if (document.getElementById('map-distancia')) document.getElementById('map-distancia').textContent = `${totalDistKm} km`;
+            if (document.getElementById('map-tempo')) document.getElementById('map-tempo').textContent = `${totalTimeMin} min`;
+
+            // RESTORED: Calculate and Display Total Weight/Cubage from Locations
+            let totalKg = 0;
+            let totalCubagem = 0;
+
+            locations.forEach(loc => {
+                if (loc.pedidos) {
+                    totalKg += loc.pedidos.reduce((sum, p) => sum + (p.Quilos_Saldo || 0), 0);
+                    totalCubagem += loc.pedidos.reduce((sum, p) => sum + (p.Cubagem || 0), 0);
+                }
+            });
+
+            const formatKg = totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const formatCub = totalCubagem.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+            if (document.getElementById('map-peso')) document.getElementById('map-peso').textContent = `${formatKg} kg`;
+            if (document.getElementById('map-cubagem')) document.getElementById('map-cubagem').textContent = `${formatCub} m³`;
+
+            if (mapStatus) mapStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Rota calculada com sucesso!</span>';
+        } else {
+            if (mapStatus) mapStatus.innerHTML = '<span class="text-danger">Erro ao traçar rota.</span>';
+        }
+    } catch (err) {
+        console.warn(err);
+        if (mapStatus) mapStatus.innerHTML = '<span class="text-danger">Erro de API.</span>';
+    }
+}
