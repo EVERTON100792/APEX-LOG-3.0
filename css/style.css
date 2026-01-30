@@ -253,8 +253,25 @@
         }
 
         @keyframes flash-update-anim {
-            0% { filter: brightness(1.5) sepia(1) hue-rotate(180deg); }
-            100% { filter: brightness(1) sepia(0); }
+            0% {
+                filter: brightness(1.5) sepia(1) hue-rotate(180deg);
+            }
+
+            100% {
+                filter: brightness(1) sepia(0);
+            }
+        }
+
+        /* Estilo para linha de pedido selecionada (Shortcut 'C') */
+        .selected-order-row {
+            background-color: rgba(0, 191, 165, 0.2) !important;
+            /* Verde neon suave */
+            border: 1px solid #00bfa5 !important;
+            transition: all 0.2s ease;
+        }
+
+        .selected-order-row td {
+            color: var(--dark-text-primary) !important;
         }
 
         .animated-entry:nth-child(1) {
@@ -720,12 +737,153 @@
             animation-delay: 0.4s;
         }
 
-        /* --- ESTILOS OBSOLETOS DE SIDEBAR (COMENTADOS) --- */
-        /* 
-        #sidebar .nav-link .submenu-arrow {
-            transition: transform 0.3s ease;
-            float: right;
+
+        /* --- HOLOGRAPHIC MAP LOADING OVERLAY --- */
+        #map-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 17, 32, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: overlay-fade-in 0.3s ease-out;
         }
+
+        #map-loading-overlay.fade-out {
+            animation: overlay-fade-out 0.3s ease-in forwards;
+        }
+
+        @keyframes overlay-fade-in {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes overlay-fade-out {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Radar Scanner Effect */
+        .scanner-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 2rem;
+        }
+
+        .scanner-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(14, 165, 233, 0.3);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.1);
+        }
+
+        .scanner-ring::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            width: 100%;
+            height: 100%;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--dark-accent);
+            border-right: 2px solid var(--dark-accent);
+            border-radius: 50%;
+            animation: scanner-spin 1.5s linear infinite;
+        }
+
+        .scanner-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, var(--dark-accent) 0%, transparent 70%);
+            opacity: 0.5;
+            animation: scanner-pulse 2s ease-in-out infinite;
+        }
+
+        /* Text Effect */
+        .loading-text-container {
+            text-align: center;
+        }
+
+        .loading-text-glitch {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark-text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-shadow: 0 0 10px var(--dark-accent-glow);
+            position: relative;
+            display: inline-block;
+        }
+
+        .loading-text-glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+
+        .loading-subtext {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            color: var(--dark-text-secondary);
+            margin-top: 0.5rem;
+            opacity: 0.7;
+        }
+
+        @keyframes scanner-spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes scanner-pulse {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0.3;
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.6;
+            }
+        }
+
 
         #sidebar .nav-link.collapsed .submenu-arrow {
             transform: rotate(-90deg);
@@ -803,6 +961,7 @@
             padding: 1rem 0;
             overflow-y: hidden;
         }
+
         */
 
         /* --- ESTILO DOS CARDS (COM EFEITO DE BORDA EM GRADIENTE) --- */

@@ -412,13 +412,21 @@ const isSpecialClient = (p) => p.Nome_Cliente && specialClientNames.includes(p.N
 
 function getVehicleConfig(vehicleType) {
     const configs = {
-        minKg: parseFloat(document.getElementById(`${vehicleType}MinCapacity`).value) || 0,
-        softMaxKg: parseFloat(document.getElementById(`${vehicleType}MaxCapacity`).value) || 0,
-        softMaxCubage: parseFloat(document.getElementById(`${vehicleType}Cubage`).value) || 0,
-        hardMaxKg: parseFloat(document.getElementById(`${vehicleType}HardMaxCapacity`)?.value || document.getElementById(`${vehicleType}MaxCapacity`).value) || 0,
-        hardMaxCubage: parseFloat(document.getElementById(`${vehicleType}HardCubage`)?.value || document.getElementById(`${vehicleType}Cubage`).value) || 0,
+        minKg: parseFloat(document.getElementById(`${vehicleType}MinCapacity`)?.value) || 0,
+        softMaxKg: parseFloat(document.getElementById(`${vehicleType}MaxCapacity`)?.value) || 0,
+        softMaxCubage: parseFloat(document.getElementById(`${vehicleType}Cubage`)?.value) || 0,
+        hardMaxKg: parseFloat(document.getElementById(`${vehicleType}HardMaxCapacity`)?.value || document.getElementById(`${vehicleType}MaxCapacity`)?.value) || 0,
+        hardMaxCubage: parseFloat(document.getElementById(`${vehicleType}HardCubage`)?.value || document.getElementById(`${vehicleType}Cubage`)?.value) || 0,
     };
     return configs;
+}
+
+// Helper para verificar/mockar config de Especial se não existir
+function getVehicleConfigSafe(vehicleType) {
+    if (vehicleType === 'especial') {
+        return { minKg: 0, softMaxKg: 99999, softMaxCubage: 99999, hardMaxKg: 99999, hardMaxCubage: 99999 };
+    }
+    return getVehicleConfig(vehicleType);
 }
 
 let saveStateTimeout = null;
@@ -429,84 +437,8 @@ function debouncedSaveState() {
     }, 1500); // Salva após 1.5s de inatividade para não travar a UI
 }
 
-function changeLoadVehicleType(loadId, newVehicleType) {
-    if (!activeLoads || !activeLoads[loadId]) return;
+// function changeLoadVehicleType removed (duplicate)
 
-    const load = activeLoads[loadId];
-    load.vehicleType = newVehicleType;
-
-    const cardElement = document.getElementById(loadId);
-    if (cardElement) {
-        const vehicleInfo = {
-            fiorino: { name: 'Fiorino', icon: 'bi-box-seam-fill' },
-            van: { name: 'Van', icon: 'bi-truck-front-fill' },
-            tresQuartos: { name: '3/4', icon: 'bi-truck-flatbed' },
-            toco: { name: 'Toco', icon: 'bi-inboxes-fill' }
-        };
-
-        const vInfo = vehicleInfo[newVehicleType];
-
-        // 1. Atualizar o Atributo de Dados (Muda a cor via CSS)
-        cardElement.setAttribute('data-vehicle-type', newVehicleType);
-        cardElement.className = `premium-load-card drop-zone-card vehicle-${newVehicleType} animated-entry ${cardElement.classList.contains('priority-glow') ? 'priority-glow' : ''}`;
-
-        // 2. Atualizar o Ícone (Sem reconstruir o header todo)
-        const iconElement = cardElement.querySelector('.load-badge-id i');
-        if (iconElement) {
-            iconElement.className = `bi ${vInfo.icon}`;
-            // Ajustar cor do ícone
-            let iconColor = '#6366f1';
-            if (newVehicleType === 'fiorino') iconColor = '#10b981';
-            else if (newVehicleType === 'van') iconColor = '#3b82f6';
-            else if (newVehicleType === 'tresQuartos') iconColor = '#f59e0b';
-            iconElement.style.color = iconColor;
-        }
-
-        // 3. Atualizar o Nome do Veículo
-        const nameElement = cardElement.querySelector('.load-main-title');
-        if (nameElement) {
-            // Preservar os badges (SP, Prioridade, etc)
-            const badges = nameElement.querySelector('.badge-group')?.outerHTML || '';
-            const spBadge = nameElement.querySelector('.badge-neon-info')?.outerHTML || '';
-            nameElement.innerHTML = `${vInfo.name}${spBadge} ${badges}`;
-        }
-
-        // 4. Recalcular o Progresso com os novos limites
-        const config = getVehicleConfig(newVehicleType);
-        const maxKg = config.hardMaxKg;
-        const pesoPercentual = maxKg > 0 ? (load.totalKg / maxKg) * 100 : 0;
-
-        const progressBar = cardElement.querySelector('.premium-progress-bar');
-        if (progressBar) {
-            progressBar.style.width = `${Math.min(pesoPercentual, 100)}%`;
-
-            // Atualizar o tema do progresso
-            let theme = 'secondary';
-            if (load.totalKg > maxKg || pesoPercentual > 100) theme = 'danger';
-            else if (pesoPercentual > (config.softMaxKg / maxKg * 100)) theme = 'warning';
-            else if (pesoPercentual >= (config.minKg / maxKg * 100)) theme = 'success';
-
-            progressBar.className = `premium-progress-bar theme-${theme}`;
-        }
-
-        // 5. Recalcular o frete
-        if (typeof updateLoadFreightDisplay === 'function') {
-            updateLoadFreightDisplay(loadId);
-        }
-
-        // 6. Pequeno efeito de feedback
-        cardElement.classList.add('highlight-change-animation');
-        setTimeout(() => cardElement.classList.remove('highlight-change-animation'), 1000);
-    }
-
-    // Otimização: Adia as atualizações globais e pesadas para o próximo frame
-    // Isso garante que a mudança visual do card seja instantânea
-    requestAnimationFrame(() => {
-        updateAndRenderKPIs();
-        updateAndRenderChart();
-        debouncedSaveState(); // Salva em background
-    });
-}
 
 
 
@@ -2518,10 +2450,10 @@ function createTable(pedidos, columnsToDisplay, sourceId = '') {
         const isDraggable = sourceId !== ''; // Sá³ permite arrastar se tiver um sourceId
         const clienteIdNormalizado = normalizeClientId(p.Cliente);
         table += `<tr id="pedido-${p.Num_Pedido}"
-                                     class="${rowClass}"
+                                     class="${rowClass} order-item-row"
                                      data-cliente-id="${clienteIdNormalizado}" 
                                      data-pedido-id="${p.Num_Pedido}"
-                                     onclick="highlightClientRows(event)"
+                                     onclick="highlightClientRows(event); selectOrder(this, '${p.Num_Pedido}')"
                                      draggable="${isDraggable}"
                                      ondragstart="dragStart(event, '${p.Num_Pedido}', '${clienteIdNormalizado}', '${sourceId}')">`;
         table += `<td><input type="checkbox" class="form-check-input row-checkbox" value="${p.Num_Pedido}" onclick="updateBulkActionsPanel(event)"></td>`;
@@ -3157,7 +3089,7 @@ function imprimirCargaIndividual(loadId) {
 
 
 function isMoveValid(load, groupToAdd, vehicleType) {
-    const config = getVehicleConfig(vehicleType);
+    const config = getVehicleConfigSafe(vehicleType);
 
     if ((load.totalKg + groupToAdd.totalKg) > config.hardMaxKg) return false;
     if ((load.totalCubagem + groupToAdd.totalCubagem) > config.hardMaxCubage) return false;
@@ -3250,7 +3182,7 @@ function runHeuristicOptimization(packableGroups, vehicleType) {
 }
 
 function createSolutionFromHeuristic(itemsParaEmpacotar, vehicleType) {
-    const config = getVehicleConfig(vehicleType);
+    const config = getVehicleConfigSafe(vehicleType);
     let loads = [];
     let leftoverItems = [];
 
@@ -3309,7 +3241,7 @@ function createSolutionFromHeuristic(itemsParaEmpacotar, vehicleType) {
 }
 
 function getSolutionEnergy(solution, vehicleType) {
-    const config = getVehicleConfig(vehicleType);
+    const config = getVehicleConfigSafe(vehicleType);
     const balancingFactor = 0.01; // Fator de peso para a penalidade de balanceamento.
 
     const leftoverWeight = solution.leftovers.reduce((sum, group) => sum + group.totalKg, 0);
@@ -3358,7 +3290,7 @@ function startThinkingText() {
 function stopThinkingText() { if (thinkingInterval) clearInterval(thinkingInterval); }
 
 function calculateDisplaySobras(solution, vehicleType) {
-    const config = getVehicleConfig(vehicleType);
+    const config = getVehicleConfigSafe(vehicleType);
     let totalSobras = 0;
     totalSobras += solution.leftovers.reduce((sum, group) => sum + group.totalKg, 0);
     solution.loads.forEach(load => {
@@ -4089,7 +4021,7 @@ function refineLoadsWithSimpleFit(initialLoads, initialLeftovers) {
                 load.totalKg += leftoverGroup.totalKg;
                 load.totalCubagem += leftoverGroup.totalCubagem;
                 // isMoveValid garante os hard limits, mas podemos atualizar flag se necessário
-                const config = getVehicleConfig(vehicleType);
+                const config = getVehicleConfigSafe(vehicleType);
                 load.usedHardLimit = (load.totalKg > config.softMaxKg || load.totalCubagem > config.softMaxCubage);
 
                 inserted = true;
@@ -4122,7 +4054,7 @@ async function refinarComReconstrucao(initialLoads, initialLeftovers, vehicleTyp
     loads.sort((a, b) => a.totalKg - b.totalKg);
     const worstLoad = loads[0];
 
-    const config = getVehicleConfig(vehicleType);
+    const config = getVehicleConfigSafe(vehicleType);
     if (worstLoad.totalKg >= config.softMaxKg) {
         console.log("POLIMENTO (Ná­vel 4): A carga menos cheia já¡ está¡ bem otimizada. Pulando etapa.");
         return { refinedLoads: initialLoads, remainingLeftovers: initialLeftovers };
@@ -4222,7 +4154,7 @@ function renderLoadCard(load, vehicleType, vInfo) {
     const isSaoPauloRoute = load.pedidos.some(p => ['2555', '2560', '2561', '2571', '2575', '2705', '2735', '2745'].includes(String(p.Cod_Rota)));
     const spDescription = isSaoPauloRoute ? ' <span class="badge-neon-info">SP</span>' : '';
 
-    const config = getVehicleConfig(vehicleType);
+    const config = getVehicleConfigSafe(vehicleType);
     const maxKg = config.hardMaxKg;
 
     const isOverloaded = maxKg > 0 && load.totalKg > maxKg;
@@ -4248,6 +4180,7 @@ function renderLoadCard(load, vehicleType, vInfo) {
                 <option value="van" ${vehicleType === 'van' ? 'selected' : ''}>Van</option>
                 <option value="tresQuartos" ${vehicleType === 'tresQuartos' ? 'selected' : ''}>3/4</option>
                 <option value="toco" ${vehicleType === 'toco' ? 'selected' : ''}>Toco</option>
+                <option value="especial" ${vehicleType === 'especial' ? 'selected' : ''}>Manual</option>
             </select>
             <i class="bi bi-chevron-down select-icon"></i>
         </div>`;
@@ -4618,6 +4551,9 @@ async function showRouteOnMap(loadId) {
     const load = activeLoads[loadId];
     if (load) {
         mapTitle.textContent = `Rota - Carga ${load.numero || load.id}`;
+        // Set global tracker
+        if (typeof currentMapLoadId !== 'undefined') currentMapLoadId = loadId;
+        else window.currentMapLoadId = loadId;
     }
 
     mapModal.show();
@@ -4626,10 +4562,41 @@ async function showRouteOnMap(loadId) {
     mapModalEl.addEventListener('shown.bs.modal', function () {
         if (mapInstance) {
             mapInstance.invalidateSize();
-            // Tenta ajustar o zoom novamente se já tiver bounds
-            // (Opção extra de segurança)
         }
     }, { once: true }); // Executa apenas uma vez por abertura
+
+    // --- HOLOGRAPHIC LOADING OVERLAY ---
+    const showLoadingOverlay = () => {
+        const overlayHtml = `
+            <div id="map-loading-overlay">
+                <div class="scanner-container">
+                    <div class="scanner-ring"></div>
+                    <div class="scanner-core"></div>
+                </div>
+                <div class="loading-text-container">
+                    <div class="loading-text-glitch" data-text="ROTEIRIZANDO...">ROTEIRIZANDO...</div>
+                    <div class="loading-subtext" id="map-loading-subtext">Calculando melhor trajeto e paradas</div>
+                </div>
+            </div>
+        `;
+        mapContainer.insertAdjacentHTML('beforeend', overlayHtml);
+    };
+
+    const updateOverlayStatus = (text) => {
+        const subtext = document.getElementById('map-loading-subtext');
+        if (subtext) subtext.textContent = text;
+    };
+
+    const removeOverlay = () => {
+        const overlay = document.getElementById('map-loading-overlay');
+        if (overlay) {
+            overlay.classList.add('fade-out');
+            setTimeout(() => overlay.remove(), 300);
+        }
+    };
+
+    showLoadingOverlay();
+    // -----------------------------------
 
     // Valhalla/Nominatim não usam chaves de API obrigatórias do GraphHopper
     const apiKey = document.getElementById('graphhopperApiKey')?.value || "";
@@ -4657,8 +4624,15 @@ async function showRouteOnMap(loadId) {
 
         mapStatus.innerHTML = '<span class="text-info">Buscando coordenadas das cidades...</span>';
 
+        // Pre-carrega coordenadas de Rolândia para evitar fetch desnecessário (e erros de DNS)
+        const rolandiaCoord = { lat: -23.3002, lng: -51.3358 };
+        if (!cityCoordsCache['ROLANDIA']) cityCoordsCache['ROLANDIA'] = rolandiaCoord;
+        if (!cityCoordsCache['ROLANDIA, PR']) cityCoordsCache['ROLANDIA, PR'] = rolandiaCoord;
+        if (!cityCoordsCache['ROLANDIA , PR']) cityCoordsCache['ROLANDIA , PR'] = rolandiaCoord; // Cacheia a versão 'suja' também
+
         for (const city of uniqueCities) {
-            const cleanedCity = city.replace(/\s+/g, ' ').trim();
+            // Limpeza mais robusta: remove espaços duplos e garante espaçamento correto na vírgula
+            const cleanedCity = city.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ', ').trim().toUpperCase();
 
             // Verifica no cache global primeiro
             if (cityCoordsCache[cleanedCity]) {
@@ -4687,6 +4661,9 @@ async function showRouteOnMap(loadId) {
                 }
             } catch (err) {
                 console.warn(`Erro ao geocodificar ${city}:`, err);
+                if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+                    showToast('Erro de conexão. Verifique sua internet.', 'error');
+                }
             }
             await delay(1000); // Respeita rate limit de 1 req/sec do Nominatim
         }
@@ -4769,141 +4746,148 @@ async function showRouteOnMap(loadId) {
         // 4. Rota Otimizada (Valhalla)
         mapStatus.innerHTML = '<span class="text-info">Otimizando rota...</span>';
 
-        let valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
-        valhallaPoints.push({ lat: origemCoords.lat, lon: origemCoords.lng });
+        // OTIMIZAÇÃO CLIENT-SIDE (Nearest Neighbor)
+        // Ordena os pontos pela distância mais curta a partir do ponto atual
+        // Isso evita o zig-zag que estoura o limite de 1500km da API quando a lista está desordenada
+        let sortedLocations = [locations[0]]; // Começa na origem
+        let remainingLocations = locations.slice(1);
 
-        // Valhalla tem limites. Para rotas MUITO grandes (muitas paradas), simplificamos ou usamos chunks.
-        // Aqui, aplicamos uma estratégia de fallback se falhar.
-        // E mudamos o costing para 'auto' com preferência por distância curta.
+        while (remainingLocations.length > 0) {
+            const last = sortedLocations[sortedLocations.length - 1];
+            let nearestIndex = -1;
+            let minDist = Infinity;
 
-        // CORREÇÃO: Se houver muitos pontos (>6), pula otimização para evitar timeout (504)
-        // Heurística: API Demo engasga com >6 pontos.
-        const USE_OPTIMIZATION_LIMIT = 6;
-        let useOptimized = valhallaPoints.length <= USE_OPTIMIZATION_LIMIT;
+            for (let i = 0; i < remainingLocations.length; i++) {
+                const dist = Math.sqrt(
+                    Math.pow(remainingLocations[i].coords.lat - last.coords.lat, 2) +
+                    Math.pow(remainingLocations[i].coords.lng - last.coords.lng, 2)
+                );
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearestIndex = i;
+                }
+            }
+
+            if (nearestIndex !== -1) {
+                sortedLocations.push(remainingLocations[nearestIndex]);
+                remainingLocations.splice(nearestIndex, 1);
+            } else {
+                break; // Should not happen
+            }
+        }
+
+        // Adiciona a origem no final para fechar o ciclo
+        sortedLocations.push(locations[0]);
+
+        // Prepara pontos para API
+        let valhallaPoints = sortedLocations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
 
         let valhallaQuery = {
             locations: valhallaPoints,
             costing: "auto",
             costing_options: {
                 auto: {
-                    use_highways: 0.5, // Tenta balancear
-                    // shortest só funciona se a API aceitar, optimized_route ignora ordem, mas usa matriz custo
+                    use_highways: 0.5,
+                    shortest: true
                 }
             },
             units: "kilometers",
             language: "pt-BR"
         };
 
-        // Se for rota sequencial direta, ajustamos as opções
-        if (!useOptimized) {
-            valhallaQuery.costing_options.auto.shortest = true;
-        }
-
-        let routeResponse;
-
-        if (useOptimized) {
-            // valhallaPoints já está no formato {lat, lon} (convertido na linha 4772)
-            const valhallaOptimizedQuery = {
-                locations: valhallaPoints,
-                costing: "auto",
-                costing_options: { auto: { country_crossing: false } },
-                units: "kilometers",
-                language: "pt-BR"
-            };
-            routeResponse = await fetch(`https://valhalla1.openstreetmap.de/optimized_route?json=${JSON.stringify(valhallaOptimizedQuery)}`);
-        }
-
-        // Fallback ou Execução Direta de 'route'
-        if (!useOptimized || !routeResponse.ok) {
-            if (useOptimized) console.warn("Falha na rota otimizada (504/Limit). Usando rota sequencial...");
-
-            // Configura para rota sequencial
-            valhallaQuery = {
-                locations: valhallaPoints, // Já está em {lat, lon}
-                costing: "auto",
-                costing_options: { auto: { shortest: true } },
-                units: "kilometers",
-                language: "pt-BR"
-            };
-            routeResponse = await fetch(`https://valhalla1.openstreetmap.de/route?json=${JSON.stringify(valhallaQuery)}`);
-        }
-
-        if (!routeResponse.ok) {
-            const errText = await routeResponse.text();
-            console.error("Valhalla API Error:", errText);
-            throw new Error(`Não foi possível traçar a rota (API Valhalla): ${routeResponse.statusText}`);
-        }
-
-        const routeData = await routeResponse.json();
-        let geometry = "";
-        let tripInfo = {};
-
-        if (routeData.trip) {
-            geometry = routeData.trip.legs.reduce((acc, leg) => acc + (acc ? "" : "") + leg.shape, ""); // Valhalla is polyline6 usually, verifying...
-            tripInfo = routeData.trip.summary;
-
-            // Valhalla returns individual legs. We need to decode them.
-            // A API retorna 'shape' comprimido (polyline6). O Leaflet precisa de array de coords.
-            // Vamos usar o decode nativo ou uma função auxiliar simples.
-            const decoded = decodePolyline(routeData.trip.legs[0].shape); // Simplificação: assume 1 leg ou concatena
-            // Correção: Valhalla optimized_route retorna trip.trip com locations reordenados? 
-            // Não, optimized retorna a sequência. E route retorna a sequencia dada.
-            // Para desenhar tudo:
-            // Limpa polylines anteriores para evitar riscos e glitches
+        const drawFallbackRoute = (points) => {
+            console.warn("Desenhando rota fallback (linhas retas).");
             mapInstance.eachLayer((layer) => {
                 if (layer instanceof L.Polyline && !(layer instanceof L.Marker)) {
                     mapInstance.removeLayer(layer);
                 }
             });
 
-            const allPoints = [];
-            routeData.trip.legs.forEach(leg => {
-                // Valhalla usa precisão 6 por padrão para polylines encoded
-                allPoints.push(...decodePolyline(leg.shape, 6));
-            });
+            const latLngs = points.map(p => [p.lat, p.lon]);
+            const polyline = L.polyline(latLngs, { color: 'red', weight: 4, dashArray: '10, 10', opacity: 0.7 }).addTo(mapInstance);
+            mapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
 
-            if (allPoints.length > 0) {
-                const polyline = L.polyline(allPoints, { color: 'blue', weight: 5 }).addTo(mapInstance);
-                mapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
-                // Força resize para garantir renderização correta no modal
-                setTimeout(() => { mapInstance.invalidateSize(); }, 300);
+            let totalDistKm = 0;
+            for (let i = 0; i < points.length - 1; i++) {
+                totalDistKm += mapInstance.distance(points[i], points[i + 1]) / 1000;
             }
 
-            const distKm = tripInfo.length;
-            const timeMin = Math.round(tripInfo.time / 60);
+            document.getElementById('map-distancia').textContent = `~${totalDistKm.toFixed(1)} km (Linear)`;
+            document.getElementById('map-tempo').textContent = `--`;
+            mapStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle"></i> Rota visual aproximada (Limite API).</span>';
 
-            // Salva info da rota
-            currentRouteInfo = { distance: distKm, time: timeMin };
-
-            // Atualiza UI do Modal
-            document.getElementById('map-distancia').textContent = `${distKm.toFixed(1)} km`;
-            document.getElementById('map-tempo').textContent = `${Math.floor(timeMin / 60)}h ${timeMin % 60}min`;
-
-            // NOVO: Exibir Peso e Cubagem totais da carga
-            const totalKg = load.pedidos.reduce((sum, p) => sum + (p.Quilos_Saldo || 0), 0);
-            const totalCubagem = load.pedidos.reduce((sum, p) => sum + (p.Cubagem || 0), 0);
-
-            const formatKg = totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            const formatCub = totalCubagem.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-
-            document.getElementById('map-peso').textContent = `${formatKg} kg`;
-            document.getElementById('map-cubagem').textContent = `${formatCub} m³`;
-
-            mapStatus.innerHTML = '<span class="text-success">Rota traçada! (Caminho mais curto)</span>';
-
-            // Atualiza frete no card se existir (aproveita o cálculo)
             if (activeLoads[loadId]) {
-                activeLoads[loadId].distance = distKm;
-                updateLoadFreightDisplay(loadId); // Atualiza com o valor real calculado
+                activeLoads[loadId].distance = totalDistKm;
+                updateLoadFreightDisplay(loadId);
+            }
+            removeOverlay();
+        };
+
+        try {
+            routeResponse = await fetch(`https://valhalla1.openstreetmap.de/route?json=${JSON.stringify(valhallaQuery)}`);
+
+            if (!routeResponse.ok) {
+                const errText = await routeResponse.text();
+                // Se for erro de limite (400) ou timeout, usa fallback
+                if (routeResponse.status === 400 || routeResponse.status === 504) {
+                    drawFallbackRoute(valhallaPoints);
+                    return;
+                }
+                throw new Error(`API Valhalla: ${routeResponse.statusText}`);
             }
 
-        } else {
-            throw new Error("Dados de rota inválidos.");
+            const routeData = await routeResponse.json();
+
+            if (routeData.trip) {
+                mapInstance.eachLayer((layer) => {
+                    if (layer instanceof L.Polyline && !(layer instanceof L.Marker)) {
+                        mapInstance.removeLayer(layer);
+                    }
+                });
+
+                const allPoints = [];
+                routeData.trip.legs.forEach(leg => {
+                    allPoints.push(...decodePolyline(leg.shape, 6));
+                });
+
+                if (allPoints.length > 0) {
+                    const polyline = L.polyline(allPoints, { color: 'blue', weight: 5 }).addTo(mapInstance);
+                    mapInstance.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+                }
+
+                const distKm = routeData.trip.summary.length;
+                const timeMin = Math.round(routeData.trip.summary.time / 60);
+
+                document.getElementById('map-distancia').textContent = `${distKm.toFixed(1)} km`;
+                document.getElementById('map-tempo').textContent = `${Math.floor(timeMin / 60)}h ${timeMin % 60}min`;
+
+                // NOVO: Exibir Peso e Cubagem totais da carga
+                const totalKg = load.pedidos.reduce((sum, p) => sum + (p.Quilos_Saldo || 0), 0);
+                const totalCubagem = load.pedidos.reduce((sum, p) => sum + (p.Cubagem || 0), 0);
+                const formatKg = totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const formatCub = totalCubagem.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+                document.getElementById('map-peso').textContent = `${formatKg} kg`;
+                document.getElementById('map-cubagem').textContent = `${formatCub} m³`;
+
+                mapStatus.innerHTML = '<span class="text-success">Rota Otimizada Traçada!</span>';
+
+                if (activeLoads[loadId]) {
+                    activeLoads[loadId].distance = distKm;
+                    updateLoadFreightDisplay(loadId);
+                }
+                removeOverlay();
+            }
+
+        } catch (e) {
+            console.error("Erro ao traçar rota:", e);
+            drawFallbackRoute(valhallaPoints);
         }
 
     } catch (e) {
-        console.error("Erro no mapa:", e);
+        console.error("Erro geral no mapa:", e);
         mapStatus.innerHTML = `<span class="text-danger">Erro: ${e.message}</span>`;
+        removeOverlay();
     }
 }
 
@@ -4952,6 +4936,7 @@ function decodePolyline(str, precision) {
     return coordinates;
 }
 
+
 /**
  * Remove todos os pedidos de uma determinada cidade desta carga e os devolve para a lista de varejo.
  */
@@ -4966,6 +4951,13 @@ function removerParadaDoMapa(loadId, cityKey) {
     const kgRemovido = pedidosParaRemover.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
     const cubagemRemovida = pedidosParaRemover.reduce((sum, p) => sum + (p.Cubagem || 0), 0);
 
+    // 0. Registrar UNDO
+    registerUndo('REMOVE_STOP', {
+        loadId: loadId,
+        pedidos: deepClone(pedidosParaRemover), // Snapshot dos pedidos
+        cityKey: cityKey
+    });
+
     // 1. Remove da carga ativa
     load.pedidos = load.pedidos.filter(p => !orderIdsParaRemover.has(p.Num_Pedido));
     load.totalKg -= kgRemovido;
@@ -4973,6 +4965,12 @@ function removerParadaDoMapa(loadId, cityKey) {
 
     // 2. Devolve para pedidos gerais ativos
     pedidosGeraisAtuais.push(...pedidosParaRemover);
+
+    // 2.1 Remove da lista de rotas processadas para reaparecer nos botões
+    const routesAffected = new Set(pedidosParaRemover.map(p => String(p.Cod_Rota).trim()));
+    routesAffected.forEach(r => {
+        if (processedRoutes.has(r)) processedRoutes.delete(r);
+    });
 
     // 3. Verifica se a carga ficou vazia e deve ser deletada
     if (load.pedidos.length === 0) {
@@ -5000,7 +4998,8 @@ function removerParadaDoMapa(loadId, cityKey) {
                 fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
                 van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
                 tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
-                toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
+                toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+                especial: { name: 'Manual', colorClass: 'bg-dark', textColor: 'text-white', icon: 'bi-clipboard-check-fill' }
             };
             const vInfo = vehicleInfo[load.vehicleType];
             cardElement.outerHTML = renderLoadCard(load, load.vehicleType, vInfo);
@@ -5024,6 +5023,12 @@ function removerPedidoDoMapa(loadId, orderNumber) {
     const pedidoParaRemover = load.pedidos.find(p => p.Num_Pedido == orderNumber);
     if (!pedidoParaRemover) return;
 
+    // 0. Registrar UNDO antes de remover
+    registerUndo('REMOVE_ORDER', {
+        loadId: loadId,
+        pedido: { ...pedidoParaRemover } // Clona para garantir snapshot
+    });
+
     // 1. Remove da carga ativa
     load.pedidos = load.pedidos.filter(p => p.Num_Pedido != orderNumber);
     load.totalKg -= pedidoParaRemover.Quilos_Saldo;
@@ -5031,6 +5036,12 @@ function removerPedidoDoMapa(loadId, orderNumber) {
 
     // 2. Devolve para pedidos gerais ativos
     pedidosGeraisAtuais.push(pedidoParaRemover);
+
+    // 2.1 Remove da lista de rotas processadas
+    const routeKey = String(pedidoParaRemover.Cod_Rota).trim();
+    if (processedRoutes.has(routeKey)) {
+        processedRoutes.delete(routeKey);
+    }
 
     // 3. Verifica se a carga ficou vazia
     if (load.pedidos.length === 0) {
@@ -5064,7 +5075,8 @@ function removerPedidoDoMapa(loadId, orderNumber) {
                 fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
                 van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
                 tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
-                toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
+                toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+                especial: { name: 'Manual', colorClass: 'bg-dark', textColor: 'text-white', icon: 'bi-clipboard-check-fill' }
             };
             const vInfo = vehicleInfo[load.vehicleType];
             // Renderiza o novo HTML do card
@@ -5630,7 +5642,7 @@ function startManualLoadBuilder() {
                     <div class="card-header bg-info text-dark"><h5 class="mb-0"><i class="bi bi-tools me-2"></i>Painel de Montagem de Carga Manual</h5></div>
                     <div class="card-body">
                         <div class="row align-items-center mb-3">
-                            <div class="col-md-4"><label for="manualVehicleType" class="form-label">Montar para o veá­culo:</label><select id="manualVehicleType" class="form-select" onchange="updateManualBuilderUI()"><option value="fiorino">Fiorino</option><option value="van">Van</option><option value="tresQuartos">3/4</option><option value="toco">Toco</option></select></div>
+                            <div class="col-md-4"><label for="manualVehicleType" class="form-label">Montar para o veá­culo:</label><select id="manualVehicleType" class="form-select" onchange="updateManualBuilderUI()"><option value="fiorino">Fiorino</option><option value="van">Van</option><option value="tresQuartos">3/4</option><option value="toco">Toco</option><option value="especial">Roteirização Manual</option></select></div>
                             <div class="col-md-5"><p class="mb-1"><strong>Peso Total:</strong> <span id="manualLoadKg">0,00</span> kg</p><p class="mb-0"><strong>Cubagem Total:</strong> <span id="manualLoadCubage">0,00</span> mÂ³</p></div>
                             <div class="col-md-3 text-end"><button class="btn btn-danger me-2" onclick="cancelManualLoad()"><i class="bi bi-x-circle me-1"></i>Cancelar</button><button id="finalizeManualLoadBtn" class="btn btn-success" onclick="finalizeManualLoad()" disabled><i class="bi bi-check-circle me-1"></i>Criar</button></div>
                         </div>
@@ -5674,7 +5686,7 @@ function updateManualBuilderUI() {
         dropText.style.display = 'block';
     }
 
-    const config = getVehicleConfig(vehicleType);
+    const config = getVehicleConfigSafe(vehicleType);
 
     const finalizeBtn = document.getElementById('finalizeManualLoadBtn');
     finalizeBtn.disabled = manualLoadInProgress.totalKg < config.minKg;
@@ -5695,6 +5707,10 @@ function updateManualBuilderUI() {
 function finalizeManualLoad() {
     if (!manualLoadInProgress || manualLoadInProgress.pedidos.length === 0) return;
 
+    // Force read from DOM to ensure accuracy
+    const domVehicleType = document.getElementById('manualVehicleType').value;
+    if (domVehicleType) manualLoadInProgress.vehicleType = domVehicleType;
+
     const vehicleType = manualLoadInProgress.vehicleType;
     const newLoad = {
         ...manualLoadInProgress,
@@ -5713,22 +5729,37 @@ function finalizeManualLoad() {
         fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
         van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
         tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
-        toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
+        toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+        especial: { name: 'Especial', colorClass: 'bg-dark', textColor: 'text-warning', icon: 'bi-stars', borderClass: 'border-warning' }
     };
 
-    // Pega a aba ativa para inserir o card da carga manual
-    const activeTabPane = document.querySelector('.tab-pane.active');
-    if (!activeTabPane) {
-        showToast("Erro: Nenhuma aba de trabalho ativa para adicionar a carga.", 'error');
-        return;
+    let resultContainer;
+
+    if (vehicleType === 'especial') {
+        const specialTabPane = document.getElementById('montagens-especiais-tab-pane');
+        if (specialTabPane) {
+            resultContainer = document.getElementById('resultado-montagens-especiais');
+            // Ativa a aba automaticamente para feedback visual
+            const tabBtn = document.querySelector('[data-bs-target="#montagens-especiais-tab-pane"]');
+            if (tabBtn) {
+                const tab = new bootstrap.Tab(tabBtn);
+                tab.show();
+            }
+        }
     }
 
-    // Encontra o container de resultados dentro da aba ativa
-    let resultContainer = activeTabPane.querySelector('[id^="resultado-"]');
     if (!resultContainer) {
-        // Se ná£o houver um container, cria um (caso de aba vazia)
-        activeTabPane.innerHTML += `<div id="resultado-${vehicleType}-geral" class="mt-3"></div>`;
+        // Fallback para comportamento padrão (aba ativa)
+        const activeTabPane = document.querySelector('.tab-pane.active');
+        if (!activeTabPane) {
+            showToast("Erro: Nenhuma aba de trabalho ativa para adicionar a carga.", 'error');
+            return;
+        }
         resultContainer = activeTabPane.querySelector('[id^="resultado-"]');
+        if (!resultContainer) {
+            activeTabPane.innerHTML += `<div id="resultado-${vehicleType}-geral" class="mt-3"></div>`;
+            resultContainer = activeTabPane.querySelector('[id^="resultado-"]');
+        }
     }
 
     // Gera o HTML do card e o insere no container correto
@@ -6119,35 +6150,51 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
             break;
         }
     }
-
     if (!veiculoEscolhido) {
         veiculoEscolhido = { tipo: 'toco', nome: 'Carreta/Truck (Excedeu Capacidade)' };
     }
 
-    // --- Lá“GICA DE DIRECIONAMENTO PARA ABA ATIVA ---
-    const vehicleType = veiculoEscolhido.tipo;
+    // --- LÓGICA DE DIRECIONAMENTO PARA ABA ATIVA ---
+    let vehicleType = veiculoEscolhido.tipo;
+    // const input = document.getElementById(inputId); // Removed redeclaration
+
+    // FORÇAR TIPO ESPECIAL SE FOR "Carga Especial" OU "Venda Antecipada"
+    if (nomeCarga === 'Especial' || nomeCarga === 'Venda Antecipada') {
+        vehicleType = 'especial';
+        veiculoEscolhido.tipo = 'especial'; // Atualiza o objeto veículo também
+    }
 
     // Encontra a aba ativa na Mesa de Trabalho
     const activeTabPane = document.querySelector('#vehicleTabsContent .tab-pane.active');
     let targetContainer;
 
-    if (activeTabPane) {
+    // SE FOR ESPECIAL, FORÇA O CONTAINER CORRETO
+    if (vehicleType === 'especial') {
+        targetContainer = document.getElementById('resultado-montagens-especiais');
+        // Ativa a aba imediatamente
+        const manualTabBtn = document.querySelector('button[data-bs-target="#montagens-especiais-tab-pane"]');
+        if (manualTabBtn) {
+            const tabInstance = bootstrap.Tab.getOrCreateInstance(manualTabBtn);
+            tabInstance.show();
+            localStorage.setItem('lastActiveVehicleTab', '#montagens-especiais-tab-pane');
+        }
+    } else if (activeTabPane) {
         // Procura por um container de resultado dentro da aba ativa
         targetContainer = activeTabPane.querySelector('[id^="resultado-"]');
     }
 
-    // Fallback: se ná£o encontrar um container na aba ativa, usa a lá³gica antiga baseada no tipo de veá­culo
+    // Fallback: se não encontrar um container na aba ativa, usa a lógica antiga baseada no tipo de veículo
     if (!targetContainer) {
         const fallbackContainerId = vehicleType === 'fiorino' ? 'resultado-fiorino-geral' : vehicleType === 'van' ? 'resultado-van-geral' : vehicleType === 'tresQuartos' ? 'resultado-34-geral' : 'resultado-toco';
         targetContainer = document.getElementById(fallbackContainerId);
     }
-    // --- FIM DA Lá“GICA DE DIRECIONAMENTO ---
+    // --- FIM DA LÓGICA DE DIRECIONAMENTO ---
 
     if (veiculoEscolhido) {
         const pedidosSelecionadosIds = new Set(pedidosSelecionados.map(p => String(p.Num_Pedido)));
         pedidosSelecionadosIds.forEach(id => processedSet.add(id));
 
-        const loadId = `${nomeCarga.toLowerCase().replace(/\s+/g, '-')}-1`;
+        const loadId = `${nomeCarga.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
         const load = {
             id: loadId,
             pedidos: pedidosSelecionados,
@@ -6162,26 +6209,37 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
             fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
             van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
             tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
-            toco: { name: 'Carreta/Truck', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
+            toco: { name: 'Carreta/Truck', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+            especial: { name: 'Especial/Manual', colorClass: 'bg-info', textColor: 'text-dark', icon: 'bi-star-fill' }
         };
 
-        // --- NOVA Lá“GICA DE RENDERIZAá‡áƒO ---
-        if (targetContainer) {
-            const newCardHTML = renderLoadCard(load, vehicleType, vehicleInfo[vehicleType]);
-            targetContainer.insertAdjacentHTML('beforeend', newCardHTML);
+        // --- NOVA LÓGICA DE RENDERIZAÇÃO ---
+        const cardHTML = renderLoadCard(load, load.vehicleType, vehicleInfo[load.vehicleType] || vehicleInfo['fiorino']);
 
-            // Rola para o novo card
-            setTimeout(() => {
-                const newCardElement = document.getElementById(loadId);
-                if (newCardElement) newCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300); // Delay para garantir que o card foi renderizado
+        // Se targetContainer for null, tenta pegar via ID direto se for especial
+        if (!targetContainer && load.vehicleType === 'especial') {
+            targetContainer = document.getElementById('resultado-montagens-especiais');
+        }
+
+        if (targetContainer) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cardHTML;
+            const newCard = tempDiv.firstElementChild;
+            targetContainer.appendChild(newCard);
+
+            // REMOVE MENSAGEM DE VAZIO SE EXISTIR
+            if (targetContainer.id === 'resultado-montagens-especiais') {
+                const emptyState = targetContainer.querySelector('.empty-state');
+                if (emptyState) emptyState.style.display = 'none';
+            }
         }
 
         // AUDIT LOG
         import('./realtime.js').then(m => m.logActivity('CARGA_MANUAL', { carga: nomeCarga, veiculo: veiculoEscolhido.nome }));
-        if (window.showLocalToast) window.showLocalToast('Vocáª', `Carga Manual Criada: ${nomeCarga}`, 'success');
+        if (window.showLocalToast) window.showLocalToast('Você', `Carga Manual Criada: ${nomeCarga}`, 'success');
 
-        showToast(`Carga ${nomeCarga} montada com sucesso em um(a) ${veiculoEscolhido.nome}!`, 'success');
+        // feedback visual
+        showToast(`${nomeCarga} criada com sucesso!`, 'success');
 
         pedidosGeraisAtuais = pedidosGeraisAtuais.filter(p => !pedidosSelecionadosIds.has(String(p.Num_Pedido)));
 
@@ -6194,12 +6252,11 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
         saveStateToLocalStorage();
 
     } else {
-        showToast(`Carga excede a capacidade dos veá­culos. Peso: ${totalKg.toFixed(2)}kg`, 'error');
+        showToast(`Carga excede a capacidade dos veículos. Peso: ${totalKg.toFixed(2)}kg`, 'error');
     }
 }
 
 function displayPedidosFuncionarios(div, pedidos) {
-    if (!div) return;
     div.innerHTML = ''; // Limpa o container
     if (pedidos.length === 0) {
         return false; // Retorna false se ná£o houver pedidos
@@ -7743,25 +7800,61 @@ async function loadStateFromLocalStorage() {
 
 
 function reRenderManualLoads() {
-    const manualLoads = Object.values(activeLoads).filter(load => load.id.includes('venda-antecipada') || load.id.includes('especial'));
+    // Captura todas as cargas que ná£o sã£o de rotas automá¡ticas (Manuais, Especiais, Venda Antecipada)
+    const manualLoads = Object.values(activeLoads).filter(load =>
+        load.id.startsWith('manual-') ||
+        load.id.includes('venda-antecipada') ||
+        load.id.includes('especial')
+    );
+
     if (manualLoads.length === 0) return;
 
     const vehicleInfo = {
         fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
         van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
-        tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' }
+        tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
+        toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+        especial: { name: 'Manual', colorClass: 'bg-dark', textColor: 'text-warning', icon: 'bi-tools', borderClass: 'border-warning' } // Updated label
     };
 
     manualLoads.forEach(load => {
-        const resultadoId = load.id.startsWith('venda-antecipada') ? 'resultado-venda-antecipada' : 'resultado-carga-especial';
+        let resultadoId;
+
+        // Define o container de destino baseado no ID ou Tipo
+        if (load.id.includes('venda-antecipada')) {
+            resultadoId = 'resultado-venda-antecipada';
+        } else if (load.vehicleType === 'especial') {
+            resultadoId = 'resultado-montagens-especiais';
+        } else if (load.vehicleType === 'fiorino') {
+            resultadoId = 'resultado-fiorino-geral';
+        } else if (load.vehicleType === 'van') {
+            resultadoId = 'resultado-van-geral';
+        } else if (load.vehicleType === 'tresQuartos') {
+            resultadoId = 'resultado-34-geral';
+        } else if (load.vehicleType === 'toco') {
+            resultadoId = 'resultado-toco';
+        }
+
         const resultadoDiv = document.getElementById(resultadoId);
-        if (resultadoDiv) {
+
+        // Se ná£o achar o container especá­fico (ex: cargas antigas ou erro de config), tenta um fallback
+        if (!resultadoDiv) {
+            console.warn(`Container ${resultadoId} nÃ£o encontrado para a carga ${load.id}. Tentando fallback.`);
+            return;
+        }
+
+        // Renderiza
+        // Para Venda Antecipada, mantá©m o alert; para outros, apenas o card (ou ajusta conforme necessidade)
+        if (load.id.includes('venda-antecipada')) {
             resultadoDiv.innerHTML = `
-                        <div class="alert alert-success d-flex justify-content-between align-items-center">
-                            <div><strong>Carga ${load.numero} restaurada.</strong></div>
-                            <button class="btn btn-light btn-sm no-print" onclick="imprimirGeneric('${resultadoId}', 'Carga ${load.numero}')"><i class="bi bi-printer-fill me-1"></i> Imprimir Carga</button>
-                        </div>
-                        ${renderLoadCard(load, load.vehicleType, vehicleInfo[load.vehicleType])}`;
+                <div class="alert alert-success d-flex justify-content-between align-items-center">
+                    <div><strong>Carga ${load.numero} restaurada.</strong></div>
+                    <button class="btn btn-light btn-sm no-print" onclick="imprimirGeneric('${resultadoId}', 'Carga ${load.numero}')"><i class="bi bi-printer-fill me-1"></i> Imprimir Carga</button>
+                </div>
+                ${renderLoadCard(load, load.vehicleType, vehicleInfo[load.vehicleType])}`;
+        } else {
+            const cardHtml = renderLoadCard(load, load.vehicleType, vehicleInfo[load.vehicleType] || vehicleInfo['fiorino']);
+            resultadoDiv.insertAdjacentHTML('beforeend', cardHtml);
         }
     });
 }
@@ -7859,3 +7952,277 @@ if (processingModal) {
 
 
 
+
+// ================================================================================================
+//  ATALHOS DE TECLADO (Undo & Copy)
+//  Adicionados ao final para garantir definição global.
+// ================================================================================================
+let undoStack = []; // Pilha de ações para desfazer
+let selectedOrder = null; // Pedido atualmente selecionado para cópia
+
+document.addEventListener('keydown', function (event) {
+    // Ignora se estiver digitando em input/textarea
+    // Apenas ignora se NÃO for um input do tipo 'checkbox' ou 'radio'
+    const target = event.target;
+    if ((target.tagName === 'INPUT' && !['checkbox', 'radio'].includes(target.type)) || target.tagName === 'TEXTAREA') {
+        return;
+    }
+
+    if (event.key.toLowerCase() === 'r') {
+        undoLastAction();
+    } else if (event.key.toLowerCase() === 'c') {
+        copySelectedOrder();
+    }
+});
+
+function registerUndo(type, data) {
+    // Garante que a pilha exista
+    if (!undoStack) undoStack = [];
+    undoStack.push({ type, data, timestamp: Date.now() });
+    if (undoStack.length > 50) undoStack.shift(); // Limite
+}
+
+function undoLastAction() {
+    if (!undoStack || undoStack.length === 0) {
+        showToast('Nada para desfazer.', 'info');
+        return;
+    }
+    const action = undoStack.pop();
+
+    if (action.type === 'REMOVE_ORDER') {
+        const { loadId, pedido } = action.data;
+        // Verifica se a carga ainda existe
+        if (activeLoads[loadId]) {
+            const load = activeLoads[loadId];
+
+            // Re-adiciona o pedido
+            load.pedidos.push(pedido);
+            load.totalKg += pedido.Quilos_Saldo;
+            load.totalCubagem += (pedido.Cubagem || 0);
+
+            // Remove de "pedidosGeraisAtuais" se estiver lá
+            if (typeof pedidosGeraisAtuais !== 'undefined') {
+                pedidosGeraisAtuais = pedidosGeraisAtuais.filter(p => p.Num_Pedido != pedido.Num_Pedido);
+            }
+
+            // Re-renderiza o card
+            const vehicleInfo = {
+                fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
+                van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
+                tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
+                toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+                especial: { name: 'Especial', colorClass: 'bg-dark', textColor: 'text-warning', icon: 'bi-stars', borderClass: 'border-warning' }
+            };
+            const vInfo = vehicleInfo[load.vehicleType];
+
+            // Força atualização da UI
+            const cardElement = document.getElementById(loadId);
+            if (cardElement && typeof renderLoadCard === 'function') {
+                cardElement.outerHTML = renderLoadCard(load, load.vehicleType, vInfo);
+                const newCard = document.getElementById(loadId);
+                if (newCard) {
+                    newCard.classList.add('flash-update');
+                    setTimeout(() => newCard.classList.remove('flash-update'), 500);
+                }
+            }
+
+            // Atualiza painéis globais
+            if (typeof updateAndRenderKPIs === 'function') updateAndRenderKPIs();
+            if (typeof updateAndRenderChart === 'function') updateAndRenderChart();
+
+            // ATUALIZAÇÃO DO MAPA (Se estiver aberto para esta carga)
+            const mapModalEl = document.getElementById('mapModal');
+            if (mapModalEl && mapModalEl.classList.contains('show') &&
+                (typeof currentMapLoadId !== 'undefined' || window.currentMapLoadId) &&
+                (typeof currentMapLoadId !== 'undefined' ? currentMapLoadId : window.currentMapLoadId) === loadId) {
+
+                showToast('Atualizando rota no mapa...', 'info');
+                // Pequeno delay para garantir que a UI processou
+                setTimeout(() => showRouteOnMap(loadId), 300);
+            }
+
+            showToast(`Desfeito: Pedido ${pedido.Num_Pedido} retornado para a carga.`, 'success');
+        } else {
+            showToast('A carga não existe mais. Use "Mesa" para reatribuir.', 'warning');
+        }
+    } else if (action.type === 'REMOVE_STOP') {
+        const { loadId, pedidos, cityKey } = action.data;
+        if (activeLoads[loadId]) {
+            const load = activeLoads[loadId];
+
+            // Re-adiciona todos os pedidos
+            pedidos.forEach(p => {
+                load.pedidos.push(p);
+                load.totalKg += p.Quilos_Saldo;
+                load.totalCubagem += (p.Cubagem || 0);
+            });
+
+            // Remove de "pedidosGeraisAtuais"
+            if (typeof pedidosGeraisAtuais !== 'undefined') {
+                const activeIds = new Set(pedidos.map(p => p.Num_Pedido));
+                pedidosGeraisAtuais = pedidosGeraisAtuais.filter(p => !activeIds.has(p.Num_Pedido));
+            }
+
+            // UI Refresh logic (Card, KPIs, Chart, Map) - Reuse same blocks
+            const vehicleInfo = {
+                fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
+                van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
+                tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
+                toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+                especial: { name: 'Especial', colorClass: 'bg-dark', textColor: 'text-warning', icon: 'bi-stars', borderClass: 'border-warning' }
+            };
+            const vInfo = vehicleInfo[load.vehicleType];
+
+            const cardElement = document.getElementById(loadId);
+            if (cardElement && typeof renderLoadCard === 'function') {
+                cardElement.outerHTML = renderLoadCard(load, load.vehicleType, vInfo);
+                const newCard = document.getElementById(loadId);
+                if (newCard) {
+                    newCard.classList.add('flash-update');
+                    setTimeout(() => newCard.classList.remove('flash-update'), 500);
+                }
+            }
+            if (typeof updateAndRenderKPIs === 'function') updateAndRenderKPIs();
+            if (typeof updateAndRenderChart === 'function') updateAndRenderChart();
+
+            // Refresh Map
+            const mapModalEl = document.getElementById('mapModal');
+            if (mapModalEl && mapModalEl.classList.contains('show') &&
+                (typeof currentMapLoadId !== 'undefined' || window.currentMapLoadId) &&
+                (typeof currentMapLoadId !== 'undefined' ? currentMapLoadId : window.currentMapLoadId) === loadId) {
+                showToast('Restaurando rota no mapa...', 'info');
+                setTimeout(() => showRouteOnMap(loadId), 300);
+            }
+
+            showToast(`Desfeito: Entrega em ${cityKey} restaurada (${pedidos.length} pedidos).`, 'success');
+
+        } else {
+            showToast('A carga não existe mais.', 'warning');
+        }
+    }
+}
+
+function selectOrder(element, orderNumber) {
+    // Remove seleção anterior
+    document.querySelectorAll('.selected-order-row').forEach(el => el.classList.remove('selected-order-row'));
+
+    // Adiciona nova seleção
+    // Busca o elemento TR ou DIV pai que representa a linha do pedido
+    const row = element.closest('tr') || element.closest('.order-item-row') || element.closest('li') || element;
+    if (row) {
+        row.classList.add('selected-order-row');
+        selectedOrder = String(orderNumber);
+    }
+}
+
+function copySelectedOrder() {
+    if (!selectedOrder) {
+        showToast('Nenhum pedido selecionado. Clique em um pedido primeiro.', 'warning');
+        return;
+    }
+    navigator.clipboard.writeText(selectedOrder).then(() => {
+        showToast(`Pedido ${selectedOrder} copiado!`, 'success');
+    }).catch(err => {
+        console.error('Erro ao copiar', err);
+        showToast('Erro ao copiar.', 'error');
+    });
+}
+
+function changeLoadVehicleType(loadId, newVehicleType) {
+    const load = activeLoads[loadId];
+    if (!load) return;
+
+    load.vehicleType = newVehicleType;
+
+    // Configurações e Atualização de Ícones/Cores
+    const vehicleInfo = {
+        fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
+        van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
+        tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
+        toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+        especial: { name: 'Manual', colorClass: 'bg-dark', textColor: 'text-warning', icon: 'bi-tools', borderClass: 'border-warning' }
+    };
+
+    // Remove o card antigo
+    const oldCard = document.getElementById(loadId); // ID DO CARD É O ID DA CARGA (loadId) ou card-loadId?
+    // Verificando renderLoadCard: <div id="${load.id}" class="card ...">
+    if (oldCard) oldCard.remove();
+
+    // Determina o TIPO DE ABA de destino baseado no novo veículo
+    let targetTabPaneId;
+    let targetResultContainerId;
+
+    if (newVehicleType === 'especial') {
+        targetTabPaneId = 'montagens-especiais-tab-pane';
+        targetResultContainerId = 'resultado-montagens-especiais';
+    } else if (newVehicleType === 'fiorino') {
+        targetTabPaneId = 'fiorino-tab-pane';
+        targetResultContainerId = 'resultado-fiorino-geral';
+    } else if (newVehicleType === 'van') {
+        targetTabPaneId = 'van-tab-pane';
+        targetResultContainerId = 'resultado-van-geral';
+    } else if (newVehicleType === 'tresQuartos') {
+        targetTabPaneId = 'tres-quartos-tab-pane';
+        targetResultContainerId = 'resultado-34-geral';
+    } else if (newVehicleType === 'toco') {
+        targetTabPaneId = 'toco-tab-pane';
+        targetResultContainerId = 'resultado-toco';
+    }
+
+    // Encontra o container
+    const tabPane = document.getElementById(targetTabPaneId);
+    let resultContainer = document.getElementById(targetResultContainerId);
+
+    if (!resultContainer && tabPane) {
+        // Se não existir o container específico (ex: vazio), tenta achar um genérico ou criar
+        resultContainer = tabPane.querySelector('[id^="resultado-"]');
+    }
+
+    if (resultContainer) {
+        const newCardHTML = renderLoadCard(load, newVehicleType, vehicleInfo[newVehicleType]);
+        resultContainer.insertAdjacentHTML('beforeend', newCardHTML);
+
+        // Se a aba de destino for diferente da atual, ativa a nova aba
+        if (newVehicleType === 'especial') {
+            const tabBtn = document.querySelector('[data-bs-target="#montagens-especiais-tab-pane"]');
+            if (tabBtn) new bootstrap.Tab(tabBtn).show();
+            showToast('Carga movida para Roteirização Manual', 'success');
+
+            // HIDE EMPTY STATE
+            const emptyState = resultContainer.querySelector('.empty-state');
+            if (emptyState) emptyState.style.display = 'none';
+        } else {
+            showToast(`Carga alterada para ${vehicleInfo[newVehicleType].name}`, 'success');
+        }
+    } else {
+        showToast('Erro ao mover card de aba.', 'error');
+    }
+
+    updateAndRenderKPIs();
+    updateAndRenderChart();
+    debouncedSaveState();
+}
+
+// --- PERSISTÊNCIA DE ABAS DE VEÍCULOS ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Restaurar abas ativas
+    const lastVehicleTab = localStorage.getItem('lastActiveVehicleTab');
+    if (lastVehicleTab) {
+        const tabBtn = document.querySelector(`button[data-bs-target="${lastVehicleTab}"]`);
+        if (tabBtn) {
+            const tab = new bootstrap.Tab(tabBtn);
+            tab.show();
+        }
+    }
+
+    // Configurar listeners para salvar abas
+    const vehicleTabs = document.getElementById('vehicleTabs');
+    if (vehicleTabs) {
+        vehicleTabs.addEventListener('shown.bs.tab', event => {
+            const targetId = event.target.getAttribute('data-bs-target');
+            if (targetId) {
+                localStorage.setItem('lastActiveVehicleTab', targetId);
+            }
+        });
+    }
+});

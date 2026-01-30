@@ -4,6 +4,14 @@ import { saveSessionToCloud, getMySessions, getSharedWithMe, loadSessionFromClou
 import { supabase } from './supabase-client.js'; // FIX: Explicit import for initApp
 
 // 1. Check Session & Init
+window.addEventListener('unhandledrejection', (event) => {
+    // Supabase AbortError suppression
+    if (event.reason && (event.reason.name === 'AbortError' || event.reason.message?.includes('signal is aborted'))) {
+        console.warn('Supabase fetch aborted (ignoring):', event.reason);
+        event.preventDefault(); // Prevent console error
+    }
+});
+
 async function initApp() {
     const session = await requireAuth();
     if (!session) return; // redirect handled in auth.js
