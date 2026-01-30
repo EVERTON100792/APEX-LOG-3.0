@@ -477,6 +477,7 @@ let specialLoadClipboard = []; // NOVO: Clipboard interno para montagem especial
 let currentRouteInfo = {}; // NOVO: Armazena informaá§áµes da rota atual para compartilhamento
 let origemCoords = null; // NOVO: Variá¡vel para armazenar as coordenadas da origem em cache
 let manualLoadInProgress = null;
+let selectedMapOrders = new Set(); // NOVO: Rastreia pedidos selecionados no mapa
 
 const defaultConfigs = {
     fiorinoMinCapacity: 300, fiorinoMaxCapacity: 500, fiorinoCubage: 1.5, fiorinoHardMaxCapacity: 560, fiorinoHardCubage: 1.7,
@@ -4210,6 +4211,8 @@ function renderLoadCard(load, vehicleType, vInfo) {
     if (vehicleType === 'fiorino') titleIconColor = '#10b981';
     else if (vehicleType === 'van') titleIconColor = '#3b82f6';
     else if (vehicleType === 'tresQuartos') titleIconColor = '#f59e0b';
+    else if (vehicleType === 'toco') titleIconColor = '#6c757d';
+    else if (vehicleType === 'manual' || vehicleType === 'especial') titleIconColor = '#0dcaf0'; // Cyan para manual/especial
 
     // --- LÓGICA DE DETECÇÃO DE ROTA "FIORINO - VAN" ---
     let specialRouteBadge = '';
@@ -4691,57 +4694,9 @@ async function showRouteOnMap(loadId) {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(mapInstance);
 
-        const markersMap = new Map();
-        const bounds = L.latLngBounds();
-        locations.forEach((loc, idx) => {
-            let popupContent = `<b>${idx === 0 ? 'Origem (Selmi)' : idx + 'ª Entrega'}:</b><br>${loc.name}`;
+        // 4. Rota Otimizada (Valhalla)
+        // Markers são desenhados apenas no calculateAndDrawRoute para evitar duplicidade
 
-            if (!loc.isOrigin) {
-                const totalKgParada = loc.pedidos.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
-                popupContent += `<br><span class="text-info">${loc.pedidos.length} Pedido(s)</span> | <b>${totalKgParada.toFixed(2)}kg</b>`;
-
-                // Lista detalhada dos pedidos com botão de remover individual
-                popupContent += `<div style="max-height: 150px; overflow-y: auto; margin: 5px 0; border-top: 1px solid #eee;">`;
-                loc.pedidos.forEach(p => {
-                    popupContent += `
-                    <div class="d-flex justify-content-between align-items-center my-1 small text-dark">
-                        <span>#${p.Num_Pedido} (${p.Quilos_Saldo.toFixed(1)}kg)</span>
-                        <button class="btn btn-xs btn-outline-danger py-0 px-1" onclick="removerPedidoDoMapa('${loadId}', '${p.Num_Pedido}')" title="Remover apenas este pedido">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    </div>`;
-                });
-                popupContent += `</div>`;
-
-                popupContent += `<hr class="my-2"><button class="btn btn-xs btn-danger w-100" onclick="removerParadaDoMapa('${loadId}', '${loc.name.replace("'", "\\'")}')">
-                    <i class="bi bi-trash-fill me-1"></i>Remover Toda Entrega
-                </button>`;
-            }
-
-            const marker = L.marker(loc.coords).addTo(mapInstance).bindPopup(popupContent);
-
-            if (loc.isOrigin) {
-                marker.setIcon(L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-                }));
-            } else {
-                // Marcadores numerados para as entregas (Círculo Vermelho com Número Branco)
-                const number = idx;
-                const numberedIcon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div style="background-color: #d63031; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-weight: bold; font-family: sans-serif; font-size: 13px;">${number}</div>`,
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 14],
-                    popupAnchor: [0, -14]
-                });
-                marker.setIcon(numberedIcon);
-            }
-
-            markersMap.set(idx, marker);
-            bounds.extend(loc.coords);
-        });
 
         // 4. Rota Otimizada (Valhalla)
         mapStatus.innerHTML = '<span class="text-info">Otimizando rota...</span>';
@@ -4998,36 +4953,66 @@ function removerPedidoDoMapa(loadId, orderNumber) {
  * NOVO: Função para calcular quilometragem e frete em background via Valhalla.
  * Chamada tanto pelo mapa interno quanto pelo botão de mapa externo.
  */
+// --- API RATE LIMITER ---
+const apiQueue = {
+    queue: [],
+    isProcessing: false,
+    async add(task) {
+        return new Promise((resolve, reject) => {
+            this.queue.push({ task, resolve, reject });
+            this.process();
+        });
+    },
+    async process() {
+        if (this.isProcessing || this.queue.length === 0) return;
+        this.isProcessing = true;
+        const { task, resolve, reject } = this.queue.shift();
+        try {
+            const result = await task();
+            resolve(result);
+        } catch (e) {
+            reject(e);
+        } finally {
+            // Respect API Rate Limits (1s delay between calls)
+            setTimeout(() => {
+                this.isProcessing = false;
+                this.process();
+            }, 1200);
+        }
+    }
+};
+
 async function refreshLoadFreight(loadId) {
     const load = activeLoads[loadId];
     if (!load || !load.pedidos || load.pedidos.length === 0) return;
 
     try {
         load.isCalculatingFreight = true;
-        // Atualiza UI para mostrar spinner
+        // Atualiza UI para mostrar spinner se o elemento existir
         const el = document.getElementById(`freight-${loadId}`);
         if (el) el.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
-        // updateLoadFreightDisplay(loadId); // Removido para não sobrescrever o spinner imediatamente
-
-        // Usa as coordenadas exatas da Selmi que definimos
         const centroSelmi = { lat: -23.3002, lng: -51.3358 };
         const uniqueCities = [...new Set(load.pedidos.map(p => `${p.Cidade}, ${p.UF}`))];
         const locations = [{ coords: centroSelmi }];
-        const delay = ms => new Promise(res => setTimeout(res, ms));
 
         console.log(`Iniciando cálculo de frete background para carga ${loadId}`);
 
-        // Busca coordenadas das cidades com delay para evitar bloqueio do Nominatim
+        // Busca coordenadas das cidades usando a Fila de Requisições
         for (const city of uniqueCities) {
             try {
                 const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', Brasil')}&format=json&limit=1`;
-                const response = await fetch(geoUrl, { headers: { 'User-Agent': 'ApexLogApp/3.0' } });
-                const data = await response.json();
+
+                // USA A FILA PARA EVITAR 429
+                const data = await apiQueue.add(async () => {
+                    const response = await fetch(geoUrl, { headers: { 'User-Agent': 'ApexLogApp/3.0' } });
+                    if (!response.ok) throw new Error(`Nominatim Error: ${response.status}`);
+                    return await response.json();
+                });
+
                 if (data && data.length > 0) {
                     locations.push({ coords: { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) } });
                 }
-                await delay(1000); // CRITICAL: Nominatim exige 1 req/sec
             } catch (err) {
                 console.warn(`Erro geocode background para ${city}:`, err);
             }
@@ -5039,14 +5024,12 @@ async function refreshLoadFreight(loadId) {
             return;
         }
 
-        // Rota Otimizada (Valhalla) - Round Trip Otimizado Padrão
+        // Rota Otimizada (Valhalla)
         const valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
         valhallaPoints.push({ lat: centroSelmi.lat, lon: centroSelmi.lng });
 
-        // CORREÇÃO: Valhalla Público (Demo) tem rate limit e timeout para muitos pontos.
-        // Se houver mais de 5 cidades, usamos 'route' (sequencial) direto para evitar erro 504.
-        const useOptimized = valhallaPoints.length <= 6; // 5 cidades + 1 origem
-
+        // Limita pontos para otimização para evitar timeouts
+        const useOptimized = valhallaPoints.length <= 6;
         let endpoint = useOptimized ? 'optimized_route' : 'route';
 
         let valhallaQuery = {
@@ -5056,28 +5039,28 @@ async function refreshLoadFreight(loadId) {
             language: "pt-BR"
         };
 
-        // Ajusta opções dependendo do endpoint
-        if (useOptimized) {
-            // Otimização real
-        } else {
-            // Rota sequencial (respeita a ordem do array)
-            // Tenta shortest:true para garantir caminho curto entre os pontos
+        if (!useOptimized) {
             valhallaQuery.costing_options = { auto: { shortest: true } };
         }
 
         let routeUrl = `https://valhalla1.openstreetmap.de/${endpoint}?json=${JSON.stringify(valhallaQuery)}`;
 
-        let resp = await fetch(routeUrl);
+        // USA A FILA PARA VALHALLA TAMBÉM
+        const data = await apiQueue.add(async () => {
+            let resp = await fetch(routeUrl);
 
-        // Fallback robusto se optimization falhar (504 ou 400)
-        if (!resp.ok && useOptimized) {
-            console.warn("Otimalização falhou/timeout. Usando rota sequencial...");
-            endpoint = 'route';
-            valhallaQuery.costing_options = { auto: { shortest: true } };
-            routeUrl = `https://valhalla1.openstreetmap.de/${endpoint}?json=${JSON.stringify(valhallaQuery)}`;
-            resp = await fetch(routeUrl);
-        }
-        const data = await resp.json();
+            // Fallback se optimization falhar
+            if (!resp.ok && useOptimized) {
+                console.warn("Otimização falhou/timeout. Usando rota sequencial...");
+                endpoint = 'route';
+                valhallaQuery.costing_options = { auto: { shortest: true } };
+                routeUrl = `https://valhalla1.openstreetmap.de/${endpoint}?json=${JSON.stringify(valhallaQuery)}`;
+                resp = await fetch(routeUrl);
+            }
+
+            if (!resp.ok) throw new Error(`Valhalla Refused: ${resp.status}`);
+            return await resp.json();
+        });
 
         load.isCalculatingFreight = false;
         if (data.trip && data.trip.summary) {
@@ -7423,11 +7406,10 @@ async function saveStateToLocalStorage() {
     // --- NOVO: Verificação de Sessão Efêmera ---
     // Se não houver a flag 'isSessionActive' no sessionStorage (que morre ao fechar o navegador),
     // significa que é uma nova abertura do navegador. Nesse caso, devemos limpar o localStorage antigo.
+    // --- FIX: Removido limpeza automática de sessão para garantir persistência ---
+    // A verificação anterior limpava o localStorage ao recarregar a página, o que causava perda de dados.
     if (!sessionStorage.getItem('isSessionActive')) {
-        console.warn("Nova sessão do navegador detectada. Limpando dados antigos...");
-        localStorage.clear(); // Limpa TUDO para garantir início zerado
-        sessionStorage.setItem('isSessionActive', 'true'); // Marca a sessão como ativa
-        return; // Não salva nada agora, deixa o estado zerado
+        sessionStorage.setItem('isSessionActive', 'true');
     }
 
     if (isRestoringState) {
@@ -7504,12 +7486,9 @@ async function clearPlanilhaDb() {
 
 async function loadStateFromLocalStorage() {
     // --- NOVO: Verificação de Sessão Efêmera no Carregamento ---
+    // --- FIX: Removido limpeza automática de sessão no carregamento ---
     if (!sessionStorage.getItem('isSessionActive')) {
-        console.warn("Nova sessão detectada ao carregar. Limpando dados antigos...");
-        localStorage.clear();
-        await clearPlanilhaDb(); // Limpa também o banco de dados
         sessionStorage.setItem('isSessionActive', 'true');
-        return; // Retorna sem carregar nada, app inicia zerado
     }
 
     if (typeof (Storage) === "undefined") return;
@@ -8397,6 +8376,35 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
 
     if (mapStatus) mapStatus.innerHTML = '<span class="text-info">Calculando rota...</span>';
 
+    // --- NOVO: Garante que o Painel Flutuante Exista ---
+    if (!document.getElementById('map-floating-stats')) {
+        const panelHTML = `
+            <div id="map-floating-stats">
+                <div class="map-stats-header">Itens Selecionados</div>
+                <div class="map-stats-row">
+                    <span>Peso Total:</span>
+                    <span class="map-stats-value" id="map-sel-kg">0.0 kg</span>
+                </div>
+                <div class="map-stats-row">
+                    <span>Cubagem:</span>
+                    <span class="map-stats-value" id="map-sel-cub">0.000 m³</span>
+                </div>
+                <div class="map-stats-row">
+                    <span>Pedidos:</span>
+                    <span class="map-stats-value" id="map-sel-count">0</span>
+                </div>
+                <button class="map-stats-btn" onclick="createSpecialLoadFromMap()" disabled id="btn-create-map-load">
+                    <i class="bi bi-box-seam-fill me-2"></i>Criar Carga
+                </button>
+            </div>`;
+        // Adiciona dentro do map-container
+        mapContainer.insertAdjacentHTML('beforeend', panelHTML);
+    }
+
+    // Reseta seleção ao redesenhar rota
+    selectedMapOrders.clear();
+    updateMapStats();
+
     // 1. Update Global State
     currentRouteLocations = locations;
 
@@ -8449,6 +8457,20 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
 
         const marker = L.marker(loc.coords).addTo(mapInstance).bindPopup(popupContent);
 
+        // --- NOVO: Evento de Clique para Seleção (Ignora Origem) ---
+        if (!loc.isOrigin && loc.pedidos) {
+            marker.on('click', (e) => {
+                // Previne abrir o popup se quisermos apenas selecionar? 
+                // O popup é útil. Vamos manter o popup e togglear a seleção.
+                // Mas o popup abre no click. Talvez usar 'contextmenu' (direito) ou shift+click?
+                // O usuario pediu "ao clicar na bolinha... ela mude de cor".
+                // Se o popup abrir junto, pode atrapalhar. Vamos fechar o popup se selecionar.
+
+                toggleMarkerSelection(marker, loc);
+                e.originalEvent.stopPropagation(); // Tenta evitar conflitos
+            });
+        }
+
         if (idx === 0) {
             marker.setIcon(L.icon({
                 iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
@@ -8459,7 +8481,8 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
             const number = idx;
             const numberedIcon = L.divIcon({
                 className: 'custom-div-icon',
-                html: `<div style="background-color: ${isManual ? '#e67e22' : '#d63031'}; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-weight: bold; font-family: sans-serif; font-size: 13px;">${number}</div>`,
+                // Adicionamos um dataset para identificar se é manual ou não, se precisarmos restaurar
+                html: `<div data-original-color="${isManual ? '#e67e22' : '#d63031'}" style="background-color: ${isManual ? '#e67e22' : '#d63031'}; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-weight: bold; font-family: sans-serif; font-size: 13px; transition: all 0.3s ease;">${number}</div>`,
                 iconSize: [28, 28],
                 iconAnchor: [14, 14],
                 popupAnchor: [0, -14]
@@ -8527,6 +8550,73 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
             if (document.getElementById('map-peso')) document.getElementById('map-peso').textContent = `${formatKg} kg`;
             if (document.getElementById('map-cubagem')) document.getElementById('map-cubagem').textContent = `${formatCub} m³`;
 
+            // --- VISUALIZAÇÃO DE PEDÁGIOS (Overpass API) ---
+            // Verifica se a função existe (carregada do toll_logic.js) e se a rota diz ter pedágio
+            if (typeof fetchTollBooths === 'function') {
+                // Remove lista anterior se existir
+                const oldTolls = document.getElementById('route-tolls-section');
+                if (oldTolls) oldTolls.remove();
+
+                if (data.trip.summary.has_toll) {
+                    showToast("Identificando praças de pedágio...", "info");
+
+                    // Converte array de arrays [[lat,lng],...] para array de objetos esperada pelo helper
+                    const routePointsObj = allPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
+                    const mapBounds = mapInstance.getBounds();
+
+                    fetchTollBooths(mapBounds, routePointsObj).then(booths => {
+                        if (booths.length > 0) {
+                            showToast(`${booths.length} pedágios identificados.`, 'success');
+
+                            // 1. Adiciona Marcadores no Mapa
+                            booths.forEach(b => {
+                                const tollIcon = L.divIcon({
+                                    className: 'toll-marker',
+                                    html: `<div style="background-color: #f1c40f; border: 2px solid #000; color: black; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5);"><i class="bi bi-cash-coin" style="font-size: 14px;"></i></div>`,
+                                    iconSize: [24, 24],
+                                    iconAnchor: [12, 12]
+                                });
+
+                                L.marker([b.lat, b.lng], { icon: tollIcon })
+                                    .addTo(mapInstance)
+                                    .bindPopup(`<b>Praça de Pedágio</b><br><small>Detectado via Satélite</small>`);
+                            });
+
+                            // 2. Adiciona Lista na Sidebar
+                            const sidebarList = document.getElementById('route-sidebar');
+                            // Injeta antes dos botões de ação (último filho é a div de botões?)
+                            // Vamos buscar a div de botões especificamente ou inserir no final do scroll
+                            const stopsList = document.getElementById('route-stops-list');
+
+                            const tollsHtml = `
+                                <div id="route-tolls-section" class="border-top border-secondary bg-dark p-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2" data-bs-toggle="collapse" data-bs-target="#tollsListCollapse" style="cursor: pointer;">
+                                        <h6 class="mb-0 text-warning"><i class="bi bi-cash-coin me-2"></i>Pedágios (${booths.length})</h6>
+                                        <i class="bi bi-chevron-down text-secondary"></i>
+                                    </div>
+                                    <div class="collapse show" id="tollsListCollapse">
+                                        <div class="list-group list-group-flush small" style="max-height: 150px; overflow-y: auto;">
+                                            ${booths.map((b, i) => `
+                                                <div class="list-group-item bg-dark text-white-50 border-secondary py-1 px-2 d-flex justify-content-between">
+                                                    <span>Praça ${i + 1}</span>
+                                                    <a href="#" onclick="mapInstance.setView([${b.lat}, ${b.lng}], 15); return false;" class="text-info"><i class="bi bi-crosshair"></i></a>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                        <div class="text-muted xxs mt-1" style="font-size: 10px;">*Valores não disponíveis na versão gratuita.</div>
+                                    </div>
+                                </div>
+                            `;
+                            stopsList.insertAdjacentHTML('afterend', tollsHtml);
+
+                        } else {
+                            console.log("Nenhum pedágio visual encontrado na rota.");
+                        }
+                    });
+                }
+            }
+
+
             // CRITICAL FIX: Save distance to activeLoads for freight calculation
             // MUST use 'distanceKm' (not 'distance') to match freight_logic.js expectations
             if (activeLoads[loadId]) {
@@ -8546,5 +8636,271 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
     } catch (err) {
         console.warn(err);
         if (mapStatus) mapStatus.innerHTML = '<span class="text-danger">Erro de API.</span>';
+    }
+}
+
+// ================================================================================================
+//  NOVO: LÓGICA DE INTERAÇÃO DO MAPA (SELEÇÃO E CARGA ESPECIAL)
+// ================================================================================================
+
+function toggleMarkerSelection(marker, loc) {
+    if (!loc.pedidos) return;
+
+    // Verifica se já está selecionado (basta checar um pedido)
+    const firstPedidoId = String(loc.pedidos[0].Num_Pedido);
+    const isSelected = selectedMapOrders.has(firstPedidoId);
+
+    // Toggle logic
+    const iconElement = marker.getElement(); // O elemento DOM do ícone
+    if (!iconElement) return;
+
+    if (isSelected) {
+        // Deselecionar
+        loc.pedidos.forEach(p => selectedMapOrders.delete(String(p.Num_Pedido)));
+
+        iconElement.classList.remove('marker-green-filter');
+
+        // FORÇA BRUTA: Restaura a cor original
+        const innerDiv = iconElement.querySelector('div');
+        if (innerDiv) {
+            const originalColor = innerDiv.getAttribute('data-original-color') || '#d63031';
+            innerDiv.style.backgroundColor = originalColor;
+            innerDiv.style.borderColor = 'white';
+            innerDiv.style.transform = 'scale(1)';
+        }
+    } else {
+        // Selecionar
+        loc.pedidos.forEach(p => selectedMapOrders.add(String(p.Num_Pedido)));
+
+        iconElement.classList.add('marker-green-filter');
+
+        // FORÇA BRUTA: Pinta de verde
+        const innerDiv = iconElement.querySelector('div');
+        if (innerDiv) {
+            innerDiv.style.backgroundColor = '#10b981';
+            innerDiv.style.borderColor = '#059669';
+            innerDiv.style.transform = 'scale(1.2)';
+        }
+    }
+
+    updateMapStats();
+}
+
+function updateMapStats() {
+    const list = Array.from(selectedMapOrders);
+    const count = list.length;
+    let totalKg = 0;
+    let totalCub = 0;
+
+    // Precisamos buscar os dados dos pedidos.
+    // Onde eles estão? loc.pedidos tem os dados.
+    // Mas selectedMapOrders só tem IDs.
+    // Vamos iterar currentRouteLocations para somar.
+
+    if (currentRouteLocations) {
+        currentRouteLocations.forEach(loc => {
+            if (loc.pedidos) {
+                loc.pedidos.forEach(p => {
+                    if (selectedMapOrders.has(String(p.Num_Pedido))) {
+                        totalKg += (p.Quilos_Saldo || 0);
+                        totalCub += (p.Cubagem || 0);
+                    }
+                });
+            }
+        });
+    }
+
+    // Atualiza Painel
+    const panel = document.getElementById('map-floating-stats');
+    if (panel) {
+        if (count > 0) panel.classList.add('visible');
+        else panel.classList.remove('visible');
+
+        document.getElementById('map-sel-count').textContent = count;
+        document.getElementById('map-sel-kg').textContent = `${totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} kg`;
+        document.getElementById('map-sel-cub').textContent = `${totalCub.toLocaleString('pt-BR', { minimumFractionDigits: 3 })} m³`;
+
+        const btn = document.getElementById('btn-create-map-load');
+        if (btn) btn.disabled = count === 0;
+    }
+}
+
+async function createSpecialLoadFromMap() {
+    if (selectedMapOrders.size === 0) return;
+
+    if (!confirm(`Deseja criar uma Carga Especial com ${selectedMapOrders.size} pedidos selecionados?`)) return;
+
+    // 1. Identificar os pedidos completos
+    const pedidosParaNovaCarga = [];
+    const pedidosParaRemover = new Set(); // Para remoção eficiente
+
+    // Varre locations para pegar os objetos completos
+    if (currentRouteLocations) {
+        currentRouteLocations.forEach(loc => {
+            if (loc.pedidos) {
+                // Filtra pedidos que estão na seleção
+                // Importante: Uma location pode ter alguns pedidos selecionados e outros não?
+                // Nossa lógica de clique seleciona TODOS da location. 
+                // Mas, vamos suportar granularidade futura.
+                const pedidosDaLoc = loc.pedidos.filter(p => selectedMapOrders.has(String(p.Num_Pedido)));
+                pedidosParaNovaCarga.push(...pedidosDaLoc);
+
+                // Remove da location atual (para redesenhar depois)
+                loc.pedidos = loc.pedidos.filter(p => !selectedMapOrders.has(String(p.Num_Pedido)));
+            }
+        });
+    }
+
+    if (pedidosParaNovaCarga.length === 0) {
+        showToast("Erro ao agrupar pedidos.", "error");
+        return;
+    }
+
+    // 2. Remover da Carga Original (activeLoads OU lista geral)
+    const originLoadId = window.currentMapLoadId;
+    let requiredRefresh = false;
+
+    if (originLoadId && activeLoads[originLoadId]) {
+        // Caso 1: Veio de uma carga já montada (Fiorino/Van/etc)
+        activeLoads[originLoadId].pedidos = activeLoads[originLoadId].pedidos.filter(p => !selectedMapOrders.has(String(p.Num_Pedido)));
+
+        // Recalcula totais
+        activeLoads[originLoadId].totalKg = activeLoads[originLoadId].pedidos.reduce((acc, p) => acc + p.Quilos_Saldo, 0);
+        activeLoads[originLoadId].totalCubagem = activeLoads[originLoadId].pedidos.reduce((acc, p) => acc + p.Cubagem, 0);
+
+        // Se a carga ficar vazia, remove ela?
+        if (activeLoads[originLoadId].pedidos.length === 0) {
+            delete activeLoads[originLoadId];
+        }
+    } else {
+        // Caso 2: Veio da lista geral de roteirização (Sugestões)
+        // Precisamos remover dos pedidosGeraisAtuais para que o "card inicial" atualize
+        const initialCount = pedidosGeraisAtuais.length;
+        pedidosGeraisAtuais = pedidosGeraisAtuais.filter(p => !selectedMapOrders.has(String(p.Num_Pedido)));
+
+        // Também remover de sobras se necessário
+        currentLeftoversForPrinting = currentLeftoversForPrinting.filter(p => !selectedMapOrders.has(String(p.Num_Pedido)));
+
+        if (pedidosGeraisAtuais.length !== initialCount) {
+            requiredRefresh = true;
+        }
+    }
+
+    // 3. Criar Nova Carga
+    const newLoadId = `load-${Date.now()}`;
+    const newLoad = {
+        id: newLoadId,
+        pedidos: pedidosParaNovaCarga,
+        vehicleType: 'especial', // Força 'especial' para renderizar separado
+        totalKg: pedidosParaNovaCarga.reduce((acc, p) => acc + p.Quilos_Saldo, 0),
+        totalCubagem: pedidosParaNovaCarga.reduce((acc, p) => acc + p.Cubagem, 0),
+        createdAt: new Date().toISOString()
+    };
+    activeLoads[newLoadId] = newLoad;
+
+    // 4. Salvar e Renderizar
+    saveStateToLocalStorage();
+    renderActiveLoads();
+
+    // Se removeu da lista geral, precisa reprocessar a visualização dos "Não Roteirizados"
+    if (requiredRefresh) {
+        // Força atualização da UI principal
+        // Como 'processar()' é pesado, podemos tentar apenas atualizar o display
+        // Mas o displayGerais recebe grupos...
+        // Vamos reconstruir os grupos rápidos
+        try {
+            // Reagrupar por rota para atualizar o card original
+            const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => {
+                const rota = p.Cod_Rota;
+                if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; }
+                acc[rota].pedidos.push(p);
+                acc[rota].totalKg += p.Quilos_Saldo;
+                return acc;
+            }, {});
+
+            displayGerais(document.getElementById('resultado-geral'), gruposGerais);
+        } catch (e) {
+            console.error("Erro ao atualizar lista geral:", e);
+        }
+    }
+
+    showToast(`Carga Especial criada com sucesso! (${pedidosParaNovaCarga.length} pedidos)`, "success");
+
+    // 5. Limpar Seleção e Redesenhar Mapa (sem os pedidos removidos)
+    selectedMapOrders.clear();
+    updateMapStats();
+
+    // Filtra locations vazias (sem pedidos)
+    const newLocations = currentRouteLocations.filter(loc => loc.isOrigin || (loc.pedidos && loc.pedidos.length > 0));
+
+    // Atualiza mapa e barra lateral
+    currentRouteLocations = newLocations; // Importante atualizar state global
+    renderRouteSidebar(newLocations);
+
+    if (originLoadId) {
+        await calculateAndDrawRoute(newLocations, originLoadId, true);
+    }
+}
+
+// ================================================================================================
+// NOVO: Renderização Global de Cargas Ativas (Corrige erro renderActiveLoads is not defined)
+// ================================================================================================
+// ================================================================================================
+// NOVO: Renderização Global de Cargas Ativas (Distribuída por Tab)
+// ================================================================================================
+function renderActiveLoads() {
+    const roteirizadosContainer = document.getElementById('resultado-roteirizados');
+    const especialContainer = document.getElementById('resultado-montagens-especiais');
+
+    // Limpa ambos os containers se existirem
+    if (roteirizadosContainer) roteirizadosContainer.innerHTML = '';
+    if (especialContainer) especialContainer.innerHTML = '';
+
+    const vehicleInfo = {
+        fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
+        van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
+        tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
+        toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
+        manual: { name: 'Manual / Especial', colorClass: 'bg-info', textColor: 'text-white', icon: 'bi-star-fill' },
+        especial: { name: 'Especial', colorClass: 'bg-primary bg-gradient', textColor: 'text-white', icon: 'bi-stars' }
+    };
+
+    if (activeLoads) {
+        // Ordena por ID ou data de criação para consistência visual
+        const sortedLoads = Object.values(activeLoads).sort((a, b) => {
+            if (a.createdAt && b.createdAt) return new Date(a.createdAt) - new Date(b.createdAt);
+            return a.id.localeCompare(b.id);
+        });
+
+        sortedLoads.forEach((load) => {
+            // Fallback para tipo manual se não definido
+            const vType = load.vehicleType || 'manual';
+            const vInfo = vehicleInfo[vType] || vehicleInfo['manual'];
+
+            if (typeof renderLoadCard === 'function') {
+                const cardHtml = renderLoadCard(load, vType, vInfo);
+
+                // Decide onde renderizar
+                if (vType === 'manual' || vType === 'especial') {
+                    if (especialContainer) especialContainer.insertAdjacentHTML('beforeend', cardHtml);
+                } else {
+                    if (roteirizadosContainer) roteirizadosContainer.insertAdjacentHTML('beforeend', cardHtml);
+                }
+            }
+        });
+    }
+
+    // Gerencia Empty States
+    if (roteirizadosContainer && roteirizadosContainer.children.length === 0) {
+        roteirizadosContainer.innerHTML = `
+            <div class="empty-state"><i class="bi bi-map"></i>
+                <p>Nenhuma carga roteirizada por lista.</p>
+            </div>`;
+    }
+    if (especialContainer && especialContainer.children.length === 0) {
+        especialContainer.innerHTML = `
+            <div class="empty-state"><i class="bi bi-stars"></i>
+                <p>Nenhuma montagem especial.</p>
+            </div>`;
     }
 }
