@@ -8404,17 +8404,17 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
     renderRouteSidebar(locations);
 
     // 3. Clear existing layers
-    if (mapInstance) {
-        mapInstance.eachLayer(layer => {
-            if (layer instanceof L.Marker || layer instanceof L.Polyline) {
-                mapInstance.removeLayer(layer);
-            }
-        });
-    } else {
-        // Should exist, but if not initialized...
-        // mapInstance = L.map(mapContainer)...
-        // For now assume initialized by showRouteOnMap
+    if (!mapInstance || !mapInstance.getContainer()) {
+        console.error('Map instance is invalid. Cannot draw route.');
+        if (mapStatus) mapStatus.innerHTML = '<span class="text-danger">Erro: Mapa não inicializado. Feche e reabra o modal.</span>';
+        return;
     }
+
+    mapInstance.eachLayer(layer => {
+        if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+            mapInstance.removeLayer(layer);
+        }
+    });
 
     // 4. Add Markers
     const bounds = L.latLngBounds();
@@ -8526,6 +8526,18 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
 
             if (document.getElementById('map-peso')) document.getElementById('map-peso').textContent = `${formatKg} kg`;
             if (document.getElementById('map-cubagem')) document.getElementById('map-cubagem').textContent = `${formatCub} m³`;
+
+            // CRITICAL FIX: Save distance to activeLoads for freight calculation
+            // MUST use 'distanceKm' (not 'distance') to match freight_logic.js expectations
+            if (activeLoads[loadId]) {
+                activeLoads[loadId].distanceKm = parseFloat(totalDistKm);
+                // NOTE: Freight update removed per user request
+                // User wants freight calculated ONLY when clicking "Calcular KM" button
+                // NOT when opening the route map
+                // if (typeof updateLoadFreightDisplay === 'function') {
+                //     updateLoadFreightDisplay(loadId);
+                // }
+            }
 
             if (mapStatus) mapStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle-fill"></i> Rota calculada com sucesso!</span>';
         } else {
