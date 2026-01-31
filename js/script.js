@@ -2072,17 +2072,20 @@ function renderActiveLoadCards() {
     const vehicleInfo = {
         fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
         van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
-        tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' }
+        tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
+        especial: { name: 'Especial', colorClass: 'bg-dark', textColor: 'text-white', icon: 'bi-clipboard-check-fill' }
     };
 
     // Limpa os containers de resultado antes de redesenhar para evitar duplicatas.
     document.getElementById('resultado-fiorino-geral').innerHTML = '';
     document.getElementById('resultado-van-geral').innerHTML = '';
     document.getElementById('resultado-34-geral').innerHTML = '';
+    const especialContainer = document.getElementById('resultado-montagens-especiais');
+    if (especialContainer) especialContainer.innerHTML = '';
 
     for (const loadId in activeLoads) {
         const load = activeLoads[loadId];
-        // Ignora cargas 'Toco', pois sá£o tratadas por displayToco()
+        // Ignora cargas 'Toco', pois são tratadas por displayToco()
         if (load.vehicleType === 'toco' || load.id.startsWith('roteiro-')) continue;
 
         const vInfo = vehicleInfo[load.vehicleType];
@@ -2092,6 +2095,7 @@ function renderActiveLoadCards() {
             if (load.vehicleType === 'fiorino') containerId = 'resultado-fiorino-geral';
             else if (load.vehicleType === 'van') containerId = 'resultado-van-geral';
             else if (load.vehicleType === 'tresQuartos') containerId = 'resultado-34-geral';
+            else if (load.vehicleType === 'especial') containerId = 'resultado-montagens-especiais';
 
             const container = document.getElementById(containerId);
             if (container) {
@@ -4290,7 +4294,7 @@ function renderLoadCard(load, vehicleType, vInfo) {
                 <div class="header-main-info">
                     <div class="load-badge-id">
                         <i class="bi ${vInfo.icon}" style="color: ${titleIconColor}"></i>
-                        <span>#${load.numero}</span>
+                        <span>#${load.numero || load.id.split('-').pop()}</span>
                     </div>
                     <div class="load-main-title">
                         ${vInfo.name}${spDescription}
@@ -4763,8 +4767,11 @@ async function showRouteOnMap(loadId) {
         // CORREÇÃO CRÍTICA: Força resize imediato
         mapInstance.invalidateSize();
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+        // Use CartoDB Voyager for a cleaner, modern look - Prettier Map
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
         }).addTo(mapInstance);
 
         // 4. Rota Otimizada (Valhalla)
@@ -5013,6 +5020,14 @@ function removerPedidoDoMapa(loadId, orderNumber) {
             console.log(`Card da carga ${loadId} atualizado com sucesso.`);
         } else {
             console.warn(`Elemento do card ${loadId} não encontrado no DOM.`);
+        }
+    } else {
+        // CORREÇÃO CRÍTICA: Se a carga foi excluída (activeLoads[loadId] é undefined),
+        // devemos remover o elemento visual do DOM para evitar "Ghost Cards".
+        const cardElement = document.getElementById(loadId);
+        if (cardElement) {
+            cardElement.remove();
+            showToast('Carga ficou vazia e foi removida visualmente.', 'info');
         }
     }
 
@@ -5805,9 +5820,9 @@ function drop(event) {
     let targetIsManualBuilder = targetId === 'manual-builder';
     let sourceIsManualBuilder = sourceId === 'manual-builder';
 
-    // Identifica se é uma carga especial (pode ter prefixo 'especial-' ou 'load-')
-    let sourceIsSpecialLoad = sourceId && (sourceId.startsWith('especial-') || sourceId.startsWith('load-'));
-    let targetIsSpecialLoad = targetId && (targetId.startsWith('especial-') || targetId.startsWith('load-'));
+    // Identifica se é uma carga especial (pode ter prefixo 'especial-', 'load-' ou 'roteiro-')
+    let sourceIsSpecialLoad = sourceId && (sourceId.startsWith('especial-') || sourceId.startsWith('load-') || sourceId.startsWith('roteiro-'));
+    let targetIsSpecialLoad = targetId && (targetId.startsWith('especial-') || targetId.startsWith('load-') || targetId.startsWith('roteiro-'));
 
     // ORIGEM: Identifica a carga de origem
     if (sourceIsLeftovers) {
@@ -7780,7 +7795,8 @@ function reRenderManualLoads() {
     const manualLoads = Object.values(activeLoads).filter(load =>
         load.id.startsWith('manual-') ||
         load.id.includes('venda-antecipada') ||
-        load.id.includes('especial')
+        load.id.includes('especial') ||
+        load.vehicleType === 'especial'
     );
 
     if (manualLoads.length === 0) return;
@@ -8584,7 +8600,7 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
             const number = idx;
             const numberedIcon = L.divIcon({
                 className: 'custom-div-icon',
-                html: `<div data-original-color="${isManual ? '#e67e22' : '#d63031'}" style="background-color: ${isManual ? '#e67e22' : '#d63031'}; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-weight: bold; font-family: sans-serif; font-size: 13px; transition: all 0.3s ease;">${number}</div>`,
+                html: `<div data-original-color="${isManual ? '#f59e0b' : '#ef4444'}" style="background-color: ${isManual ? '#f59e0b' : '#ef4444'}; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-weight: 700; font-family: 'Segoe UI', sans-serif; font-size: 14px; transition: all 0.3s ease;">${number}</div>`,
                 iconSize: [28, 28],
                 iconAnchor: [14, 14],
                 popupAnchor: [0, -14]
@@ -8810,7 +8826,12 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
             data.trip.legs.forEach(leg => {
                 allPoints.push(...decodePolyline(leg.shape, 6));
             });
-            const polyline = L.polyline(allPoints, { color: isManual ? '#e67e22' : 'blue', weight: 5, opacity: 0.7 }).addTo(mapInstance);
+            const polyline = L.polyline(allPoints, {
+                color: isManual ? '#f59e0b' : '#3b82f6', // Amber or Royal Blue
+                weight: 6,
+                opacity: 0.8,
+                smoothFactor: 1
+            }).addTo(mapInstance);
 
             // Update Stats
             const totalDistKm = data.trip.summary.length.toFixed(1);
@@ -9084,9 +9105,12 @@ async function createSpecialLoadFromMap() {
     }
 
     // 3. Criar Nova Carga
-    const newLoadId = `load-${Date.now()}`;
+    const newLoadId = `especial-map-${Date.now()}`;
+    const nextManualNum = Object.values(activeLoads).filter(l => l.id.startsWith('especial-') || l.id.startsWith('load-') || l.id.startsWith('manual-')).length + 1;
+
     const newLoad = {
         id: newLoadId,
+        numero: `M-${nextManualNum}`,
         pedidos: pedidosParaNovaCarga,
         vehicleType: 'especial', // Força 'especial' para renderizar separado
         totalKg: pedidosParaNovaCarga.reduce((acc, p) => acc + p.Quilos_Saldo, 0),
@@ -9097,7 +9121,7 @@ async function createSpecialLoadFromMap() {
 
     // 4. Salvar e Renderizar
     saveStateToLocalStorage();
-    renderActiveLoads();
+    renderAllUI(); // Usa a função central para garantir persistência visual e dados
 
     // Se removeu da lista geral, precisa reprocessar a visualização dos "Não Roteirizados"
     if (requiredRefresh) {
@@ -9139,68 +9163,6 @@ async function createSpecialLoadFromMap() {
     }
 }
 
-// ================================================================================================
-// NOVO: Renderização Global de Cargas Ativas (Corrige erro renderActiveLoads is not defined)
-// ================================================================================================
-// ================================================================================================
-// NOVO: Renderização Global de Cargas Ativas (Distribuída por Tab)
-// ================================================================================================
-function renderActiveLoads() {
-    const roteirizadosContainer = document.getElementById('resultado-roteirizados');
-    const especialContainer = document.getElementById('resultado-montagens-especiais');
-
-    // Limpa ambos os containers se existirem
-    if (roteirizadosContainer) roteirizadosContainer.innerHTML = '';
-    if (especialContainer) especialContainer.innerHTML = '';
-
-    const vehicleInfo = {
-        fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
-        van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
-        tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
-        toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' },
-        manual: { name: 'Manual / Especial', colorClass: 'bg-info', textColor: 'text-white', icon: 'bi-star-fill' },
-        especial: { name: 'Especial', colorClass: 'bg-primary bg-gradient', textColor: 'text-white', icon: 'bi-stars' }
-    };
-
-    if (activeLoads) {
-        // Ordena por ID ou data de criação para consistência visual
-        const sortedLoads = Object.values(activeLoads).sort((a, b) => {
-            if (a.createdAt && b.createdAt) return new Date(a.createdAt) - new Date(b.createdAt);
-            return a.id.localeCompare(b.id);
-        });
-
-        sortedLoads.forEach((load) => {
-            // Fallback para tipo manual se não definido
-            const vType = load.vehicleType || 'manual';
-            const vInfo = vehicleInfo[vType] || vehicleInfo['manual'];
-
-            if (typeof renderLoadCard === 'function') {
-                const cardHtml = renderLoadCard(load, vType, vInfo);
-
-                // Decide onde renderizar
-                if (vType === 'manual' || vType === 'especial') {
-                    if (especialContainer) especialContainer.insertAdjacentHTML('beforeend', cardHtml);
-                } else {
-                    if (roteirizadosContainer) roteirizadosContainer.insertAdjacentHTML('beforeend', cardHtml);
-                }
-            }
-        });
-    }
-
-    // Gerencia Empty States
-    if (roteirizadosContainer && roteirizadosContainer.children.length === 0) {
-        roteirizadosContainer.innerHTML = `
-            <div class="empty-state"><i class="bi bi-map"></i>
-                <p>Nenhuma carga roteirizada por lista.</p>
-            </div>`;
-    }
-    if (especialContainer && especialContainer.children.length === 0) {
-        especialContainer.innerHTML = `
-            <div class="empty-state"><i class="bi bi-stars"></i>
-                <p>Nenhuma montagem especial.</p>
-            </div>`;
-    }
-}
 
 // Funcao de impressao global
 window.imprimirMapa = function () {
