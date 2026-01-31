@@ -2591,3 +2591,294 @@
         img.leaflet-marker-icon.marker-green-filter {
             animation: markerPulse 1.5s infinite ease-in-out;
         }
+
+        /* ==========================================================================
+   PRINT STYLES FOR MAP & TOLLS (OPTIMIZED FOR SINGLE PAGE)
+   ========================================================================== */
+        @media print {
+
+            /* 1. PAGE SETUP */
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+
+            /* 2. RESET GLOBAL VISIBILITY */
+            body,
+            html {
+                height: 100%;
+                overflow: visible !important;
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body * {
+                visibility: hidden;
+                /* Hide everything by default */
+            }
+
+            /* 3. SHOW MODAL CONTENT & LAYOUT */
+            #mapModal,
+            #mapModal .modal-dialog,
+            #mapModal .modal-content,
+            #mapModal .modal-body {
+                visibility: visible !important;
+                display: flex !important;
+                flex-direction: column !important;
+                /* Forces vertical stacking */
+                position: relative !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                background: white !important;
+                overflow: visible !important;
+            }
+
+            /* 4. HEADER (Dynamic from Modal Title) */
+            .modal-header {
+                visibility: visible !important;
+                display: flex !important;
+                border-bottom: 2px solid #000 !important;
+                margin-bottom: 10px !important;
+                padding: 5px 0 !important;
+            }
+
+
+            .modal-title {
+                font-size: 18pt !important;
+                font-weight: bold !important;
+                color: black !important;
+                visibility: visible !important;
+            }
+
+            /* PRINT LOAD HEADER - Cabeçalho de Identificação da Carga */
+            #print-load-header {
+                display: block !important;
+                visibility: visible !important;
+                order: -1 !important;
+                /* Aparece antes de tudo */
+                margin-bottom: 10px !important;
+            }
+
+            #print-load-header * {
+                visibility: visible !important;
+                display: block !important;
+            }
+
+            #print-load-header h2,
+            #print-load-header p,
+            #print-load-header span,
+            #print-load-header div {
+                color: black !important;
+            }
+
+            /* Hide modal title in print (we have the custom header now) */
+            .modal-header {
+                display: none !important;
+            }
+
+
+            /* 5. SIDEBAR / LIST AREA (Order 1 - Top) - COMPACT */
+            #route-sidebar {
+                order: 1 !important;
+                /* Sidebar at the top */
+                visibility: visible !important;
+                display: block !important;
+                position: relative !important;
+                width: 100% !important;
+                height: auto !important;
+                max-height: 200px !important;
+                /* Limita altura da lista */
+                background: white !important;
+                color: black !important;
+                border: 1px solid #000 !important;
+                margin-top: 0 !important;
+                margin-bottom: 10px !important;
+                padding: 5px !important;
+                overflow: hidden !important;
+            }
+
+            #route-sidebar * {
+                visibility: visible !important;
+                color: black !important;
+            }
+
+            #route-stops-list,
+            #route-tolls-section {
+                display: block !important;
+                max-height: 180px !important;
+                overflow: hidden !important;
+            }
+
+            /* LIST ITEMS STYLING - COMPACT */
+            .list-group-item {
+                border-bottom: 1px solid #ddd !important;
+                padding: 3px 8px !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                font-size: 9pt !important;
+                line-height: 1.2 !important;
+            }
+
+            /* Hide "Drag to Reorder" text */
+            #route-stops-list+div,
+            .text-muted.small.text-end,
+            .modal-body .d-flex.justify-content-end.mb-2 {
+                display: none !important;
+            }
+
+            /* 6. MAP AREA & LEAFLET FIXES (Order 2 - Bottom) - OPTIMIZED SIZE */
+            #map-container,
+            .map-container,
+            #map {
+                order: 2 !important;
+                visibility: visible !important;
+                display: block !important;
+                min-height: 400px !important;
+                /* Reduzido de 600px para caber na página */
+                height: 400px !important;
+                width: 100% !important;
+                position: relative !important;
+                border: 2px solid #000 !important;
+                margin-top: 5px !important;
+                margin-bottom: 5px !important;
+                z-index: 9999 !important;
+                background-color: white !important;
+                /* Branco para mostrar que o container existe */
+                page-break-inside: avoid !important;
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            /* CRITICAL: FORCE MAP TILES TO SHOW WITH COLORS */
+            .leaflet-pane,
+            .leaflet-tile,
+            .leaflet-marker-icon,
+            .leaflet-marker-shadow,
+            .leaflet-tile-container,
+            .leaflet-map-pane,
+            .leaflet-map-pane svg,
+            .leaflet-map-pane canvas,
+            .leaflet-image-layer,
+            .leaflet-layer,
+            .leaflet-overlay-pane,
+            .leaflet-tile-pane {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                position: absolute !important;
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            /* Force tile images to render */
+            .leaflet-tile {
+                image-rendering: -webkit-optimize-contrast !important;
+                image-rendering: crisp-edges !important;
+            }
+
+            /* Ensure polylines (routes) are visible */
+            .leaflet-overlay-pane svg,
+            .leaflet-overlay-pane path {
+                visibility: visible !important;
+                display: block !important;
+                stroke-width: 3 !important;
+                print-color-adjust: exact !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+
+            /* GLOBAL TEXT FIXES */
+            body,
+            .modal-body,
+            .modal-title,
+            p,
+            span,
+            div,
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                color: #000 !important;
+                /* Force true black */
+                text-shadow: none !important;
+            }
+
+            /* SPECIFIC HIDES */
+            .text-muted,
+            .small,
+            .badge-neon-priority,
+            .badge-neon-danger {
+                display: none !important;
+            }
+
+            /* 7. HIDE USELESS ELEMENTS */
+            .modal-footer,
+            .btn-close,
+            .modal-backdrop,
+            #route-sidebar button,
+            #route-sidebar .bi-chevron-down,
+            #route-sidebar .btn-outline-light,
+            .leaflet-control-container,
+            .leaflet-control-zoom,
+            .leaflet-control-attribution,
+            .badge-neon-priority,
+            .map-stats-btn,
+            #map-floating-stats,
+            #map-status {
+                display: none !important;
+                visibility: hidden !important;
+            }
+
+            /* 8. FORCE COLORS FOR ALL ELEMENTS */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .text-warning {
+                color: #d35400 !important;
+            }
+
+            /* Dark Orange for readability */
+            .text-white {
+                color: black !important;
+            }
+
+            .text-white-50 {
+                color: #333 !important;
+            }
+
+            .bg-dark {
+                background-color: transparent !important;
+            }
+
+            /* TOLL SECTION HEADER - COMPACT */
+            #route-tolls-section h6 {
+                font-size: 11pt !important;
+                font-weight: bold !important;
+                color: black !important;
+                margin-top: 10px !important;
+                border-bottom: 1px solid #000;
+                padding-bottom: 3px !important;
+            }
+
+            /* Ensure no page breaks inside map */
+            #map-container {
+                page-break-before: auto !important;
+                page-break-after: auto !important;
+                page-break-inside: avoid !important;
+            }
+
+            /* Compact toll list items */
+            #route-tolls-section .list-group-item {
+                padding: 2px 5px !important;
+                font-size: 8pt !important;
+            }
+        }

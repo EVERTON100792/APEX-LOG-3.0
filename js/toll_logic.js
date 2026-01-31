@@ -7,9 +7,10 @@
  * Busca praças de pedágio dentro do bounding box da rota e filtra as que estão próximas à linha da rota.
  * @param {L.LatLngBounds} bounds - Limites visuais do mapa.
  * @param {Array<L.LatLng>} routePoints - Pontos da polilinha da rota.
+ * @param {Array<Object>} stops - Lista de paradas (locations) com coordenadas e nomes.
  * @returns {Promise<Array>} Lista de pedágios encontrados.
  */
-async function fetchTollBooths(bounds, routePoints) {
+async function fetchTollBooths(bounds, routePoints, stops = []) {
     // 1. Constrói query Overpass
     // [out:json];node["barrier"="toll_booth"](south,west,north,east);out;
     const s = bounds.getSouth();
@@ -27,9 +28,7 @@ async function fetchTollBooths(bounds, routePoints) {
         const data = await response.json();
 
         const booths = [];
-        const proximityThreshold = 0.001; // ~100 metros (graus decimais aprox)
         // Nota: Cálculo geodésico preciso seria melhor, mas para UI rápida isso basta.
-        // Vamos usar TurfeJS se tivéssemos, mas aqui vamos de geometria simples.
 
         if (data.elements) {
             data.elements.forEach(node => {
@@ -37,13 +36,35 @@ async function fetchTollBooths(bounds, routePoints) {
                 const nodeLon = node.lon;
 
                 // 2. Filtra: Verifica se o ponto está próximo de ALGUM segmento da rota
-                // Otimização: Checa primeiro box simples antes de cálculo detalhado
                 if (isCloseToPolyline(nodeLat, nodeLon, routePoints, 200)) { // 200 metros
+
+                    // 3. Encontra a cidade/parada mais próxima para referência
+                    let nearestStopName = "Desconhecido";
+                    let minStopDist = Infinity;
+
+                    if (stops && stops.length > 0) {
+                        stops.forEach(stop => {
+                            if (stop.coords) {
+                                const d = (stop.coords.lat - nodeLat) ** 2 + (stop.coords.lng - nodeLon) ** 2;
+                                if (d < minStopDist) {
+                                    minStopDist = d;
+                                    nearestStopName = stop.name ? stop.name.split(',')[0].trim() : "Local";
+                                }
+                            }
+                        });
+                    }
+
+                    // Nome da praça (tag name ou operator ou ref)
+                    let boothName = node.tags.name || node.tags.operator || `Pedágio`;
+                    if (node.tags.ref) boothName += ` (${node.tags.ref})`;
+
                     booths.push({
                         lat: nodeLat,
                         lng: nodeLon,
                         id: node.id,
-                        name: node.tags.name || "Pedágio"
+                        name: boothName,
+                        context: `Próx. a ${nearestStopName}`,
+                        full_tags: node.tags
                     });
                 }
             });
@@ -69,12 +90,7 @@ function isCloseToPolyline(lat, lng, polylinePoints, maxMeters) {
     const maxDeg = (maxMeters / 111000);
     const maxDegSq = maxDeg * maxDeg;
 
-    // Amostragem: não testar TODOS os pontos se a rota for gigante (+10k points).
-    // Mas Valhalla decodePolyline já simplifica.
-
     // Check simples: Distancia para o PONTO mais próximo da linha (vertex)
-    // Refinamento: Deveriamos checar distancia para o SEGMENTO, mas vertex-check costuma funcionar para pedágios 
-    // pois a rota passa "em cima".
 
     for (let i = 0; i < polylinePoints.length; i++) {
         const p = polylinePoints[i];
@@ -111,4 +127,34 @@ function combineCloseBooths(booths) {
     });
 
     return combined;
+}
+
+/**
+ * Gera relatório formatado para o clipboard
+ */
+function copyTollReport() {
+    if (!window.currentTollBooths || window.currentTollBooths.length === 0) {
+        showToast("Sem informações de pedágio para copiar.", "warning");
+        return;
+    }
+
+    let report = `RELATÓRIO DE PEDÁGIOS - ROTA AUTOMÁTICA\n`;
+    report += `Data: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n`;
+    report += `Total Identificado: ${window.currentTollBooths.length} praças\n\n`;
+
+    window.currentTollBooths.forEach((b, i) => {
+        report += `${i + 1}. ${b.name.toUpperCase()}\n`;
+        report += `   Local: ${b.context}\n`;
+        report += `   Coords: ${b.lat.toFixed(5)}, ${b.lng.toFixed(5)}\n`;
+        report += `   --------------\n`;
+    });
+
+    report += `\n*Valores e tarifas devem ser consultados no Sem Parar/ConectCar.`;
+
+    navigator.clipboard.writeText(report).then(() => {
+        showToast("Relatório copiado para a área de transferência!", "success");
+    }).catch(err => {
+        console.error("Erro ao copiar: ", err);
+        showToast("Erro ao copiar relatório.", "error");
+    });
 }

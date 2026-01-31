@@ -4339,6 +4339,10 @@ function renderLoadCard(load, vehicleType, vInfo) {
                 </div>
                 
                 ${oldestDateHtml}
+                
+                <div class="text-end mt-2 me-2 mb-1" style="font-size: 0.7rem; opacity: 0.6;">
+                    ID: ${load.id}
+                </div>
             </div>
             
             <div class="card-footer-neon"></div>
@@ -4553,7 +4557,74 @@ async function showRouteOnMap(loadId) {
 
     const load = activeLoads[loadId];
     if (load) {
-        mapTitle.textContent = `Rota - Carga ${load.numero || load.id}`;
+        // PADRONIZAÇÃO DE NOME: Garante que o título da janela do mapa seja IGUAL ao da carga
+        const loadNum = load.numero || load.id;
+        mapTitle.innerHTML = `<i class="bi bi-map-fill me-2"></i>ROTA DA CARGA: <span class="badge bg-dark border border-light" style="font-size: 1.1em;">${loadNum}</span>`;
+
+        // NOVO: Adiciona cabeçalho de identificação para impressão
+        const existingPrintHeader = document.getElementById('print-load-header');
+        if (existingPrintHeader) existingPrintHeader.remove();
+
+        const vehicleTypes = {
+            fiorino: 'Fiorino',
+            van: 'Van',
+            tresQuartos: '3/4',
+            toco: 'Toco',
+            manual: 'Manual',
+            especial: 'Especial'
+        };
+
+        const vehicleType = vehicleTypes[load.vehicleType] || 'N/A';
+        const totalKg = (load.totalKg || 0).toFixed(2);
+        const totalCub = (load.totalCubagem || 0).toFixed(3);
+        const numPedidos = load.pedidos ? load.pedidos.length : 0;
+        const now = new Date();
+        const dataHora = now.toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const printHeaderHtml = `
+            <div id="print-load-header" class="print-only" style="display: none;">
+                <div style="border: 2px solid #000; padding: 10px; margin-bottom: 15px; background: #f8f9fa;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <div>
+                            <h2 style="margin: 0; font-size: 20pt; font-weight: bold;">CARGA #${loadNum}</h2>
+                            <p style="margin: 3px 0 0 0; font-size: 10pt; color: #666;">Gerado em: ${dataHora}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="background: #000; color: white; padding: 5px 15px; border-radius: 5px; font-weight: bold; font-size: 12pt;">
+                                ${vehicleType}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; border-top: 1px solid #ddd; padding-top: 8px;">
+                        <div>
+                            <span style="font-size: 8pt; color: #666; text-transform: uppercase;">Pedidos</span>
+                            <div style="font-size: 14pt; font-weight: bold;">${numPedidos}</div>
+                        </div>
+                        <div>
+                            <span style="font-size: 8pt; color: #666; text-transform: uppercase;">Peso Total</span>
+                            <div style="font-size: 14pt; font-weight: bold;">${totalKg} kg</div>
+                        </div>
+                        <div>
+                            <span style="font-size: 8pt; color: #666; text-transform: uppercase;">Cubagem</span>
+                            <div style="font-size: 14pt; font-weight: bold;">${totalCub} m³</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Insere no início do modal-body
+        const modalBody = document.querySelector('#mapModal .modal-body');
+        if (modalBody) {
+            modalBody.insertAdjacentHTML('afterbegin', printHeaderHtml);
+        }
+
         // Set global tracker
         if (typeof currentMapLoadId !== 'undefined') currentMapLoadId = loadId;
         else window.currentMapLoadId = loadId;
@@ -5199,12 +5270,17 @@ function printMap() {
     // Adiciona uma classe ao body para controlar a visibilidade na impressá£o
     document.body.classList.add('print-map-active');
 
-    // Usa um pequeno timeout para garantir que o CSS seja aplicado antes da impressá£o
+    // Força o redimensionamento do mapa para garantir que preencha o container
+    if (typeof mapInstance !== 'undefined' && mapInstance) {
+        mapInstance.invalidateSize();
+    }
+
+    // Usa um timeout maior para garantir que os tiles do mapa carreguem completamente
     setTimeout(() => {
         window.print();
         // Remove a classe apá³s a impressá£o ser acionada
         document.body.classList.remove('print-map-active');
-    }, 250);
+    }, 2000);
 }
 
 /**
@@ -5727,31 +5803,51 @@ function drop(event) {
     let targetIsManualBuilder = targetId === 'manual-builder';
     let sourceIsManualBuilder = sourceId === 'manual-builder';
 
+    // Identifica se é uma carga especial (pode ter prefixo 'especial-' ou 'load-')
+    let sourceIsSpecialLoad = sourceId && (sourceId.startsWith('especial-') || sourceId.startsWith('load-'));
+    let targetIsSpecialLoad = targetId && (targetId.startsWith('especial-') || targetId.startsWith('load-'));
+
+    // ORIGEM: Identifica a carga de origem
     if (sourceIsLeftovers) {
         sourceLoad = { pedidos: currentLeftoversForPrinting };
     } else if (sourceIsGeral) {
         sourceLoad = { pedidos: pedidosGeraisAtuais };
     } else if (sourceIsManualBuilder) {
         sourceLoad = manualLoadInProgress;
-    } else {
-        // CORREÇÃO: Busca a carga ativa usando o ID correto, lidando com cargas especiais
+    } else if (sourceIsSpecialLoad && activeLoads[sourceId]) {
+        // Cargas especiais ou normais em activeLoads
         sourceLoad = activeLoads[sourceId];
-        // Se for uma carga temporária (venda antecipada ou especial), o objeto pode estar em activeLoads
-        // mas precisamos ter certeza de que temos a referência correta
+    } else {
+        // Fallback: tenta buscar em activeLoads de qualquer forma
+        sourceLoad = activeLoads[sourceId];
     }
 
+    // DESTINO: Identifica a carga de destino
     if (targetIsLeftovers) {
         targetLoad = { pedidos: currentLeftoversForPrinting, totalKg: 0, totalCubagem: 0 };
     } else if (targetIsManualBuilder) {
         targetLoad = manualLoadInProgress;
     } else if (targetIsGeral) {
         targetLoad = { pedidos: pedidosGeraisAtuais, totalKg: 0, totalCubagem: 0 };
+    } else if (targetIsSpecialLoad && activeLoads[targetId]) {
+        // Cargas especiais ou normais em activeLoads
+        targetLoad = activeLoads[targetId];
     } else {
+        // Fallback: tenta buscar em activeLoads de qualquer forma
         targetLoad = activeLoads[targetId];
     }
 
     if (!sourceLoad || !targetLoad) {
-        console.error("ERRO: Carga de origem ou destino ná£o encontrada.", { sourceId, targetId, activeLoads });
+        console.error("ERRO: Carga de origem ou destino não encontrada.", {
+            sourceId,
+            targetId,
+            sourceLoad: !!sourceLoad,
+            targetLoad: !!targetLoad,
+            availableLoads: Object.keys(activeLoads),
+            sourceIsSpecialLoad,
+            targetIsSpecialLoad
+        });
+        showToast("Erro: Não foi possível mover o pedido. Carga não encontrada.", "error");
         return;
     }
 
@@ -8498,6 +8594,13 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
     // 5. Valhalla API Call
     let valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
 
+    // Check waypoint limit (Valhalla public API typically supports up to 50 waypoints)
+    if (valhallaPoints.length > 50) {
+        if (mapStatus) mapStatus.innerHTML = '<span class="text-warning">⚠️ Rota muito longa. Limitando a 50 pontos...</span>';
+        valhallaPoints = valhallaPoints.slice(0, 50);
+        showToast("Rota limitada a 50 pontos devido a restrições da API", "warning");
+    }
+
     let valhallaQuery = {
         locations: valhallaPoints,
         costing: "auto",
@@ -8512,10 +8615,141 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
     };
 
     let endpoint = 'route';
-    let routeUrl = `https://valhalla1.openstreetmap.de/${endpoint}?json=${JSON.stringify(valhallaQuery)}`;
+    let routeUrl = `https://valhalla1.openstreetmap.de/${endpoint}`;
 
     try {
-        const resp = await fetch(routeUrl);
+        // Retry Logic for Valhalla API with improved timeout handling
+        let retries = 3;
+        let delay = 3000; // Start with 3s delay (aumentado de 2s para servidores lentos)
+        let resp;
+        let lastError;
+
+        while (retries > 0) {
+            try {
+                // Create AbortController for timeout (45 seconds - aumentado de 30s)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+                // Use POST instead of GET to avoid URL length limits
+                resp = await fetch(routeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(valhallaQuery),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (resp.ok) break; // Success
+
+                // If server error (500-599) or rate limit (429), wait and retry
+                if (resp.status >= 500 || resp.status === 429 || resp.status === 504) {
+                    const text = await resp.text(); // Consume body to avoid leak
+                    const statusText = resp.status === 504 ? 'Timeout do servidor' : `Erro ${resp.status}`;
+                    console.warn(`Valhalla API tentativa ${4 - retries}/3 - ${statusText}: ${text.substring(0, 100)}`);
+
+                    if (mapStatus) {
+                        mapStatus.innerHTML = `<span class="text-warning">⏳ Servidor lento, tentando novamente (${4 - retries}/3)...</span>`;
+                    }
+
+                    throw new Error(`Server Error ${resp.status}`);
+                }
+
+                // If client error (400-499, except 429), don't retry
+                const textErr = await resp.text();
+                throw new Error(`API Error ${resp.status}: ${textErr.substring(0, 100)}...`);
+
+            } catch (err) {
+                lastError = err;
+
+                // Handle timeout specifically
+                if (err.name === 'AbortError') {
+                    console.warn(`Valhalla API timeout na tentativa ${4 - retries}/3`);
+                    if (mapStatus) {
+                        mapStatus.innerHTML = `<span class="text-warning">⏳ Timeout, tentando novamente (${4 - retries}/3)...</span>`;
+                    }
+                    lastError = new Error('Timeout: O servidor não respondeu a tempo');
+                }
+
+                retries--;
+                if (retries === 0) break;
+
+                // Exponential backoff: 2s, 4s, 8s
+                await new Promise(r => setTimeout(r, delay));
+                delay *= 2;
+            }
+        }
+
+        if (!resp || !resp.ok) {
+            // FALLBACK: Desenha rota direta se a API falhar
+            console.warn('⚠️ API Valhalla falhou após 3 tentativas. Usando rota direta como fallback.');
+
+            if (mapStatus) {
+                mapStatus.innerHTML = '<span class="text-warning">⚠️ Servidor indisponível. Mostrando rota direta aproximada.</span>';
+            }
+            showToast('API de rotas indisponível. Mostrando rota direta aproximada.', 'warning');
+
+            // Desenha linha direta entre os pontos
+            const directPoints = locations.map(loc => [loc.coords.lat, loc.coords.lng]);
+            const polyline = L.polyline(directPoints, {
+                color: '#ff6b6b', // Vermelho para indicar que é aproximada
+                weight: 4,
+                opacity: 0.7,
+                dashArray: '10, 10' // Linha tracejada
+            }).addTo(mapInstance);
+
+            // Calcula distância aproximada (linha reta)
+            let totalDistKm = 0;
+            for (let i = 0; i < locations.length - 1; i++) {
+                const from = locations[i].coords;
+                const to = locations[i + 1].coords;
+                // Fórmula de Haversine simplificada
+                const R = 6371; // Raio da Terra em km
+                const dLat = (to.lat - from.lat) * Math.PI / 180;
+                const dLon = (to.lng - from.lng) * Math.PI / 180;
+                const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(from.lat * Math.PI / 180) * Math.cos(to.lat * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                totalDistKm += R * c;
+            }
+
+            // Estima tempo (60 km/h média)
+            const totalTimeMin = Math.round((totalDistKm / 60) * 60);
+
+            if (document.getElementById('map-distancia')) {
+                document.getElementById('map-distancia').textContent = `~${totalDistKm.toFixed(1)} km (aprox.)`;
+            }
+            if (document.getElementById('map-tempo')) {
+                document.getElementById('map-tempo').textContent = `~${totalTimeMin} min (aprox.)`;
+            }
+
+            // Calcula totais de peso/cubagem
+            let totalKg = 0;
+            let totalCubagem = 0;
+            locations.forEach(loc => {
+                if (loc.pedidos) {
+                    totalKg += loc.pedidos.reduce((sum, p) => sum + (p.Quilos_Saldo || 0), 0);
+                    totalCubagem += loc.pedidos.reduce((sum, p) => sum + (p.Cubagem || 0), 0);
+                }
+            });
+
+            const formatKg = totalKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const formatCub = totalCubagem.toLocaleString('pt-BR', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+
+            if (document.getElementById('map-peso')) document.getElementById('map-peso').textContent = `${formatKg} kg`;
+            if (document.getElementById('map-cubagem')) document.getElementById('map-cubagem').textContent = `${formatCub} m³`;
+
+            // Salva distância aproximada
+            if (activeLoads[loadId]) {
+                activeLoads[loadId].distanceKm = parseFloat(totalDistKm.toFixed(1));
+            }
+
+            return; // Sai da função sem lançar erro
+        }
+
         const data = await resp.json();
 
         if (data.trip && data.trip.legs) {
@@ -8532,6 +8766,7 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
 
             if (document.getElementById('map-distancia')) document.getElementById('map-distancia').textContent = `${totalDistKm} km`;
             if (document.getElementById('map-tempo')) document.getElementById('map-tempo').textContent = `${totalTimeMin} min`;
+
 
             // RESTORED: Calculate and Display Total Weight/Cubage from Locations
             let totalKg = 0;
@@ -8564,7 +8799,7 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                     const routePointsObj = allPoints.map(pt => ({ lat: pt[0], lng: pt[1] }));
                     const mapBounds = mapInstance.getBounds();
 
-                    fetchTollBooths(mapBounds, routePointsObj).then(booths => {
+                    fetchTollBooths(mapBounds, routePointsObj, locations).then(booths => {
                         if (booths.length > 0) {
                             showToast(`${booths.length} pedágios identificados.`, 'success');
 
@@ -8572,45 +8807,54 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                             booths.forEach(b => {
                                 const tollIcon = L.divIcon({
                                     className: 'toll-marker',
-                                    html: `<div style="background-color: #f1c40f; border: 2px solid #000; color: black; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5);"><i class="bi bi-cash-coin" style="font-size: 14px;"></i></div>`,
+                                    html: `<div style="background-color: #f1c40f; border: 2px solid #000; color: black; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5); cursor: pointer;" title="${b.name} - ${b.context}"><i class="bi bi-cash-coin" style="font-size: 14px;"></i></div>`,
                                     iconSize: [24, 24],
                                     iconAnchor: [12, 12]
                                 });
 
                                 L.marker([b.lat, b.lng], { icon: tollIcon })
                                     .addTo(mapInstance)
-                                    .bindPopup(`<b>Praça de Pedágio</b><br><small>Detectado via Satélite</small>`);
+                                    .bindPopup(`<b>${b.name}</b><br><small>${b.context}</small><br><span class="badge bg-warning text-dark mt-1">Pedágio Detectado</span>`);
                             });
 
                             // 2. Adiciona Lista na Sidebar
-                            const sidebarList = document.getElementById('route-sidebar');
-                            // Injeta antes dos botões de ação (último filho é a div de botões?)
-                            // Vamos buscar a div de botões especificamente ou inserir no final do scroll
                             const stopsList = document.getElementById('route-stops-list');
 
                             const tollsHtml = `
                                 <div id="route-tolls-section" class="border-top border-secondary bg-dark p-2">
                                     <div class="d-flex justify-content-between align-items-center mb-2" data-bs-toggle="collapse" data-bs-target="#tollsListCollapse" style="cursor: pointer;">
                                         <h6 class="mb-0 text-warning"><i class="bi bi-cash-coin me-2"></i>Pedágios (${booths.length})</h6>
-                                        <i class="bi bi-chevron-down text-secondary"></i>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-xs btn-outline-light" onclick="copyTollReport()" title="Copiar Relatório para Faturamento"><i class="bi bi-clipboard"></i></button>
+                                            <i class="bi bi-chevron-down text-secondary"></i>
+                                        </div>
                                     </div>
                                     <div class="collapse show" id="tollsListCollapse">
                                         <div class="list-group list-group-flush small" style="max-height: 150px; overflow-y: auto;">
                                             ${booths.map((b, i) => `
-                                                <div class="list-group-item bg-dark text-white-50 border-secondary py-1 px-2 d-flex justify-content-between">
-                                                    <span>Praça ${i + 1}</span>
-                                                    <a href="#" onclick="mapInstance.setView([${b.lat}, ${b.lng}], 15); return false;" class="text-info"><i class="bi bi-crosshair"></i></a>
+                                                <div class="list-group-item bg-dark text-white-50 border-secondary py-1 px-2 d-flex flex-column">
+                                                    <div class="d-flex justify-content-between">
+                                                        <span class="text-white">${b.name}</span>
+                                                        <a href="#" onclick="mapInstance.setView([${b.lat}, ${b.lng}], 15); return false;" class="text-info"><i class="bi bi-crosshair"></i></a>
+                                                    </div>
+                                                    <div class="d-flex align-items-center text-muted" style="font-size: 11px;">
+                                                        <i class="bi bi-pin-map-fill me-1"></i>${b.context}
+                                                    </div>
                                                 </div>
                                             `).join('')}
                                         </div>
-                                        <div class="text-muted xxs mt-1" style="font-size: 10px;">*Valores não disponíveis na versão gratuita.</div>
+                                        <div class="text-muted xxs mt-1 text-center" style="font-size: 10px;">*Valores não disponíveis na versão gratuita.</div>
                                     </div>
                                 </div>
                             `;
                             stopsList.insertAdjacentHTML('afterend', tollsHtml);
 
+                            // 3. Salva dados para relatório
+                            window.currentTollBooths = booths;
+
                         } else {
                             console.log("Nenhum pedágio visual encontrado na rota.");
+                            window.currentTollBooths = [];
                         }
                     });
                 }
@@ -8904,3 +9148,107 @@ function renderActiveLoads() {
             </div>`;
     }
 }
+
+// Funcao de impressao global
+window.imprimirMapa = function () {
+    if (window.mapInstance) {
+        const mapContainer = document.getElementById('map-container');
+        const originalHeight = mapContainer.style.height;
+
+        showToast("Preparando mapa para impressão...", "info");
+
+        // 1. Force map to specific pixel height for print render
+        mapContainer.style.height = '500px'; // Reduzido para caber melhor na página
+
+        // 2. Force Leaflet to recalculate and re-render
+        window.mapInstance.invalidateSize(true);
+
+        // 3. Force map to fit bounds again (ensures all markers are visible)
+        if (currentRouteLocations && currentRouteLocations.length > 0) {
+            const bounds = L.latLngBounds();
+            currentRouteLocations.forEach(loc => {
+                bounds.extend(loc.coords);
+            });
+            if (bounds.isValid()) {
+                window.mapInstance.fitBounds(bounds, { padding: [30, 30] });
+            }
+        }
+
+        // 4. Wait for tiles to load completely
+        let tilesLoaded = false;
+        let tileLoadTimeout;
+
+        const checkTilesLoaded = () => {
+            const tileContainers = document.querySelectorAll('.leaflet-tile-container');
+            let allLoaded = true;
+
+            tileContainers.forEach(container => {
+                const tiles = container.querySelectorAll('.leaflet-tile');
+                tiles.forEach(tile => {
+                    if (!tile.complete || tile.naturalHeight === 0) {
+                        allLoaded = false;
+                    }
+                });
+            });
+
+            return allLoaded;
+        };
+
+        const executePrint = () => {
+            clearTimeout(tileLoadTimeout);
+            showToast("Abrindo visualização de impressão...", "success");
+
+            // Small delay to ensure toast is visible
+            setTimeout(() => {
+                window.print();
+
+                // Reset after print dialog closes
+                setTimeout(() => {
+                    mapContainer.style.height = originalHeight || '100%';
+                    window.mapInstance.invalidateSize();
+                }, 500);
+            }, 300);
+        };
+
+        // Try to detect when tiles are loaded
+        const tileLayer = window.mapInstance._layers;
+        let layerFound = false;
+
+        Object.values(tileLayer).forEach(layer => {
+            if (layer._url) { // This is a tile layer
+                layerFound = true;
+                layer.on('load', () => {
+                    if (checkTilesLoaded()) {
+                        tilesLoaded = true;
+                    }
+                });
+            }
+        });
+
+        // Fallback: Wait 3 seconds for tiles to load
+        tileLoadTimeout = setTimeout(() => {
+            if (!tilesLoaded) {
+                console.warn('Tiles may not be fully loaded, proceeding with print anyway');
+            }
+            executePrint();
+        }, 3000);
+
+        // If tiles load faster, print immediately
+        if (layerFound) {
+            const checkInterval = setInterval(() => {
+                if (checkTilesLoaded()) {
+                    clearInterval(checkInterval);
+                    tilesLoaded = true;
+                    executePrint();
+                }
+            }, 200);
+
+            // Clear interval after timeout
+            setTimeout(() => clearInterval(checkInterval), 3100);
+        }
+
+    } else {
+        showToast("Mapa não está disponível para impressão", "error");
+        window.print();
+    }
+};
