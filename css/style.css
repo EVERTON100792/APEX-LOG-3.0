@@ -2121,6 +2121,13 @@
             }
         }
 
+        /* --- PRINT STYLES FOR MAP SNAPSHOT --- */
+        .hide-controls-for-print .leaflet-control-container,
+        .hide-controls-for-print .leaflet-top,
+        .hide-controls-for-print .leaflet-bottom {
+            display: none !important;
+        }
+
         /* --- ESTILOS MODERNOS PARA A MESA DE TRABALHO (NOVO) --- */
         .workspace-card {
             border: 1px solid var(--dark-border);

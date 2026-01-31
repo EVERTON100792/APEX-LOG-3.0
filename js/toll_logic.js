@@ -10,31 +10,83 @@
  * @param {Array<Object>} stops - Lista de paradas (locations) com coordenadas e nomes.
  * @returns {Promise<Array>} Lista de pedágios encontrados.
  */
+/**
+ * Busca praças de pedágio dentro do bounding box da rota e filtra as que estão próximas à linha da rota.
+ * Implementa fallback para múltiplos servidores Overpass em caso de erro 504/Too Many Requests.
+ * @param {L.LatLngBounds} bounds - Limites visuais do mapa.
+ * @param {Array<L.LatLng>} routePoints - Pontos da polilinha da rota.
+ * @param {Array<Object>} stops - Lista de paradas (locations) com coordenadas e nomes.
+ * @returns {Promise<Array>} Lista de pedágios encontrados.
+ */
 async function fetchTollBooths(bounds, routePoints, stops = []) {
     // 1. Constrói query Overpass
-    // Busca Toll Booths E Cidades/Vilas no bounding box
     const s = bounds.getSouth();
     const w = bounds.getWest();
     const n = bounds.getNorth();
     const e = bounds.getEast();
 
-    // Query otimizada: busca no bbox
+    // Query otimizada: busca no bbox com timeout maior (45s)
     // node["place"~"city|town"] busca cidades e vilas importantes
     const query = `
-        [out:json][timeout:25];
+        [out:json][timeout:45];
         (
             node["barrier"="toll_booth"](${s},${w},${n},${e});
             node["place"~"city|town"](${s},${w},${n},${e});
         );
         out;
     `;
-    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
 
+    // Lista de servidores Overpass para fallback (Redundância em caso de falha/timeout)
+    const servers = [
+        "https://overpass-api.de/api/interpreter",
+        "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter"
+    ];
+
+    let data = null;
+    let lastError = null;
+
+    // Tenta cada servidor até ter sucesso
+    for (const server of servers) {
+        try {
+            console.log(`Tentando buscar pedágios em: ${server}`);
+            const url = `${server}?data=${encodeURIComponent(query)}`;
+
+            // Controller para abortar fetch se demorar muito (client-side timeout de 50s)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s limite rigoroso
+
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                if (response.status === 429) throw new Error('Overpass Rate Limit Exceeded');
+                if (response.status === 504) throw new Error('Overpass Gateway Timeout');
+                throw new Error(`Overpass API Error: ${response.status}`);
+            }
+
+            // Tenta parsear JSON
+            data = await response.json();
+
+            // Se chegou aqui, sucesso!
+            break;
+
+        } catch (err) {
+            console.warn(`Falha ao buscar em ${server}:`, err.message);
+            lastError = err;
+            // Continua para o próximo servidor...
+        }
+    }
+
+    // Se nenhum servidor funcionou
+    if (!data || !data.elements) {
+        console.error("Todas as tentativas de buscar pedágios falharam.", lastError);
+        // Opcional: Mostrar aviso ao usuário via Toast se existisse essa função global acessível aqui
+        return [];
+    }
+
+    // --- Processamento dos Dados (igual ao anterior) ---
     try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Overpass API Error');
-        const data = await response.json();
-
         const booths = [];
         const cities = [];
 
@@ -46,7 +98,7 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
 
                 if (node.tags.place) {
                     // É uma cidade/vila
-                    // Raio maior para cidades (5km) pois o centro pode estar longe da rodovia
+                    // Raio maior para cidades (10km)
                     if (isCloseToPolyline(nodeLat, nodeLon, routePoints, 10000)) {
                         cities.push({
                             lat: nodeLat,
@@ -70,7 +122,6 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
             });
 
             // Fase 2: Processar Pedágios e encontrar referência mais próxima (Cidade ou Entrega)
-            // Combinar stops e cities para busca de referência
             const allReferences = [
                 ...stops.map(s => ({ ...s, type: 'stop' })),
                 ...cities
@@ -86,11 +137,8 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                 let minRouteDist = Infinity;
 
                 // 1. Achar índice na rota (para ordenação)
-                // Otimização: Não precisamos iterar TUDO se a rota for gigante, mas para precisão de ordem, é bom.
-                // Como já filtramos por bounding box, não deve ser tão lento.
                 for (let i = 0; i < routePoints.length; i++) {
                     const rp = routePoints[i];
-                    // Distancia aprox (quadrado)
                     const d = (rp.lat - booth.lat) ** 2 + (rp.lng - booth.lng) ** 2;
                     if (d < minRouteDist) {
                         minRouteDist = d;
@@ -104,8 +152,6 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                         if (ref.coords || (ref.lat && ref.lng)) {
                             const rLat = ref.coords ? ref.coords.lat : ref.lat;
                             const rLng = ref.coords ? ref.coords.lng : ref.lng;
-
-                            // Distância Euclidiana simplificada
                             const d = (rLat - booth.lat) ** 2 + (rLng - booth.lng) ** 2;
                             if (d < minDist) {
                                 minDist = d;
@@ -126,14 +172,14 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                     name: boothName,
                     context: `Próximo a ${nearestName}`,
                     full_tags: booth.tags,
-                    routeIndex: closestRouteIndex // Propriedade para ordenação
+                    routeIndex: closestRouteIndex
                 };
             });
 
-            // Remove duplicatas muito próximas (praças grandes têm várias cabines)
+            // Remove duplicatas muito próximas
             const uniqueBooths = combineCloseBooths(detailedBooths);
 
-            // ORDENAR POR PROXIMIDADE NA ROTA (Indice menor = mais perto da origem)
+            // ORDENAR POR PROXIMIDADE NA ROTA
             uniqueBooths.sort((a, b) => a.routeIndex - b.routeIndex);
 
             return uniqueBooths;
@@ -142,7 +188,7 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
         return [];
 
     } catch (err) {
-        console.warn("Erro ao buscar pedágios:", err);
+        console.warn("Erro ao processar dados de pedágios:", err);
         return [];
     }
 }

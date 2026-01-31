@@ -4726,12 +4726,25 @@ async function showRouteOnMap(loadId) {
 
             try {
                 // Nominatim requer um User-Agent e delay entre requisições
-                const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanedCity + ', Brasil')}&format=json&limit=1`;
+                // MODIFICADO: Busca 5 resultados e filtra por tipo para evitar ruas com nome de cidade
+                const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanedCity + ', Brasil')}&format=json&limit=5&addressdetails=1`;
                 const geoResponse = await fetch(geoUrl, { headers: { 'User-Agent': 'ApexLogApp/3.0' } });
                 const geoData = await geoResponse.json();
 
                 if (geoData && geoData.length > 0) {
-                    const coords = { lat: parseFloat(geoData[0].lat), lng: parseFloat(geoData[0].lon) };
+                    // Tenta encontrar um resultado que seja cidade/município
+                    let bestMatch = geoData[0];
+                    const cityMatch = geoData.find(item =>
+                        (item.class === 'boundary' && item.type === 'administrative') ||
+                        (item.class === 'place' && ['city', 'town', 'village', 'municipality', 'hamlet'].includes(item.type))
+                    );
+
+                    if (cityMatch) {
+                        bestMatch = cityMatch;
+                        // console.log(`Geocoding preferencial usado para ${city}: ${bestMatch.display_name} (${bestMatch.type})`);
+                    }
+
+                    const coords = { lat: parseFloat(bestMatch.lat), lng: parseFloat(bestMatch.lon) };
                     cityCoordsCache[cleanedCity] = coords; // Salva no cache
                     locations.push({
                         name: city, coords, pedidos: cityGroups[city]
@@ -4760,12 +4773,17 @@ async function showRouteOnMap(loadId) {
         }
 
         // CORREÇÃO: Delay mínimo para garantir que o container tenha tamanho
-        await new Promise(r => setTimeout(r, 100));
+        await new Promise(r => setTimeout(r, 300)); // Aumentado para 300ms para garantir animação do modal
 
-        mapInstance = L.map(mapContainer).setView(origemCoords, 6);
+        // Use CartoDB Voyager for a cleaner, modern look - Prettier Map
+        // Force Canvas renderer to ensure html2canvas captures vector layers correctly aligned
+        mapInstance = L.map(mapContainer, { preferCanvas: true }).setView(origemCoords, 6);
 
-        // CORREÇÃO CRÍTICA: Força resize imediato
+        // CORREÇÃO CRÍTICA: Força resize imediato E depois de um tempo
         mapInstance.invalidateSize();
+        setTimeout(() => {
+            if (mapInstance) mapInstance.invalidateSize();
+        }, 500);
 
         // Use CartoDB Voyager for a cleaner, modern look - Prettier Map
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -5089,7 +5107,8 @@ async function refreshLoadFreight(loadId) {
         // Busca coordenadas das cidades usando a Fila de Requisições
         for (const city of uniqueCities) {
             try {
-                const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', Brasil')}&format=json&limit=1`;
+                // MODIFICADO: Busca 5 resultados e prioriza cidades
+                const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', Brasil')}&format=json&limit=5&addressdetails=1`;
 
                 // USA A FILA PARA EVITAR 429
                 const data = await apiQueue.add(async () => {
@@ -5099,7 +5118,14 @@ async function refreshLoadFreight(loadId) {
                 });
 
                 if (data && data.length > 0) {
-                    locations.push({ coords: { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) } });
+                    let bestMatch = data[0];
+                    const cityMatch = data.find(item =>
+                        (item.class === 'boundary' && item.type === 'administrative') ||
+                        (item.class === 'place' && ['city', 'town', 'village', 'municipality', 'hamlet'].includes(item.type))
+                    );
+                    if (cityMatch) bestMatch = cityMatch;
+
+                    locations.push({ coords: { lat: parseFloat(bestMatch.lat), lng: parseFloat(bestMatch.lon) } });
                 }
             } catch (err) {
                 console.warn(`Erro geocode background para ${city}:`, err);
@@ -8876,8 +8902,10 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                         if (booths.length > 0) {
                             showToast(`${booths.length} pedágios identificados.`, 'success');
 
-                            // 1. Adiciona Marcadores no Mapa
+                            // 1. Adiciona Marcadores no Mapa (Se mapa ainda existir)
                             booths.forEach(b => {
+                                if (!mapInstance) return; // Segurança contra fechamento rápido
+
                                 const tollIcon = L.divIcon({
                                     className: 'toll-marker',
                                     html: `<div style="background-color: #f1c40f; border: 2px solid #000; color: black; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5); cursor: pointer;" title="${b.name} - ${b.context}"><i class="bi bi-cash-coin" style="font-size: 14px;"></i></div>`,
@@ -8885,9 +8913,13 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                                     iconAnchor: [12, 12]
                                 });
 
-                                L.marker([b.lat, b.lng], { icon: tollIcon })
-                                    .addTo(mapInstance)
-                                    .bindPopup(`<b>${b.name}</b><br><small>${b.context}</small><br><span class="badge bg-warning text-dark mt-1">Pedágio Detectado</span>`);
+                                try {
+                                    L.marker([b.lat, b.lng], { icon: tollIcon })
+                                        .addTo(mapInstance)
+                                        .bindPopup(`<b>${b.name}</b><br><small>${b.context}</small><br><span class="badge bg-warning text-dark mt-1">Pedágio Detectado</span>`);
+                                } catch (e) {
+                                    console.warn("Erro ao adicionar marcador de pedágio (mapa pode ter fechado):", e);
+                                }
                             });
 
                             // 2. Adiciona Lista na Sidebar
@@ -9426,7 +9458,7 @@ window.imprimirRelatorioPedagios = async function () {
 };
 
 // ================================================================================================
-// NOVO: Função para Gerar PDF Profissional (Faturamento/Conferência) - Sem Mapa
+// NOVO: Função para Gerar PDF Profissional (Faturamento/Conferência) - Com Mapa
 // ================================================================================================
 window.generateTextPDF = async function () {
     if (!currentRouteLocations || currentRouteLocations.length === 0) {
@@ -9434,7 +9466,38 @@ window.generateTextPDF = async function () {
         return;
     }
 
-    showToast("Gerando Relatório de Faturamento...", "info");
+    showToast("Gerando Relatório de Faturamento (com Mapa)...", "info");
+
+    // 1. Captura o Mapa (Screenshot)
+    let mapDataUrl = null;
+    let mapAspectRatio = 1.0;
+    try {
+        const mapContainer = document.getElementById('map-container');
+        if (mapContainer) {
+            // Oculta controles do mapa para o print ficar limpo
+            mapContainer.classList.add('hide-controls-for-print');
+
+            // Aguarda tiles carregarem (hack rápido)
+            await new Promise(r => setTimeout(r, 500));
+
+            const canvas = await html2canvas(mapContainer, {
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+                scale: 1.5, // Melhor qualidade
+                scrollY: 0, // Fix offset issue
+                scrollX: 0
+            });
+            mapDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            mapAspectRatio = canvas.width / canvas.height;
+
+            // Restaura controles
+            mapContainer.classList.remove('hide-controls-for-print');
+        }
+    } catch (err) {
+        console.warn("Erro ao capturar imagem do mapa:", err);
+        showToast("Aviso: O mapa não pôde ser capturado.", "warning");
+    }
 
     try {
         const { jsPDF } = window.jspdf;
@@ -9446,7 +9509,7 @@ window.generateTextPDF = async function () {
         const margin = 14;
         let cursorY = margin;
 
-        // 1. Cabeçalho Corporativo
+        // 2. Cabeçalho Corporativo
         // Fundo Cinza no Header
         doc.setFillColor(240, 240, 240);
         doc.rect(0, 0, pageWidth, 40, 'F');
@@ -9465,7 +9528,7 @@ window.generateTextPDF = async function () {
 
         cursorY = 50;
 
-        // 2. Resumo da Viagem (Box Style)
+        // 3. Resumo da Viagem (Box Style)
         let totalDist = document.getElementById('map-distancia') ? document.getElementById('map-distancia').textContent : "0 km";
         let totalKg = document.getElementById('map-peso') ? document.getElementById('map-peso').textContent : "0 kg";
         let vehicle = "N/A";
@@ -9501,10 +9564,42 @@ window.generateTextPDF = async function () {
 
         cursorY += 35;
 
-        // 3. Tabelas Lado a Lado (Para garantir 1 Página)
+        // 3. Inserir Mapa (Agora acima das tabelas)
+        if (mapDataUrl) {
+            let mapWidth = pageWidth - (margin * 2);
+            let mapHeight = mapWidth / mapAspectRatio;
+            let mapX = margin;
+
+            // Limita altura máxima do mapa para caber em uma página (35%)
+            // CORREÇÃO: Recalcula largura para manter Proporção e Centraliza
+            if (mapHeight > (pageHeight * 0.35)) {
+                mapHeight = pageHeight * 0.35;
+                mapWidth = mapHeight * mapAspectRatio; // Mantém aspect ratio
+                mapX = (pageWidth - mapWidth) / 2; // Centraliza horizontalmente
+            }
+
+            doc.setFontSize(11);
+            doc.setTextColor(0);
+            doc.text("1. VISUALIZAÇÃO DA ROTA", margin, cursorY + 5);
+
+            doc.addImage(mapDataUrl, 'JPEG', mapX, cursorY + 8, mapWidth, mapHeight);
+
+            // Atualiza cursor para onde terminar o mapa (menos espaço em branco)
+            cursorY += mapHeight + 10;
+        } else {
+            cursorY += 10;
+        }
+
+        // 4. Tabelas Lado a Lado
         const colGap = 5;
         const colWidth = (pageWidth - (margin * 2) - colGap) / 2;
         const startTableY = cursorY + 5;
+
+        // Verifica se cabe na página
+        if (startTableY > (pageHeight - 50)) {
+            doc.addPage();
+            startTableY = margin + 10;
+        }
 
         // --- Configuração das Tabelas ---
         const tableStyles = {
@@ -9527,15 +9622,13 @@ window.generateTextPDF = async function () {
         // --- COLUNA 1: PEDÁGIOS ---
         doc.setFontSize(11);
         doc.setTextColor(0);
-        doc.text("1. PEDÁGIOS", margin, startTableY - 2);
+        doc.text("2. PEDÁGIOS", margin, startTableY - 2);
 
         const tollBody = [];
         if (window.currentTollBooths && window.currentTollBooths.length > 0) {
             window.currentTollBooths.forEach((b, i) => {
                 let ref = b.context || '';
-                // Encurtar referencia para caber na coluna estreita
                 if (ref.length > 20) ref = ref.substring(0, 20) + '...';
-
                 tollBody.push([
                     (i + 1).toString(),
                     b.name,
@@ -9560,21 +9653,26 @@ window.generateTextPDF = async function () {
             }
         });
 
+        const endY1 = doc.lastAutoTable.finalY || startTableY;
+
         // --- COLUNA 2: ROTEIRO (DIREITA) ---
-        // Forçar volta para página 1 (caso a tabela 1 tenha criado nova pag)
-        doc.setPage(1);
+        // Forçar volta para página correta (caso a tabela 1 tenha criado nova pag)
+        // doc.setPage(1); // REMOVIDO: Agora segue o fluxo normal
 
         const col2X = margin + colWidth + colGap;
-        doc.text("2. ROTEIRO", col2X, startTableY - 2);
+        doc.text("3. ROTEIRO", col2X, startTableY - 2);
 
-        const routeBody = currentRouteLocations.map((loc, i) => {
+        const routeBody = currentRouteLocations.map((loc, i, arr) => {
             const weight = loc.pedidos ? loc.pedidos.reduce((acc, p) => acc + p.Quilos_Saldo, 0) : 0;
-            // Encurtar nome sem quebrar a logica
             let name = (loc.name || "Local").split(',')[0];
             if (name.length > 20) name = name.substring(0, 20) + '...';
 
+            let seq = i.toString();
+            if (i === 0) seq = "Origem";
+            else if (i === arr.length - 1) seq = "Retorno";
+
             return [
-                (i + 1).toString(),
+                seq,
                 name,
                 weight > 0 ? Math.round(weight).toString() : '-'
             ];
@@ -9582,33 +9680,40 @@ window.generateTextPDF = async function () {
 
         doc.autoTable({
             startY: startTableY,
-            head: [['#', 'Local', 'Kg']],
+            head: [['Seq', 'Local', 'Kg']],
             body: routeBody,
             ...tableStyles,
             margin: { left: col2X },
-            tableWidth: colWidth, // Força largura exata
+            tableWidth: colWidth,
             columnStyles: {
-                0: { cellWidth: 8, halign: 'center' },
-                1: { cellWidth: 'auto' }, // Coluna do nome pega o resto
+                0: { cellWidth: 10, halign: 'center' },
+                1: { cellWidth: 'auto' },
                 2: { cellWidth: 15, halign: 'right' }
             }
         });
 
-        // 5. Rodapé (Garantia de 1 Página - Força Footer Fixo)
-        const totalPages = doc.internal.getNumberOfPages();
-        doc.setPage(1);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(`Página 1 de 1 - APEX LOG System`, pageWidth / 2, pageHeight - 8, { align: "center" });
+        const endY2 = doc.lastAutoTable.finalY || startTableY;
 
-        // 6. Salvar
-        const fileName = `Relatorio_Faturamento_${vehicle}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
-        doc.save(fileName);
-        showToast("Relatório (1 Pág) baixado!", "success");
+        // Define onde começa o próximo bloco (o maior Y das duas tabelas)
+        cursorY = Math.max(endY1, endY2) + 15;
+
+        // Rodapé com número de página (apenas na pág atual por enquanto)
+        const pageCount = doc.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, pageHeight - 5, { align: "center" });
+        }
+
+        doc.save(`Faturamento_ApexLog_${vehicle.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
+        showToast("PDF gerado com sucesso!", "success");
 
     } catch (err) {
         console.error("Erro ao gerar PDF:", err);
-        showToast("Erro ao gerar PDF.", "error");
+        showToast("Erro ao gerar o PDF. Consulte o console.", "error");
     }
-};
+}
+
+
 
