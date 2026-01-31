@@ -12,14 +12,22 @@
  */
 async function fetchTollBooths(bounds, routePoints, stops = []) {
     // 1. Constrói query Overpass
-    // [out:json];node["barrier"="toll_booth"](south,west,north,east);out;
+    // Busca Toll Booths E Cidades/Vilas no bounding box
     const s = bounds.getSouth();
     const w = bounds.getWest();
     const n = bounds.getNorth();
     const e = bounds.getEast();
 
     // Query otimizada: busca no bbox
-    const query = `[out:json][timeout:10];node["barrier"="toll_booth"](${s},${w},${n},${e});out;`;
+    // node["place"~"city|town"] busca cidades e vilas importantes
+    const query = `
+        [out:json][timeout:25];
+        (
+            node["barrier"="toll_booth"](${s},${w},${n},${e});
+            node["place"~"city|town"](${s},${w},${n},${e});
+        );
+        out;
+    `;
     const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
 
     try {
@@ -28,51 +36,110 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
         const data = await response.json();
 
         const booths = [];
-        // Nota: Cálculo geodésico preciso seria melhor, mas para UI rápida isso basta.
+        const cities = [];
 
         if (data.elements) {
+            // Fase 1: Separar Pedágios e Cidades
             data.elements.forEach(node => {
                 const nodeLat = node.lat;
                 const nodeLon = node.lon;
 
-                // 2. Filtra: Verifica se o ponto está próximo de ALGUM segmento da rota
-                if (isCloseToPolyline(nodeLat, nodeLon, routePoints, 200)) { // 200 metros
-
-                    // 3. Encontra a cidade/parada mais próxima para referência
-                    let nearestStopName = "Desconhecido";
-                    let minStopDist = Infinity;
-
-                    if (stops && stops.length > 0) {
-                        stops.forEach(stop => {
-                            if (stop.coords) {
-                                const d = (stop.coords.lat - nodeLat) ** 2 + (stop.coords.lng - nodeLon) ** 2;
-                                if (d < minStopDist) {
-                                    minStopDist = d;
-                                    nearestStopName = stop.name ? stop.name.split(',')[0].trim() : "Local";
-                                }
-                            }
+                if (node.tags.place) {
+                    // É uma cidade/vila
+                    // Raio maior para cidades (5km) pois o centro pode estar longe da rodovia
+                    if (isCloseToPolyline(nodeLat, nodeLon, routePoints, 10000)) {
+                        cities.push({
+                            lat: nodeLat,
+                            lng: nodeLon,
+                            name: node.tags.name || "Cidade Desconhecida",
+                            type: 'city'
                         });
                     }
-
-                    // Nome da praça (tag name ou operator ou ref)
-                    let boothName = node.tags.name || node.tags.operator || `Pedágio`;
-                    if (node.tags.ref) boothName += ` (${node.tags.ref})`;
-
-                    booths.push({
-                        lat: nodeLat,
-                        lng: nodeLon,
-                        id: node.id,
-                        name: boothName,
-                        context: `Próx. a ${nearestStopName}`,
-                        full_tags: node.tags
-                    });
+                } else if (node.tags.barrier === 'toll_booth') {
+                    // É um pedágio
+                    // Raio curto (200m)
+                    if (isCloseToPolyline(nodeLat, nodeLon, routePoints, 200)) {
+                        booths.push({
+                            lat: nodeLat,
+                            lng: nodeLon,
+                            id: node.id,
+                            tags: node.tags
+                        });
+                    }
                 }
             });
+
+            // Fase 2: Processar Pedágios e encontrar referência mais próxima (Cidade ou Entrega)
+            // Combinar stops e cities para busca de referência
+            const allReferences = [
+                ...stops.map(s => ({ ...s, type: 'stop' })),
+                ...cities
+            ];
+
+            const detailedBooths = booths.map(booth => {
+                // Encontra a referência mais próxima
+                let nearestName = "Local Desconhecido";
+                let minDist = Infinity;
+
+                // Encontra o índice do ponto da rota mais próximo para ordenação
+                let closestRouteIndex = -1;
+                let minRouteDist = Infinity;
+
+                // 1. Achar índice na rota (para ordenação)
+                // Otimização: Não precisamos iterar TUDO se a rota for gigante, mas para precisão de ordem, é bom.
+                // Como já filtramos por bounding box, não deve ser tão lento.
+                for (let i = 0; i < routePoints.length; i++) {
+                    const rp = routePoints[i];
+                    // Distancia aprox (quadrado)
+                    const d = (rp.lat - booth.lat) ** 2 + (rp.lng - booth.lng) ** 2;
+                    if (d < minRouteDist) {
+                        minRouteDist = d;
+                        closestRouteIndex = i;
+                    }
+                }
+
+                // 2. Achar contexto (Cidade ou Parada)
+                if (allReferences.length > 0) {
+                    allReferences.forEach(ref => {
+                        if (ref.coords || (ref.lat && ref.lng)) {
+                            const rLat = ref.coords ? ref.coords.lat : ref.lat;
+                            const rLng = ref.coords ? ref.coords.lng : ref.lng;
+
+                            // Distância Euclidiana simplificada
+                            const d = (rLat - booth.lat) ** 2 + (rLng - booth.lng) ** 2;
+                            if (d < minDist) {
+                                minDist = d;
+                                nearestName = ref.name ? ref.name.split(',')[0].trim() : "Local";
+                            }
+                        }
+                    });
+                }
+
+                // Nome da praça
+                let boothName = booth.tags.name || booth.tags.operator || `Pedágio`;
+                if (booth.tags.ref) boothName += ` (${booth.tags.ref})`;
+
+                return {
+                    lat: booth.lat,
+                    lng: booth.lng,
+                    id: booth.id,
+                    name: boothName,
+                    context: `Próximo a ${nearestName}`,
+                    full_tags: booth.tags,
+                    routeIndex: closestRouteIndex // Propriedade para ordenação
+                };
+            });
+
+            // Remove duplicatas muito próximas (praças grandes têm várias cabines)
+            const uniqueBooths = combineCloseBooths(detailedBooths);
+
+            // ORDENAR POR PROXIMIDADE NA ROTA (Indice menor = mais perto da origem)
+            uniqueBooths.sort((a, b) => a.routeIndex - b.routeIndex);
+
+            return uniqueBooths;
         }
 
-        // Remove duplicatas muito próximas (praças grandes têm várias cabines)
-        const uniqueBooths = combineCloseBooths(booths);
-        return uniqueBooths;
+        return [];
 
     } catch (err) {
         console.warn("Erro ao buscar pedágios:", err);
@@ -113,6 +180,10 @@ function combineCloseBooths(booths) {
     const combined = [];
     const threshold = 0.003; // ~300m de raio para agrupar
 
+    // Ordenar por indice antes de combinar para garantir que pegamos o "primeiro" na rota como referência?
+    // Ou apenas manter. Se a lista já vier sortida, ok. Mas ela ta sendo sortida DEPOIS lá em cima.
+    // O ideal é que aqui a gente preserve min(routeIndex).
+
     booths.forEach(b => {
         // Tenta achar um grupo existente perto
         const existing = combined.find(c => {
@@ -123,6 +194,14 @@ function combineCloseBooths(booths) {
 
         if (!existing) {
             combined.push(b);
+        } else {
+            // Se já existe, vamos ver se o atual (b) aparece "antes" na rota (menor index).
+            // Se sim, atualizamos o existing para ter o index menor.
+            if (b.routeIndex < existing.routeIndex) {
+                existing.routeIndex = b.routeIndex;
+                // Talvez atualizar coordenadas também?
+                // Vamos manter o 'existing' como representativo visual, mas atualizar ordem.
+            }
         }
     });
 

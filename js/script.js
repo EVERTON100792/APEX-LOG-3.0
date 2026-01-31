@@ -4589,30 +4589,32 @@ async function showRouteOnMap(loadId) {
 
         const printHeaderHtml = `
             <div id="print-load-header" class="print-only" style="display: none;">
-                <div style="border: 2px solid #000; padding: 10px; margin-bottom: 15px; background: #f8f9fa;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="border: 1px solid #333; padding: 8px; margin-bottom: 8px; background: #fff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #ddd; padding-bottom: 6px;">
                         <div>
-                            <h2 style="margin: 0; font-size: 20pt; font-weight: bold;">CARGA #${loadNum}</h2>
-                            <p style="margin: 3px 0 0 0; font-size: 10pt; color: #666;">Gerado em: ${dataHora}</p>
+                            <h1 style="margin: 0; font-size: 14pt; font-weight: 900; color: #000;">ROTA DA CARGA: ${loadNum}</h1>
+                            <p style="margin: 2px 0 0 0; font-size: 7pt; color: #666;">${dataHora}</p>
                         </div>
-                        <div style="text-align: right;">
-                            <div style="background: #000; color: white; padding: 5px 15px; border-radius: 5px; font-weight: bold; font-size: 12pt;">
-                                ${vehicleType}
-                            </div>
+                        <div style="background: #1a1a1a; color: white; padding: 4px 12px; border-radius: 4px; font-weight: 800; font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+                            ${vehicleType.toUpperCase()}
                         </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; border-top: 1px solid #ddd; padding-top: 8px;">
-                        <div>
-                            <span style="font-size: 8pt; color: #666; text-transform: uppercase;">Pedidos</span>
-                            <div style="font-size: 14pt; font-weight: bold;">${numPedidos}</div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;">
+                        <div style="background: #f5f5f5; padding: 6px; border-radius: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+                            <span style="font-size: 6pt; color: #666; text-transform: uppercase; font-weight: 700; display: block;">Pedidos</span>
+                            <div style="font-size: 12pt; font-weight: 900; color: #000;">${numPedidos}</div>
                         </div>
-                        <div>
-                            <span style="font-size: 8pt; color: #666; text-transform: uppercase;">Peso Total</span>
-                            <div style="font-size: 14pt; font-weight: bold;">${totalKg} kg</div>
+                        <div style="background: #f5f5f5; padding: 6px; border-radius: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+                            <span style="font-size: 6pt; color: #666; text-transform: uppercase; font-weight: 700; display: block;">Peso</span>
+                            <div style="font-size: 12pt; font-weight: 900; color: #000;">${totalKg} <small style="font-size: 7pt;">kg</small></div>
                         </div>
-                        <div>
-                            <span style="font-size: 8pt; color: #666; text-transform: uppercase;">Cubagem</span>
-                            <div style="font-size: 14pt; font-weight: bold;">${totalCub} m³</div>
+                        <div style="background: #f5f5f5; padding: 6px; border-radius: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+                            <span style="font-size: 6pt; color: #666; text-transform: uppercase; font-weight: 700; display: block;">Cubagem</span>
+                            <div style="font-size: 12pt; font-weight: 900; color: #000;">${totalCub} <small style="font-size: 7pt;">m³</small></div>
+                        </div>
+                        <div style="background: #f5f5f5; padding: 6px; border-radius: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+                            <span style="font-size: 6pt; color: #666; text-transform: uppercase; font-weight: 700; display: block;">Distância</span>
+                            <div style="font-size: 12pt; font-weight: 900; color: #000;" id="print-header-distancia">-- <small style="font-size: 7pt;">km</small></div>
                         </div>
                     </div>
                 </div>
@@ -8233,11 +8235,11 @@ function renderRouteSidebar(locations) {
             <div class="d-flex align-items-center">
                 <span class="badge ${isOrigin ? 'bg-success' : 'bg-secondary'} rounded-pill me-2">${index === 0 ? 'S' : index}</span>
                 <div class="small">
-                    <div class="fw-bold text-truncate" style="max-width: 200px;" title="${loc.name}">${loc.name}</div>
+                    <div class="fw-bold sidebar-loc-name" style="max-width: 200px;" title="${loc.name}">${loc.name}</div>
                     ${!isOrigin ? `<span class="text-muted" style="font-size: 0.75rem;">${countPedidos} pedidos</span>` : ''}
                 </div>
             </div>
-            ${!isOrigin ? '<i class="bi bi-grip-vertical text-muted"></i>' : ''}
+            ${!isOrigin ? '<i class="bi bi-grip-vertical text-muted no-print"></i>' : ''}
         `;
 
         if (!isOrigin) {
@@ -8553,17 +8555,22 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
 
         const marker = L.marker(loc.coords).addTo(mapInstance).bindPopup(popupContent);
 
+        // --- NOVO: Adiciona etiqueta permanente com o nome da cidade/local próximo ao marcador ---
+        if (loc.name && !loc.isOrigin) {
+            const shortName = loc.name.split(',')[0].trim(); // Pega apenas o nome da cidade/local antes da vírgula
+            marker.bindTooltip(shortName, {
+                permanent: true,
+                direction: 'top',
+                className: 'city-label',
+                offset: [0, -15]
+            }).openTooltip();
+        }
+
         // --- NOVO: Evento de Clique para Seleção (Ignora Origem) ---
         if (!loc.isOrigin && loc.pedidos) {
             marker.on('click', (e) => {
-                // Previne abrir o popup se quisermos apenas selecionar? 
-                // O popup é útil. Vamos manter o popup e togglear a seleção.
-                // Mas o popup abre no click. Talvez usar 'contextmenu' (direito) ou shift+click?
-                // O usuario pediu "ao clicar na bolinha... ela mude de cor".
-                // Se o popup abrir junto, pode atrapalhar. Vamos fechar o popup se selecionar.
-
                 toggleMarkerSelection(marker, loc);
-                e.originalEvent.stopPropagation(); // Tenta evitar conflitos
+                e.originalEvent.stopPropagation();
             });
         }
 
@@ -8577,7 +8584,6 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
             const number = idx;
             const numberedIcon = L.divIcon({
                 className: 'custom-div-icon',
-                // Adicionamos um dataset para identificar se é manual ou não, se precisarmos restaurar
                 html: `<div data-original-color="${isManual ? '#e67e22' : '#d63031'}" style="background-color: ${isManual ? '#e67e22' : '#d63031'}; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-weight: bold; font-family: sans-serif; font-size: 13px; transition: all 0.3s ease;">${number}</div>`,
                 iconSize: [28, 28],
                 iconAnchor: [14, 14],
@@ -8683,13 +8689,59 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
         }
 
         if (!resp || !resp.ok) {
-            // FALLBACK: Desenha rota direta se a API falhar
-            console.warn('⚠️ API Valhalla falhou após 3 tentativas. Usando rota direta como fallback.');
+            // FALLBACK 1: Tentativa com OSRM (Open Source Routing Machine)
+            console.warn('⚠️ API Valhalla falhou. Tentando fallback OSRM...');
 
-            if (mapStatus) {
-                mapStatus.innerHTML = '<span class="text-warning">⚠️ Servidor indisponível. Mostrando rota direta aproximada.</span>';
+            if (mapStatus) mapStatus.innerHTML = '<span class="text-info">📡 Tentando servidor alternativo (OSRM)...</span>';
+
+            try {
+                // Prepara coordenadas para OSRM (lon,lat;lon,lat...)
+                const osrmCoords = valhallaPoints.map(p => `${p.lon},${p.lat}`).join(';');
+                const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${osrmCoords}?overview=full&geometries=geojson`;
+
+                const osrmResp = await fetch(osrmUrl);
+
+                if (osrmResp.ok) {
+                    const osrmData = await osrmResp.json();
+
+                    if (osrmData.routes && osrmData.routes.length > 0) {
+                        const route = osrmData.routes[0];
+
+                        // Adapta formato OSRM para nosso uso
+                        // OSRM retorna geometry como GeoJSON LineString
+                        const coordinates = route.geometry.coordinates.map(c => [c[1], c[0]]); // Inverte para [lat, lng]
+
+                        // Desenha Polilinha OSRM
+                        if (routePolyline) mapInstance.removeLayer(routePolyline);
+                        routePolyline = L.polyline(coordinates, { color: 'blue', weight: 5, opacity: 0.7 }).addTo(mapInstance);
+                        mapInstance.fitBounds(routePolyline.getBounds());
+
+                        // Atualiza distâncias (OSRM retorna metros)
+                        const distKm = (route.distance / 1000).toFixed(1);
+                        const durationMin = Math.round(route.duration / 60);
+
+                        document.getElementById('map-distancia').textContent = `${distKm} km`;
+                        document.getElementById('map-tempo').textContent = `${Math.floor(durationMin / 60)}h ${durationMin % 60}m`;
+
+                        if (mapStatus) mapStatus.innerHTML = '<span class="text-success">✅ Rota calculada (Servidor Alternativo)</span>';
+                        showToast(`Rota calculada via servidor alternativo (${distKm} km)`, "info");
+
+                        // Tenta buscar pedágios na rota OSRM também
+                        checkForTollsOnRoute(coordinates);
+
+                        return; // Sucesso com OSRM!
+                    }
+                }
+            } catch (osrmErr) {
+                console.error("Erro no fallback OSRM:", osrmErr);
             }
-            showToast('API de rotas indisponível. Mostrando rota direta aproximada.', 'warning');
+
+            // FALLBACK 2: Se OSRM também falhar, usa rota direta (linha reta)
+            console.warn('⚠️ Todas as APIs falharam. Usando rota direta.');
+            if (mapStatus) {
+                mapStatus.innerHTML = '<span class="text-warning">⚠️ Servidores indisponíveis. Rota direta.</span>';
+            }
+            showToast('Serviços de rota indisponíveis. Mostrando linha direta.', 'warning');
 
             // Desenha linha direta entre os pontos
             const directPoints = locations.map(loc => [loc.coords.lat, loc.coords.lng]);
@@ -8825,7 +8877,8 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                                     <div class="d-flex justify-content-between align-items-center mb-2" data-bs-toggle="collapse" data-bs-target="#tollsListCollapse" style="cursor: pointer;">
                                         <h6 class="mb-0 text-warning"><i class="bi bi-cash-coin me-2"></i>Pedágios (${booths.length})</h6>
                                         <div class="d-flex gap-2">
-                                            <button class="btn btn-xs btn-outline-light" onclick="copyTollReport()" title="Copiar Relatório para Faturamento"><i class="bi bi-clipboard"></i></button>
+                                            <button class="btn btn-xs btn-outline-light" onclick="imprimirRelatorioPedagios()" title="Imprimir Relatório (com Mapa)"><i class="bi bi-printer"></i></button>
+                                            <button class="btn btn-xs btn-outline-warning" onclick="generateTextPDF()" title="Baixar Relatório em PDF (Sem Mapa)"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
                                             <i class="bi bi-chevron-down text-secondary"></i>
                                         </div>
                                     </div>
@@ -8834,7 +8887,7 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                                             ${booths.map((b, i) => `
                                                 <div class="list-group-item bg-dark text-white-50 border-secondary py-1 px-2 d-flex flex-column">
                                                     <div class="d-flex justify-content-between">
-                                                        <span class="text-white">${b.name}</span>
+                                                        <span class="text-white">${i + 1}. ${b.name}</span>
                                                         <a href="#" onclick="mapInstance.setView([${b.lat}, ${b.lng}], 15); return false;" class="text-info"><i class="bi bi-crosshair"></i></a>
                                                     </div>
                                                     <div class="d-flex align-items-center text-muted" style="font-size: 11px;">
@@ -8843,7 +8896,7 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                                                 </div>
                                             `).join('')}
                                         </div>
-                                        <div class="text-muted xxs mt-1 text-center" style="font-size: 10px;">*Valores não disponíveis na versão gratuita.</div>
+
                                     </div>
                                 </div>
                             `;
@@ -9252,3 +9305,348 @@ window.imprimirMapa = function () {
         window.print();
     }
 };
+
+// ================================================================================================
+// NOVO: Função para imprimir Relatório de Viagem e Pedágios
+// ================================================================================================
+window.imprimirRelatorioPedagios = async function () {
+    if (!currentRouteLocations || currentRouteLocations.length === 0) {
+        showToast("Não há rota traçada para imprimir.", "warning");
+        return;
+    }
+
+    if (!window.currentTollBooths || window.currentTollBooths.length === 0) {
+        if (!confirm("Nenhum pedágio identificado. Deseja imprimir apenas a rota?")) return;
+    }
+
+    showToast("Gerando relatório para impressão...", "info");
+
+    const tripDate = new Date().toLocaleDateString();
+    const tripTime = new Date().toLocaleTimeString();
+
+    let totalDist = document.getElementById('map-distancia') ? document.getElementById('map-distancia').textContent : "0 km";
+    let totalKg = document.getElementById('map-peso') ? document.getElementById('map-peso').textContent : "0 kg";
+    let vehicle = "Não definido";
+
+    // Tenta achar veículo da carga atual
+    if (window.currentMapLoadId && activeLoads[window.currentMapLoadId]) {
+        vehicle = activeLoads[window.currentMapLoadId].vehicleType || "Não definido";
+    }
+
+    // 1. Criar container de impressão se não existir
+    let printContainer = document.getElementById('print-overlay-container');
+    if (!printContainer) {
+        printContainer = document.createElement('div');
+        printContainer.id = 'print-overlay-container';
+        printContainer.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 99999; overflow: auto; padding: 20px;
+            display: none;
+        `;
+        document.body.appendChild(printContainer);
+    }
+
+    // 2. Montar Conteúdo
+    // Precisamos de uma cópia dos pedágios e paradas
+    let tollsListHTML = '';
+    if (window.currentTollBooths && window.currentTollBooths.length > 0) {
+        tollsListHTML = `
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Praça de Pedágio</th>
+                        <th>Referência / Localização</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${window.currentTollBooths.map((b, i) => `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td><strong>${b.name}</strong></td>
+                            <td>${b.context}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>`;
+    } else {
+        tollsListHTML = '<p>Nenhum pedágio identificado nesta rota.</p>';
+    }
+
+    let stopsListHTML = `
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Seq.</th>
+                    <th>Local / Cliente</th>
+                    <th>Cidade</th>
+                    <th>Peso</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${currentRouteLocations.map((loc, i) => {
+        const orders = loc.pedidos ? loc.pedidos.length : 0;
+        const weight = loc.pedidos ? loc.pedidos.reduce((acc, p) => acc + p.Quilos_Saldo, 0) : 0;
+        return `
+                        <tr>
+                            <td>${i === 0 ? 'ORIGEM' : i + 'ª'}</td>
+                            <td>${loc.name}</td>
+                            <td>${loc.name.split(',')[0]}</td>
+                            <td>${weight > 0 ? weight.toFixed(2) + ' kg' : '-'}</td>
+                        </tr>
+                    `;
+    }).join('')}
+            </tbody>
+        </table>
+    `;
+
+    // 3. Montar Relatório - VERSÃO COMPACTA (1 PÁGINA)
+    const roadmapContainer = document.createElement('div');
+    roadmapContainer.id = 'print-roadmap-info';
+    roadmapContainer.className = 'bg-white p-2 mt-1';
+
+    // Simplificar cabeçalho e juntar tabelas se possível
+    roadmapContainer.innerHTML = `
+        <div class="print-header mb-2 pb-2 border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="m-0 p-0 text-uppercase">Relatório de Viagem</h4>
+                <div class="small">
+                    <strong>Veículo:</strong> ${vehicle.toUpperCase()} | 
+                    <strong>Saída:</strong> SELMI (Sumaré/PR) | 
+                    <strong>Dist:</strong> ${totalDist} | 
+                    <strong>Peso:</strong> ${totalKg}
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-7 pe-1">
+                <h6 class="fw-bold border-bottom pb-1 mb-1">1. PEDÁGIOS</h6>
+                ${tollsListHTML.replace('table-striped table-bordered', 'table-sm table-bordered mb-0')}
+            </div>
+            <div class="col-5 ps-1">
+                <h6 class="fw-bold border-bottom pb-1 mb-1">2. ENTREGAS</h6>
+                ${stopsListHTML.replace('table-sm', 'table-sm table-bordered mb-0')}
+            </div>
+        </div>
+        
+        <div class="text-end mt-1 text-muted" style="font-size: 8px;">
+            ${new Date().toLocaleString()}
+        </div>
+    `;
+
+    // INSERÇÃO NO DOM:
+    // Para que o mapa E o relatório apareçam, vamos inserir o relatório DEPOIS do container do mapa.
+    const mapContainer = document.getElementById('map-container');
+    if (mapContainer && mapContainer.parentNode) {
+        // Verifica se já existe um anterior e remove
+        const oldInfo = document.getElementById('print-roadmap-info');
+        if (oldInfo) oldInfo.remove();
+
+        mapContainer.parentNode.insertBefore(roadmapContainer, mapContainer.nextSibling);
+    }
+
+    // Adiciona classe para print
+    document.body.classList.add('printing-mode');
+
+    // Pequeno delay para garantir renderização antes do print
+    setTimeout(() => {
+        window.print();
+
+        // Cleanup após print
+        // Timeout longo para garantir que não remove enquanto o diálogo está aberto (em alguns browsers)
+        setTimeout(() => {
+            document.body.classList.remove('printing-mode');
+            const info = document.getElementById('print-roadmap-info');
+            if (info) info.remove();
+        }, 2000); // 2 segundos
+    }, 500);
+};
+
+// ================================================================================================
+// NOVO: Função para Gerar PDF Profissional (Faturamento/Conferência) - Sem Mapa
+// ================================================================================================
+window.generateTextPDF = async function () {
+    if (!currentRouteLocations || currentRouteLocations.length === 0) {
+        showToast("Não há rota para gerar PDF.", "warning");
+        return;
+    }
+
+    showToast("Gerando Relatório de Faturamento...", "info");
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Configurações
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 14;
+        let cursorY = margin;
+
+        // 1. Cabeçalho Corporativo
+        // Fundo Cinza no Header
+        doc.setFillColor(240, 240, 240);
+        doc.rect(0, 0, pageWidth, 40, 'F');
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        doc.setTextColor(40);
+        doc.text("APEX LOG", margin, 25);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text("Relatório de Conferência de Viagem e Pedágios", pageWidth - margin, 18, { align: "right" });
+
+        const tripDate = new Date().toLocaleString();
+        doc.text(`Gerado em: ${tripDate}`, pageWidth - margin, 24, { align: "right" });
+
+        cursorY = 50;
+
+        // 2. Resumo da Viagem (Box Style)
+        let totalDist = document.getElementById('map-distancia') ? document.getElementById('map-distancia').textContent : "0 km";
+        let totalKg = document.getElementById('map-peso') ? document.getElementById('map-peso').textContent : "0 kg";
+        let vehicle = "N/A";
+        if (window.currentMapLoadId && activeLoads[window.currentMapLoadId]) {
+            vehicle = activeLoads[window.currentMapLoadId].vehicleType || "VEÍCULO";
+        }
+
+        doc.setDrawColor(200);
+        doc.setFillColor(255, 255, 255);
+        doc.roundedRect(margin, cursorY, pageWidth - (margin * 2), 25, 3, 3, 'FD');
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.text("RESUMO DA OPERAÇÃO", margin + 5, cursorY + 8);
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+
+        doc.text("Veículo / Configuração:", margin + 5, cursorY + 18);
+        doc.setFont("helvetica", "bold");
+        doc.text(vehicle.toUpperCase(), margin + 45, cursorY + 18);
+
+        doc.setFont("helvetica", "normal");
+        doc.text("Distância Total:", margin + 85, cursorY + 18);
+        doc.setFont("helvetica", "bold");
+        doc.text(totalDist, margin + 115, cursorY + 18);
+
+        doc.setFont("helvetica", "normal");
+        doc.text("Peso Total:", margin + 145, cursorY + 18);
+        doc.setFont("helvetica", "bold");
+        doc.text(totalKg, margin + 165, cursorY + 18);
+
+        cursorY += 35;
+
+        // 3. Tabelas Lado a Lado (Para garantir 1 Página)
+        const colGap = 5;
+        const colWidth = (pageWidth - (margin * 2) - colGap) / 2;
+        const startTableY = cursorY + 5;
+
+        // --- Configuração das Tabelas ---
+        const tableStyles = {
+            theme: 'grid',
+            headStyles: {
+                fillColor: [60, 60, 60],
+                textColor: 255,
+                fontStyle: 'bold',
+                fontSize: 9,
+                halign: 'center'
+            },
+            styles: {
+                fontSize: 8,
+                cellPadding: 2,
+                valign: 'middle',
+                overflow: 'ellipsize'
+            }
+        };
+
+        // --- COLUNA 1: PEDÁGIOS ---
+        doc.setFontSize(11);
+        doc.setTextColor(0);
+        doc.text("1. PEDÁGIOS", margin, startTableY - 2);
+
+        const tollBody = [];
+        if (window.currentTollBooths && window.currentTollBooths.length > 0) {
+            window.currentTollBooths.forEach((b, i) => {
+                let ref = b.context || '';
+                // Encurtar referencia para caber na coluna estreita
+                if (ref.length > 20) ref = ref.substring(0, 20) + '...';
+
+                tollBody.push([
+                    (i + 1).toString(),
+                    b.name,
+                    ref
+                ]);
+            });
+        } else {
+            tollBody.push(['-', 'Nenhum', '-']);
+        }
+
+        doc.autoTable({
+            startY: startTableY,
+            head: [['#', 'Praça', 'Ref.']],
+            body: tollBody,
+            ...tableStyles,
+            margin: { left: margin },
+            tableWidth: colWidth,
+            columnStyles: {
+                0: { cellWidth: 8, halign: 'center' },
+                1: { cellWidth: 35 },
+                2: { cellWidth: 'auto' }
+            }
+        });
+
+        // --- COLUNA 2: ROTEIRO (DIREITA) ---
+        // Forçar volta para página 1 (caso a tabela 1 tenha criado nova pag)
+        doc.setPage(1);
+
+        const col2X = margin + colWidth + colGap;
+        doc.text("2. ROTEIRO", col2X, startTableY - 2);
+
+        const routeBody = currentRouteLocations.map((loc, i) => {
+            const weight = loc.pedidos ? loc.pedidos.reduce((acc, p) => acc + p.Quilos_Saldo, 0) : 0;
+            // Encurtar nome sem quebrar a logica
+            let name = (loc.name || "Local").split(',')[0];
+            if (name.length > 20) name = name.substring(0, 20) + '...';
+
+            return [
+                (i + 1).toString(),
+                name,
+                weight > 0 ? Math.round(weight).toString() : '-'
+            ];
+        });
+
+        doc.autoTable({
+            startY: startTableY,
+            head: [['#', 'Local', 'Kg']],
+            body: routeBody,
+            ...tableStyles,
+            margin: { left: col2X },
+            tableWidth: colWidth, // Força largura exata
+            columnStyles: {
+                0: { cellWidth: 8, halign: 'center' },
+                1: { cellWidth: 'auto' }, // Coluna do nome pega o resto
+                2: { cellWidth: 15, halign: 'right' }
+            }
+        });
+
+        // 5. Rodapé (Garantia de 1 Página - Força Footer Fixo)
+        const totalPages = doc.internal.getNumberOfPages();
+        doc.setPage(1);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Página 1 de 1 - APEX LOG System`, pageWidth / 2, pageHeight - 8, { align: "center" });
+
+        // 6. Salvar
+        const fileName = `Relatorio_Faturamento_${vehicle}_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
+        doc.save(fileName);
+        showToast("Relatório (1 Pág) baixado!", "success");
+
+    } catch (err) {
+        console.error("Erro ao gerar PDF:", err);
+        showToast("Erro ao gerar PDF.", "error");
+    }
+};
+

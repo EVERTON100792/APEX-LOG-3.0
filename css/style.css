@@ -1477,22 +1477,177 @@
 
 
         /* --- ESTILOS DE IMPRESSÃO - OTIMIZADO V5 (COMPACTO E PRECISO) --- */
+        /* --- ESTILOS DE IMPRESSÃO - CORREÇÃO PARA RELATÓRIO INJETADO --- */
         @media print {
+
+            /* 1. Reset básico */
             @page {
-                size: portrait;
-                margin: 1cm;
+                size: auto;
+                margin: 5mm;
             }
 
             body {
                 background: white !important;
                 color: black !important;
-                font-size: 8.5pt !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
                 overflow: visible !important;
                 height: auto !important;
             }
 
+            /* 2. Esconde TUDO por padrão se estivermos no modo "printing-mode" */
+            /* === PRINT LAYOUT V-COMPACT (Single Page Goal) === */
+
+            @page {
+                size: A4 portrait;
+                margin: 5mm;
+                /* Margens mínimas */
+            }
+
+            body.printing-mode {
+                background-color: white !important;
+                font-family: Arial, sans-serif !important;
+                font-size: 9pt !important;
+                /* Fonte menor */
+                line-height: 1.2 !important;
+            }
+
+            /* Hide Default Elements */
+            body.printing-mode>* {
+                display: none !important;
+            }
+
+            /* Hide Sidebar & Controls & Dashboard Elements */
+            body.printing-mode #route-sidebar,
+            body.printing-mode .leaflet-control-container,
+            body.printing-mode .modal-header,
+            body.printing-mode .modal-footer,
+            body.printing-mode .btn-close,
+            body.printing-mode .no-print,
+            body.printing-mode .card,
+            body.printing-mode .stat-card,
+            body.printing-mode .navbar,
+            body.printing-mode .offcanvas,
+            body.printing-mode header,
+            body.printing-mode footer,
+            body.printing-mode #ui-container {
+                display: none !important;
+            }
+
+            /* Show Map Area */
+            body.printing-mode #mapModal,
+            body.printing-mode .modal-dialog,
+            body.printing-mode .modal-content,
+            body.printing-mode .modal-body {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            /* MAP: Smaller Height */
+            body.printing-mode #map-container {
+                display: block !important;
+                position: relative !important;
+                width: 100% !important;
+                height: 250px !important;
+                /* Reduzido para sobrar espaço */
+                border: 1px solid #000 !important;
+                background: white !important;
+                margin: 0 0 10px 0 !important;
+                z-index: 1 !important;
+            }
+
+            /* REPORT: Compact */
+            body.printing-mode #print-roadmap-info {
+                display: block !important;
+                position: relative !important;
+                width: 100% !important;
+                background: white !important;
+                color: black !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Colors & Typography */
+            body.printing-mode,
+            body.printing-mode * {
+                color: #000 !important;
+                text-shadow: none !important;
+                box-shadow: none !important;
+            }
+
+            /* Tables Compact */
+            body.printing-mode table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-bottom: 5px !important;
+                font-size: 8pt !important;
+                /* Fonte bem pequena na tabela */
+            }
+
+            body.printing-mode th,
+            body.printing-mode td {
+                border: 1px solid #666 !important;
+                padding: 2px 4px !important;
+                /* Padding mínimo */
+                vertical-align: middle !important;
+            }
+
+            body.printing-mode th {
+                background-color: #eee !important;
+                font-weight: bold !important;
+            }
+
+            /* Headers */
+            body.printing-mode h2,
+            body.printing-mode h4,
+            body.printing-mode h6 {
+                margin: 2px 0 4px 0 !important;
+                padding: 0 !important;
+                color: #000 !important;
+                text-transform: uppercase;
+                font-weight: bold !important;
+            }
+
+            /* Grid System for Print */
+            body.printing-mode .row {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                margin: 0 !important;
+            }
+
+            body.printing-mode .col-6,
+            body.printing-mode .col-7,
+            body.printing-mode .col-5 {
+                padding: 0 5px !important;
+            }
+
+            body.printing-mode .col-7 {
+                width: 58% !important;
+            }
+
+            body.printing-mode .col-5 {
+                width: 42% !important;
+            }
+
+            #route-sidebar,
+            .btn-close {
+                display: none !important;
+            }
+
+            /* --- ESTILOS ANTIGOS DE PRINT (MANTIDOS SE NÃO FOR PRINTING-MODE) --- */
+            body:not(.printing-mode) .no-print {
+                display: none !important;
+            }
+
+            /* ... (mantendo compatibilidade com código anterior se necessário) */
+        }
+
+        @media print {
             #main-content {
                 margin: 0 !important;
                 padding: 0 !important;
@@ -1653,17 +1808,248 @@
                 padding: 1px 4px !important;
             }
 
-            /* --- MODO DE IMPRESSÃO DE MAPA --- */
-            body.print-map-active #mapModal {
-                position: fixed !important;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: 10000;
+            /* --- MODO DE IMPRESSÃO DE MAPA (PÁGINA ÚNICA) --- */
+            @media print {
+
+                /* Reset de página */
+                @page {
+                    size: landscape;
+                    margin: 10mm;
+                }
+
+                body.print-map-active {
+                    overflow: visible !important;
+                    height: auto !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                }
+
+                /* Esconde tudo exceto o modal */
+                body.print-map-active>*:not(#mapModal) {
+                    display: none !important;
+                }
+
+                body.print-map-active .modal-backdrop {
+                    display: none !important;
+                }
+
+                /* Modal ocupa a página inteira */
+                body.print-map-active #mapModal {
+                    position: static !important;
+                    display: block !important;
+                    width: 100% !important;
+                    height: 100vh !important;
+                    max-height: 100vh !important;
+                    page-break-inside: avoid !important;
+                }
+
+                body.print-map-active .modal-dialog {
+                    max-width: 100% !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    transform: none !important;
+                }
+
+                body.print-map-active .modal-content {
+                    border: none !important;
+                    border-radius: 0 !important;
+                    background: white !important;
+                    height: 100% !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    page-break-inside: avoid !important;
+                }
+
+                /* Cabeçalho compacto */
+                body.print-map-active .modal-header {
+                    background: white !important;
+                    border: none !important;
+                    padding: 8px 12px !important;
+                    page-break-after: avoid !important;
+                    flex-shrink: 0 !important;
+                }
+
+                body.print-map-active .modal-title {
+                    color: #000 !important;
+                    font-size: 16pt !important;
+                    font-weight: 900 !important;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                }
+
+                /* Print header compacto */
+                body.print-map-active #print-load-header {
+                    display: block !important;
+                    page-break-after: avoid !important;
+                    page-break-inside: avoid !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                    margin: 0 !important;
+                    padding: 8px !important;
+                }
+
+                body.print-map-active #print-load-header * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+
+                /* Corpo principal: sidebar + mapa */
+                body.print-map-active .modal-body {
+                    display: flex !important;
+                    flex-direction: row !important;
+                    flex: 1 !important;
+                    min-height: 0 !important;
+                    height: auto !important;
+                    max-height: calc(100vh - 150px) !important;
+                    padding: 0 !important;
+                    page-break-inside: avoid !important;
+                    background: white !important;
+                    overflow: hidden !important;
+                }
+
+                /* Sidebar compacta */
+                body.print-map-active #route-sidebar {
+                    display: flex !important;
+                    flex-direction: column !important;
+                    width: 200px !important;
+                    min-width: 200px !important;
+                    max-width: 200px !important;
+                    background: #f8f9fa !important;
+                    color: #000 !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                    height: 100% !important;
+                    border-right: 2px solid #333 !important;
+                    overflow: hidden !important;
+                    flex-shrink: 0 !important;
+                }
+
+                body.print-map-active #route-sidebar * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                    color: #000 !important;
+                }
+
+                body.print-map-active #route-sidebar h5 {
+                    font-size: 10pt !important;
+                    padding: 8px !important;
+                    margin: 0 !important;
+                    background: #e9ecef !important;
+                    border-bottom: 1px solid #ccc !important;
+                }
+
+                body.print-map-active #route-stops-list {
+                    background: #f8f9fa !important;
+                    color: #000 !important;
+                    font-size: 8pt !important;
+                    overflow: hidden !important;
+                }
+
+                body.print-map-active .list-group-item {
+                    background: #fff !important;
+                    color: #000 !important;
+                    border-color: #dee2e6 !important;
+                    padding: 4px 8px !important;
+                    font-size: 8pt !important;
+                }
+
+                body.print-map-active .list-group-item .badge {
+                    font-size: 7pt !important;
+                    padding: 2px 4px !important;
+                    background: #6c757d !important;
+                    color: white !important;
+                }
+
+                body.print-map-active .badge.bg-success {
+                    background: #28a745 !important;
+                    color: white !important;
+                }
+
+                body.print-map-active .badge.bg-secondary {
+                    background: #6c757d !important;
+                    color: white !important;
+                }
+
+                /* Container do mapa */
+                body.print-map-active #map-container {
+                    flex: 1 !important;
+                    min-width: 0 !important;
+                    height: 100% !important;
+                    background: white !important;
+                    position: relative !important;
+                }
+
+                body.print-map-active .leaflet-container {
+                    height: 100% !important;
+                    width: 100% !important;
+                }
+
+                /* Informações de pedágio e estatísticas */
+                body.print-map-active #map-status,
+                body.print-map-active #map-stats {
+                    font-size: 8pt !important;
+                    padding: 4px !important;
+                }
+
+                /* Esconde elementos desnecessários */
+                body.print-map-active .modal-footer,
+                body.print-map-active .btn-close,
+                body.print-map-active .no-print,
+                body.print-map-active .bi-grip-vertical {
+                    display: none !important;
+                }
+
+                /* Força impressão de cores */
+                body.print-map-active .bg-dark,
+                body.print-map-active .bg-secondary,
+                body.print-map-active .bg-success,
+                body.print-map-active .badge {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+
+                /* Remove truncamento de texto */
+                body.print-map-active .sidebar-loc-name,
+                body.print-map-active .text-truncate {
+                    white-space: nowrap !important;
+                    overflow: hidden !important;
+                    text-overflow: ellipsis !important;
+                    max-width: 160px !important;
+                }
+
+                /* Evita quebras de página */
+                body.print-map-active * {
+                    page-break-inside: avoid !important;
+                }
             }
 
-            /* ... (resto das regras de mapa permanecem as mesmas ou simplificadas) */
+            /* Estilo para as etiquetas das cidades no mapa */
+            .leaflet-tooltip.city-label {
+                background-color: rgba(255, 255, 255, 0.95) !important;
+                border: 2px solid #0066cc !important;
+                border-radius: 4px;
+                padding: 3px 8px !important;
+                font-weight: 900 !important;
+                font-size: 10pt !important;
+                color: #000 !important;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+                white-space: nowrap;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            @media print {
+                .leaflet-tooltip.city-label {
+                    background-color: #fff !important;
+                    border: 2px solid #0066cc !important;
+                    font-size: 9pt !important;
+                    font-weight: 900 !important;
+                    color: #000 !important;
+                    padding: 2px 6px !important;
+                }
+            }
         }
 
 

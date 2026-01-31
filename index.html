@@ -34,6 +34,7 @@
     <!-- Bibliotecas para Geraá§á£o de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <link rel="stylesheet" href="css/style.css">
@@ -1632,8 +1633,7 @@
                         <div class="small fw-bold text-info"><i class="bi bi-box-seam-fill me-1"></i>Cubagem: <span
                                 id="map-cubagem">-- m³</span></div>
                     </div>
-                    <button type="button" class="btn btn-outline-secondary" onclick="printMap()"><i
-                            class="bi bi-printer-fill me-1"></i> Imprimir Rota</button>
+
                     <button type="button" class="btn btn-success" onclick="shareRouteOnWhatsApp()"><i
                             class="bi bi-whatsapp me-1"></i> Compartilhar</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
