@@ -9466,7 +9466,7 @@ window.generateTextPDF = async function () {
         return;
     }
 
-    showToast("Gerando Relatório de Faturamento (com Mapa)...", "info");
+    showToast("Gerando Relatório Profissional...", "info");
 
     // 1. Captura o Mapa (Screenshot)
     let mapDataUrl = null;
@@ -9474,246 +9474,222 @@ window.generateTextPDF = async function () {
     try {
         const mapContainer = document.getElementById('map-container');
         if (mapContainer) {
-            // Oculta controles do mapa para o print ficar limpo
             mapContainer.classList.add('hide-controls-for-print');
 
-            // Aguarda tiles carregarem (hack rápido)
-            await new Promise(r => setTimeout(r, 500));
+            // Força renderização dos tiles
+            await new Promise(r => setTimeout(r, 600));
 
             const canvas = await html2canvas(mapContainer, {
                 useCORS: true,
                 allowTaint: true,
                 logging: false,
-                scale: 1.5, // Melhor qualidade
-                scrollY: 0, // Fix offset issue
-                scrollX: 0
+                scale: 1.5
             });
-            mapDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            mapDataUrl = canvas.toDataURL('image/jpeg', 0.85);
             mapAspectRatio = canvas.width / canvas.height;
 
-            // Restaura controles
             mapContainer.classList.remove('hide-controls-for-print');
         }
     } catch (err) {
-        console.warn("Erro ao capturar imagem do mapa:", err);
-        showToast("Aviso: O mapa não pôde ser capturado.", "warning");
+        console.warn("Erro captura mapa:", err);
     }
 
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Configurações
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
-        const margin = 14;
+        const margin = 10;
         let cursorY = margin;
 
-        // 2. Cabeçalho Corporativo
-        // Fundo Cinza no Header
-        doc.setFillColor(240, 240, 240);
-        doc.rect(0, 0, pageWidth, 40, 'F');
+        // --- CABEÇALHO ---
+        doc.setFillColor(41, 46, 52); // Dark Header
+        doc.rect(0, 0, pageWidth, 28, 'F');
 
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(22);
-        doc.setTextColor(40);
-        doc.text("APEX LOG", margin, 25);
+        doc.setFontSize(20);
+        doc.setTextColor(255);
+        doc.text("APEX LOG", margin, 18);
 
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text("Relatório de Conferência de Viagem e Pedágios", pageWidth - margin, 18, { align: "right" });
+        doc.setFontSize(9);
+        doc.setTextColor(200);
+        doc.text("Relatório de Roteirização", pageWidth - margin, 12, { align: "right" });
+        doc.text(new Date().toLocaleString(), pageWidth - margin, 18, { align: "right" });
 
-        const tripDate = new Date().toLocaleString();
-        doc.text(`Gerado em: ${tripDate}`, pageWidth - margin, 24, { align: "right" });
+        cursorY = 35;
 
-        cursorY = 50;
-
-        // 3. Resumo da Viagem (Box Style)
+        // --- RESUMO (HEADER) ---
         let totalDist = document.getElementById('map-distancia') ? document.getElementById('map-distancia').textContent : "0 km";
         let totalKg = document.getElementById('map-peso') ? document.getElementById('map-peso').textContent : "0 kg";
-        let vehicle = "N/A";
-        if (window.currentMapLoadId && activeLoads[window.currentMapLoadId]) {
-            vehicle = activeLoads[window.currentMapLoadId].vehicleType || "VEÍCULO";
-        }
+        let vehicle = (window.currentMapLoadId && activeLoads[window.currentMapLoadId]) ? activeLoads[window.currentMapLoadId].vehicleType : "VEÍCULO";
 
+        // Draw Box
         doc.setDrawColor(200);
-        doc.setFillColor(255, 255, 255);
-        doc.roundedRect(margin, cursorY, pageWidth - (margin * 2), 25, 3, 3, 'FD');
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.setTextColor(0);
-        doc.text("RESUMO DA OPERAÇÃO", margin + 5, cursorY + 8);
+        doc.setLineWidth(0.1);
+        doc.setFillColor(250);
+        doc.roundedRect(margin, cursorY, pageWidth - (margin * 2), 16, 2, 2, 'FD');
 
         doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
+        doc.setTextColor(50);
 
-        doc.text("Veículo / Configuração:", margin + 5, cursorY + 18);
+        // Col 1
         doc.setFont("helvetica", "bold");
-        doc.text(vehicle.toUpperCase(), margin + 45, cursorY + 18);
-
+        doc.text("VEÍCULO:", margin + 5, cursorY + 10);
         doc.setFont("helvetica", "normal");
-        doc.text("Distância Total:", margin + 85, cursorY + 18);
-        doc.setFont("helvetica", "bold");
-        doc.text(totalDist, margin + 115, cursorY + 18);
+        doc.text(vehicle.toUpperCase(), margin + 25, cursorY + 10);
 
+        // Col 2
+        doc.setFont("helvetica", "bold");
+        doc.text("DISTÂNCIA:", margin + 70, cursorY + 10);
         doc.setFont("helvetica", "normal");
-        doc.text("Peso Total:", margin + 145, cursorY + 18);
+        doc.text(totalDist, margin + 95, cursorY + 10);
+
+        // Col 3
         doc.setFont("helvetica", "bold");
-        doc.text(totalKg, margin + 165, cursorY + 18);
+        doc.text("PESO TOTAL:", margin + 130, cursorY + 10);
+        doc.setFont("helvetica", "normal");
+        doc.text(totalKg, margin + 155, cursorY + 10);
 
-        cursorY += 35;
+        cursorY += 25;
 
-        // 3. Inserir Mapa (Agora acima das tabelas)
-        if (mapDataUrl) {
-            let mapWidth = pageWidth - (margin * 2);
-            let mapHeight = mapWidth / mapAspectRatio;
-            let mapX = margin;
+        // --- LAYOUT LADO A LADO: ROTEIRO (Esq) + MAPA (Dir) ---
 
-            // Limita altura máxima do mapa para caber em uma página (35%)
-            // CORREÇÃO: Recalcula largura para manter Proporção e Centraliza
-            if (mapHeight > (pageHeight * 0.35)) {
-                mapHeight = pageHeight * 0.35;
-                mapWidth = mapHeight * mapAspectRatio; // Mantém aspect ratio
-                mapX = (pageWidth - mapWidth) / 2; // Centraliza horizontalmente
-            }
-
-            doc.setFontSize(11);
-            doc.setTextColor(0);
-            doc.text("1. VISUALIZAÇÃO DA ROTA", margin, cursorY + 5);
-
-            doc.addImage(mapDataUrl, 'JPEG', mapX, cursorY + 8, mapWidth, mapHeight);
-
-            // Atualiza cursor para onde terminar o mapa (menos espaço em branco)
-            cursorY += mapHeight + 10;
-        } else {
-            cursorY += 10;
-        }
-
-        // 4. Tabelas Lado a Lado
         const colGap = 5;
-        const colWidth = (pageWidth - (margin * 2) - colGap) / 2;
-        const startTableY = cursorY + 5;
+        // Divide espaço disponível
+        // Aumentando prioridade do Mapa: Roteiro 40%, Mapa ~60%
+        const leftColWidth = (pageWidth - (margin * 2) - colGap) * 0.40;
+        const rightColWidth = (pageWidth - (margin * 2) - colGap) * 0.60;
+        const leftColX = margin;
+        const rightColX = margin + leftColWidth + colGap;
 
-        // Verifica se cabe na página
-        if (startTableY > (pageHeight - 50)) {
-            doc.addPage();
-            startTableY = margin + 10;
-        }
+        // Título ESQUERDA
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(33);
+        doc.text("1. ROTEIRO", leftColX, cursorY);
 
-        // --- Configuração das Tabelas ---
-        const tableStyles = {
-            theme: 'grid',
-            headStyles: {
-                fillColor: [60, 60, 60],
-                textColor: 255,
-                fontStyle: 'bold',
-                fontSize: 9,
-                halign: 'center'
-            },
-            styles: {
-                fontSize: 8,
-                cellPadding: 2,
-                valign: 'middle',
-                overflow: 'ellipsize'
-            }
-        };
+        // Título DIREITA
+        doc.text("2. MAPA", rightColX, cursorY);
 
-        // --- COLUNA 1: PEDÁGIOS ---
-        doc.setFontSize(11);
-        doc.setTextColor(0);
-        doc.text("2. PEDÁGIOS", margin, startTableY - 2);
+        cursorY += 4; // Espaço após título
 
-        const tollBody = [];
-        if (window.currentTollBooths && window.currentTollBooths.length > 0) {
-            window.currentTollBooths.forEach((b, i) => {
-                let ref = b.context || '';
-                if (ref.length > 20) ref = ref.substring(0, 20) + '...';
-                tollBody.push([
-                    (i + 1).toString(),
-                    b.name,
-                    ref
-                ]);
-            });
-        } else {
-            tollBody.push(['-', 'Nenhum', '-']);
-        }
-
-        doc.autoTable({
-            startY: startTableY,
-            head: [['#', 'Praça', 'Ref.']],
-            body: tollBody,
-            ...tableStyles,
-            margin: { left: margin },
-            tableWidth: colWidth,
-            columnStyles: {
-                0: { cellWidth: 8, halign: 'center' },
-                1: { cellWidth: 35 },
-                2: { cellWidth: 'auto' }
-            }
-        });
-
-        const endY1 = doc.lastAutoTable.finalY || startTableY;
-
-        // --- COLUNA 2: ROTEIRO (DIREITA) ---
-        // Forçar volta para página correta (caso a tabela 1 tenha criado nova pag)
-        // doc.setPage(1); // REMOVIDO: Agora segue o fluxo normal
-
-        const col2X = margin + colWidth + colGap;
-        doc.text("3. ROTEIRO", col2X, startTableY - 2);
-
-        const routeBody = currentRouteLocations.map((loc, i, arr) => {
+        // --- TABELA ROTEIRO (ESQUERDA) ---
+        const routeData = currentRouteLocations.map((loc, i) => {
             const weight = loc.pedidos ? loc.pedidos.reduce((acc, p) => acc + p.Quilos_Saldo, 0) : 0;
             let name = (loc.name || "Local").split(',')[0];
-            if (name.length > 20) name = name.substring(0, 20) + '...';
-
-            let seq = i.toString();
-            if (i === 0) seq = "Origem";
-            else if (i === arr.length - 1) seq = "Retorno";
+            // Truncate name more aggressively for narrower column
+            if (name.length > 20) name = name.substring(0, 18) + "..";
 
             return [
-                seq,
+                (i === 0 ? 'Orig' : i).toString(),
                 name,
-                weight > 0 ? Math.round(weight).toString() : '-'
+                weight > 0 ? Math.round(weight) : '-'
             ];
         });
 
         doc.autoTable({
-            startY: startTableY,
+            startY: cursorY,
             head: [['Seq', 'Local', 'Kg']],
-            body: routeBody,
-            ...tableStyles,
-            margin: { left: col2X },
-            tableWidth: colWidth,
+            body: routeData,
+            theme: 'grid',
+            styles: { fontSize: 7, cellPadding: 1.5, overflow: 'hidden' }, // Fonte menor
+            headStyles: { fillColor: [60, 60, 60], textColor: 255 },
             columnStyles: {
-                0: { cellWidth: 10, halign: 'center' },
+                0: { cellWidth: 8, halign: 'center' },
                 1: { cellWidth: 'auto' },
-                2: { cellWidth: 15, halign: 'right' }
-            }
+                2: { cellWidth: 10, halign: 'right' }
+            },
+            tableWidth: leftColWidth,
+            margin: { left: leftColX }
         });
 
-        const endY2 = doc.lastAutoTable.finalY || startTableY;
+        const tableEndY = doc.lastAutoTable.finalY;
 
-        // Define onde começa o próximo bloco (o maior Y das duas tabelas)
-        cursorY = Math.max(endY1, endY2) + 15;
+        // --- IMAGEM DO MAPA (DIREITA) ---
+        // Tenta desenhar o mapa começando no mesmo Y da tabela
+        if (mapDataUrl) {
+            // Calcula altura disponível
+            // MAXIMIZANDO A ALTURA: Permite que o mapa seja bem alto (até 180mm)
+            let mapH = rightColWidth / mapAspectRatio;
 
-        // Rodapé com número de página (apenas na pág atual por enquanto)
+            // Se a altura natural for pequena, forçamos um pouco se possível? 
+            // Não, melhor manter aspect ratio mas permitir crescer.
+
+            // Limite de altura mais generoso (quase a página toda se precisar)
+            if (mapH > 180) mapH = 180;
+
+            doc.addImage(mapDataUrl, 'JPEG', rightColX, cursorY, rightColWidth, mapH);
+
+            // Atualiza cursorY para o maior dos dois (Tabela ou Mapa) + margem
+            cursorY = Math.max(tableEndY, cursorY + mapH) + 10;
+        } else {
+            // Sem mapa, usa apenas altura da tabela
+            doc.setFontSize(8);
+            doc.text("[Mapa indisponível]", rightColX, cursorY + 10);
+            cursorY = tableEndY + 10;
+        }
+
+        // --- PEDÁGIOS (ABAIXO, FULL WIDTH) ---
+
+        // Verifica se cabe na página e se tem pedágios
+        if (window.currentTollBooths && window.currentTollBooths.length > 0) {
+
+            // Se estiver muito embaixo, quebra página
+            if (cursorY > pageHeight - 40) {
+                doc.addPage();
+                cursorY = margin + 10;
+            }
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(33);
+            doc.text("3. CUSTOS DE PEDÁGIO", margin, cursorY);
+
+            cursorY += 4;
+
+            const tollData = window.currentTollBooths.map((b, i) => [
+                (i + 1).toString(),
+                b.name,
+                b.context || '-'
+            ]);
+
+            doc.autoTable({
+                startY: cursorY,
+                head: [['#', 'Praça de Pedágio', 'Referência / Localização']],
+                body: tollData,
+                theme: 'striped',
+                styles: { fontSize: 8, cellPadding: 2 },
+                headStyles: { fillColor: [80, 80, 80] },
+                columnStyles: {
+                    0: { cellWidth: 10, halign: 'center' },
+                    1: { cellWidth: 50 },
+                    2: { cellWidth: 'auto' }
+                },
+                margin: { left: margin, right: margin },
+                tableWidth: 'auto' // Full width
+            });
+        }
+
+        // --- RODAPÉ ---
         const pageCount = doc.getNumberOfPages();
         for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
-            doc.setFontSize(8);
+            doc.setFontSize(7);
             doc.setTextColor(150);
-            doc.text(`Página ${i} de ${pageCount}`, pageWidth / 2, pageHeight - 5, { align: "center" });
+            doc.text(`Apex Log System - Pág ${i}/${pageCount}`, pageWidth / 2, pageHeight - 5, { align: "center" });
         }
 
-        doc.save(`Faturamento_ApexLog_${vehicle.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
-        showToast("PDF gerado com sucesso!", "success");
+        const safeVehicleName = vehicle.replace(/[^a-z0-9]/gi, '_');
+        doc.save(`Relatorio_Apex_${safeVehicleName}_${Date.now()}.pdf`);
+
+        showToast("PDF salvo com sucesso!", "success");
 
     } catch (err) {
-        console.error("Erro ao gerar PDF:", err);
-        showToast("Erro ao gerar o PDF. Consulte o console.", "error");
+        console.error("PDF Error:", err);
+        showToast("Erro crítico ao criar PDF.", "error");
     }
-}
+};
 
 
 
