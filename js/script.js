@@ -8161,59 +8161,27 @@ function changeLoadVehicleType(loadId, newVehicleType) {
         especial: { name: 'Manual', colorClass: 'bg-dark', textColor: 'text-warning', icon: 'bi-tools', borderClass: 'border-warning' }
     };
 
-    // Remove o card antigo
-    const oldCard = document.getElementById(loadId); // ID DO CARD É O ID DA CARGA (loadId) ou card-loadId?
-    // Verificando renderLoadCard: <div id="${load.id}" class="card ...">
-    if (oldCard) oldCard.remove();
+    // REPLACEMENT: Update the card in-place instead of moving it to a different tab/container
+    const cardElement = document.getElementById(loadId);
 
-    // Determina o TIPO DE ABA de destino baseado no novo veículo
-    let targetTabPaneId;
-    let targetResultContainerId;
-
-    if (newVehicleType === 'especial') {
-        targetTabPaneId = 'montagens-especiais-tab-pane';
-        targetResultContainerId = 'resultado-montagens-especiais';
-    } else if (newVehicleType === 'fiorino') {
-        targetTabPaneId = 'fiorino-tab-pane';
-        targetResultContainerId = 'resultado-fiorino-geral';
-    } else if (newVehicleType === 'van') {
-        targetTabPaneId = 'van-tab-pane';
-        targetResultContainerId = 'resultado-van-geral';
-    } else if (newVehicleType === 'tresQuartos') {
-        targetTabPaneId = 'tres-quartos-tab-pane';
-        targetResultContainerId = 'resultado-34-geral';
-    } else if (newVehicleType === 'toco') {
-        targetTabPaneId = 'toco-tab-pane';
-        targetResultContainerId = 'resultado-toco';
-    }
-
-    // Encontra o container
-    const tabPane = document.getElementById(targetTabPaneId);
-    let resultContainer = document.getElementById(targetResultContainerId);
-
-    if (!resultContainer && tabPane) {
-        // Se não existir o container específico (ex: vazio), tenta achar um genérico ou criar
-        resultContainer = tabPane.querySelector('[id^="resultado-"]');
-    }
-
-    if (resultContainer) {
+    if (cardElement) {
+        // Render the new HTML with the updated vehicle type
         const newCardHTML = renderLoadCard(load, newVehicleType, vehicleInfo[newVehicleType]);
-        resultContainer.insertAdjacentHTML('beforeend', newCardHTML);
 
-        // Se a aba de destino for diferente da atual, ativa a nova aba
-        if (newVehicleType === 'especial') {
-            const tabBtn = document.querySelector('[data-bs-target="#montagens-especiais-tab-pane"]');
-            if (tabBtn) new bootstrap.Tab(tabBtn).show();
-            showToast('Carga movida para Roteirização Manual', 'success');
+        // Replace the old element with the new one
+        cardElement.outerHTML = newCardHTML;
 
-            // HIDE EMPTY STATE
-            const emptyState = resultContainer.querySelector('.empty-state');
-            if (emptyState) emptyState.style.display = 'none';
-        } else {
-            showToast(`Carga alterada para ${vehicleInfo[newVehicleType].name}`, 'success');
+        // Visual feedback
+        const newCard = document.getElementById(loadId);
+        if (newCard) {
+            newCard.classList.add('flash-update');
+            setTimeout(() => newCard.classList.remove('flash-update'), 500);
         }
+
+        showToast(`Carga alterada para ${vehicleInfo[newVehicleType].name}`, 'success');
     } else {
-        showToast('Erro ao mover card de aba.', 'error');
+        console.warn(`Card element for load ${loadId} not found.`);
+        showToast('Erro ao atualizar o card: elemento não encontrado.', 'error');
     }
 
     updateAndRenderKPIs();
