@@ -8612,7 +8612,7 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
     });
 
     if (!bounds.isValid()) return;
-    mapInstance.fitBounds(bounds, { padding: [50, 50] });
+    mapInstance.fitBounds(bounds, { padding: [150, 150], maxZoom: 14 });
 
     // 5. Valhalla API Call
     let valhallaPoints = locations.map(l => ({ lat: l.coords.lat, lon: l.coords.lng }));
@@ -8747,7 +8747,7 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                         // Desenha Polilinha OSRM
                         if (routePolyline) mapInstance.removeLayer(routePolyline);
                         routePolyline = L.polyline(coordinates, { color: 'blue', weight: 5, opacity: 0.7 }).addTo(mapInstance);
-                        mapInstance.fitBounds(routePolyline.getBounds());
+                        mapInstance.fitBounds(routePolyline.getBounds(), { padding: [150, 150], maxZoom: 14 });
 
                         // Atualiza distâncias (OSRM retorna metros)
                         const distKm = (route.distance / 1000).toFixed(1);
@@ -8945,6 +8945,10 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                 opacity: 0.8,
                 smoothFactor: 1
             }).addTo(mapInstance);
+
+            // Ajusta o zoom para mostrar a rota com margem (padding) e limita o zoom máximo
+            // para mostrar mais contexto da cidade
+            mapInstance.fitBounds(routePolyline.getBounds(), { padding: [150, 150], maxZoom: 14 });
 
             // Update Stats
             const totalDistKm = data.trip.summary.length.toFixed(1);
@@ -9669,9 +9673,9 @@ window.generateTextPDF = async function () {
 
         const colGap = 5;
         // Divide espaço disponível
-        // Aumentando prioridade do Mapa: Roteiro 40%, Mapa ~60%
-        const leftColWidth = (pageWidth - (margin * 2) - colGap) * 0.40;
-        const rightColWidth = (pageWidth - (margin * 2) - colGap) * 0.60;
+        // Aumentando prioridade do Mapa: Roteiro 28%, Mapa ~72% (Máximo espaço para o mapa)
+        const leftColWidth = (pageWidth - (margin * 2) - colGap) * 0.28;
+        const rightColWidth = (pageWidth - (margin * 2) - colGap) * 0.72;
         const leftColX = margin;
         const rightColX = margin + leftColWidth + colGap;
 
@@ -9688,29 +9692,25 @@ window.generateTextPDF = async function () {
 
         // --- TABELA ROTEIRO (ESQUERDA) ---
         const routeData = currentRouteLocations.map((loc, i) => {
-            const weight = loc.pedidos ? loc.pedidos.reduce((acc, p) => acc + p.Quilos_Saldo, 0) : 0;
             let name = (loc.name || "Local").split(',')[0];
-            // Truncate name more aggressively for narrower column
-            if (name.length > 20) name = name.substring(0, 18) + "..";
+            // Name truncation removed to show full city names
 
             return [
                 (i === 0 ? 'Orig' : i).toString(),
-                name,
-                weight > 0 ? Math.round(weight) : '-'
+                name
             ];
         });
 
         doc.autoTable({
             startY: cursorY,
-            head: [['Seq', 'Local', 'Kg']],
+            head: [['Seq', 'Local']],
             body: routeData,
             theme: 'grid',
-            styles: { fontSize: 7, cellPadding: 1.5, overflow: 'hidden' }, // Fonte menor
+            styles: { fontSize: 7, cellPadding: 1.5, overflow: 'visible' }, // Overflow visible para garantir nome completo
             headStyles: { fillColor: [60, 60, 60], textColor: 255 },
             columnStyles: {
                 0: { cellWidth: 8, halign: 'center' },
-                1: { cellWidth: 'auto' },
-                2: { cellWidth: 10, halign: 'right' }
+                1: { cellWidth: 'auto' }
             },
             tableWidth: leftColWidth,
             margin: { left: leftColX }

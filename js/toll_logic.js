@@ -19,6 +19,9 @@
  * @returns {Promise<Array>} Lista de pedágios encontrados.
  */
 
+// CONFIGURAÇÃO GLOBAL: Mudar para 'true' em 2026 para ATIVAR todos os pedágios do PR novamente
+const REACTIVATE_ALL_PR_TOLLS = false; // "Master Switch"
+
 // LISTA DE EXCESSÕES: Pedágios conhecidos que devem ser forçados como DESATIVADOS
 const KNOWN_INACTIVE_TOLLS = [
     { name: 'Arapongas', lat: -23.41, lng: -51.46, radius: 5000 }, // Arapongas - BR-369 (aprox)
@@ -26,7 +29,12 @@ const KNOWN_INACTIVE_TOLLS = [
     { name: 'Presidente Castelo Branco', lat: -23.28, lng: -52.14, radius: 5000 },
     { name: 'Cambará', lat: -23.05, lng: -50.05, radius: 5000 },
     { name: 'Jataizinho', lat: -23.25, lng: -50.98, radius: 5000 },
-    { name: 'Sertaneja', lat: -23.04, lng: -50.84, radius: 5000 }
+    { name: 'Sertaneja', lat: -23.04, lng: -50.84, radius: 5000 },
+    // Floresta - PR-317 (Lote 4/5) - Desativado até Q1 2026 - Aumentado raio para 15km
+    { name: 'Floresta', lat: -23.59, lng: -52.08, radius: 15000 },
+    // Outros pedágios da região (Rolândia/Marialva) - Lotes antigos desativados
+    { name: 'Rolândia', lat: -23.31, lng: -51.38, radius: 8000 },
+    { name: 'Marialva', lat: -23.48, lng: -51.79, radius: 8000 }
 ];
 
 async function fetchTollBooths(bounds, routePoints, stops = []) {
@@ -196,13 +204,16 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                     }
                 }
 
-                // CHECK FORCE INACTIVE (Por Lista Conhecida)
-                if (status === 'active') {
+                // CHECK FORCE INACTIVE (Por Lista Conhecida), mas RESPEITANDO O MASTER SWITCH
+                // Se REACTIVATE_ALL_PR_TOLLS for true, ignoramos essa lista e deixamos como 'active'
+                if (status === 'active' && !REACTIVATE_ALL_PR_TOLLS) { // <--- AQUI ESTÁ A CHAVE DE ATIVAÇÃO
                     const isKnownInactive = KNOWN_INACTIVE_TOLLS.some(known => {
-                        // Check Name (fuzzy)
-                        const nameMatch = boothName.toLowerCase().includes(known.name.toLowerCase());
+                        // Check Name (fuzzy) - Now also checking nearestName (Context)
+                        const nameMatch = boothName.toLowerCase().includes(known.name.toLowerCase()) ||
+                            nearestName.toLowerCase().includes(known.name.toLowerCase());
 
                         // Check Distance (if verify coordinates)
+                        // console.log(`🔍 Checking ${boothName} near ${nearestName} against ${known.name}`);
                         let distMatch = false;
                         if (known.lat && known.lng) {
                             const dLat = known.lat - booth.lat;
