@@ -439,6 +439,11 @@ function debouncedSaveState() {
 
 // function changeLoadVehicleType removed (duplicate)
 
+// COLORS for Toll Status
+const TOLL_ACTIVE_COLOR = '#f1c40f'; // Yellow
+const TOLL_INACTIVE_COLOR = '#95a5a6'; // Grey
+const TOLL_BORDER_COLOR = '#000000';
+
 
 
 
@@ -475,9 +480,11 @@ let processedRoutes = new Set();
 let processedRouteContexts = {};
 let specialLoadClipboard = []; // NOVO: Clipboard interno para montagem especial
 let currentRouteInfo = {}; // NOVO: Armazena informaá§áµes da rota atual para compartilhamento
-let origemCoords = null; // NOVO: Variá¡vel para armazenar as coordenadas da origem em cache
+let origemCoords = null; // NOVO: Variável para armazenar as coordenadas da origem em cache
 let manualLoadInProgress = null;
 let selectedMapOrders = new Set(); // NOVO: Rastreia pedidos selecionados no mapa
+let tollMarkers = []; // NOVO: Rastreia marcodres de pedágio no mapa para evitar duplicação
+let routePolyline = null; // NOVO: Global reference for the route line
 
 const defaultConfigs = {
     fiorinoMinCapacity: 300, fiorinoMaxCapacity: 500, fiorinoCubage: 1.5, fiorinoHardMaxCapacity: 560, fiorinoHardCubage: 1.7,
@@ -8617,6 +8624,13 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
         showToast("Rota limitada a 50 pontos devido a restrições da API", "warning");
     }
 
+    // Safety Check: Ensure we have at least 2 points
+    if (valhallaPoints.length < 2) {
+        console.warn("Rota com menos de 2 pontos válidos. Abortando Valhalla.");
+        if (mapStatus) mapStatus.innerHTML = '<span class="text-danger">⚠️ Rota inválida (menos de 2 pontos).</span>';
+        return;
+    }
+
     let valhallaQuery = {
         locations: valhallaPoints,
         costing: "auto",
@@ -8673,12 +8687,21 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                     throw new Error(`Server Error ${resp.status}`);
                 }
 
-                // If client error (400-499, except 429), don't retry
+                // If client error (400-499, except 429), don't retry - BAD REQUEST IS PERMANENT
                 const textErr = await resp.text();
-                throw new Error(`API Error ${resp.status}: ${textErr.substring(0, 100)}...`);
+                // Create error object with specific property to signal "Do Not Retry"
+                const fatalError = new Error(`API Error ${resp.status}: ${textErr.substring(0, 100)}...`);
+                fatalError.shouldRetry = false;
+                throw fatalError;
 
             } catch (err) {
                 lastError = err;
+
+                // Stop retrying if it's a fatal error (400, 401, etc)
+                if (err.shouldRetry === false) {
+                    console.warn("Erro fatal na API (não haverá retry):", err.message);
+                    break;
+                }
 
                 // Handle timeout specifically
                 if (err.name === 'AbortError') {
@@ -8737,7 +8760,99 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                         showToast(`Rota calculada via servidor alternativo (${distKm} km)`, "info");
 
                         // Tenta buscar pedágios na rota OSRM também
-                        checkForTollsOnRoute(coordinates);
+                        // Tenta buscar pedágios na rota OSRM também
+                        // --- VISUALIZAÇÃO DE PEDÁGIOS (Recycled Logic) ---
+                        if (typeof fetchTollBooths === 'function') {
+                            // LOCK: Remove lista anterior se existir
+                            document.querySelectorAll('#route-tolls-section').forEach(el => el.remove());
+
+                            // LOCK: Remove marcadores anteriores
+                            if (window.tollMarkers && Array.isArray(window.tollMarkers)) {
+                                window.tollMarkers.forEach(marker => {
+                                    if (mapInstance && mapInstance.hasLayer(marker)) {
+                                        mapInstance.removeLayer(marker);
+                                    }
+                                });
+                                window.tollMarkers = [];
+                            } else {
+                                window.tollMarkers = [];
+                            }
+
+                            showToast("Identificando praças de pedágio (OSRM)...", "info");
+
+                            // Converte para formato esperado
+                            const routePointsObj = coordinates.map(pt => ({ lat: pt[0], lng: pt[1] }));
+                            const mapBounds = mapInstance.getBounds();
+
+                            fetchTollBooths(mapBounds, routePointsObj, locations).then(booths => {
+                                if (booths.length > 0) {
+                                    showToast(`${booths.length} pedágios identificados.`, 'success');
+
+                                    // 1. Marcadores
+                                    booths.forEach(b => {
+                                        if (!mapInstance) return;
+
+                                        const isInactive = b.status === 'inactive';
+                                        const color = isInactive ? TOLL_INACTIVE_COLOR : TOLL_ACTIVE_COLOR;
+                                        const borderColor = isInactive ? '#7f8c8d' : TOLL_BORDER_COLOR;
+                                        const badgeClass = isInactive ? 'bg-secondary' : 'bg-warning text-dark';
+                                        const badgeText = isInactive ? 'Pedágio Desativado' : 'Pedágio Detectado';
+
+                                        const tollIcon = L.divIcon({
+                                            className: 'toll-marker',
+                                            html: `<div style="background-color: ${color}; border: 2px solid ${borderColor}; color: black; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5); cursor: pointer;" title="${b.name} - ${b.context}"><i class="bi bi-cash-coin" style="font-size: 14px;"></i></div>`,
+                                            iconSize: [24, 24],
+                                            iconAnchor: [12, 12]
+                                        });
+
+                                        try {
+                                            const marker = L.marker([b.lat, b.lng], { icon: tollIcon })
+                                                .addTo(mapInstance)
+                                                .bindPopup(`<b>${b.name}</b><br><small>${b.context}</small><br><span class="badge ${badgeClass} mt-1">${badgeText}</span>`);
+
+                                            window.tollMarkers.push(marker);
+                                        } catch (e) { console.warn(e); }
+                                    });
+
+                                    // 2. Lista Sidebar
+                                    const stopsList = document.getElementById('route-stops-list');
+                                    const tollsHtml = `
+                                        <div id="route-tolls-section" class="border-top border-secondary bg-dark p-2">
+                                            <div class="d-flex justify-content-between align-items-center mb-2" data-bs-toggle="collapse" data-bs-target="#tollsListCollapse" style="cursor: pointer;">
+                                                <h6 class="mb-0 text-warning"><i class="bi bi-cash-coin me-2"></i>Pedágios (${booths.length})</h6>
+                                                <div class="d-flex gap-2">
+                                                    <button class="btn btn-xs btn-outline-light" onclick="imprimirRelatorioPedagios()" title="Imprimir Relatório (com Mapa)"><i class="bi bi-printer"></i></button>
+                                                    <button class="btn btn-xs btn-outline-warning" onclick="generateTextPDF()" title="Baixar Relatório em PDF (Sem Mapa)"><i class="bi bi-file-earmark-pdf-fill"></i> PDF</button>
+                                                    <i class="bi bi-chevron-down text-secondary"></i>
+                                                </div>
+                                            </div>
+                                            <div class="collapse show" id="tollsListCollapse">
+                                                <div class="list-group list-group-flush small" style="max-height: 150px; overflow-y: auto;">
+                                                    ${booths.map((b, i) => {
+                                        const isInactive = b.status === 'inactive';
+                                        const itemColor = isInactive ? 'text-muted' : 'text-white';
+                                        return `
+                                                        <div class="list-group-item bg-dark text-white-50 border-secondary py-1 px-2 d-flex flex-column">
+                                                            <div class="d-flex justify-content-between">
+                                                                <span class="${itemColor}">${i + 1}. ${b.name}</span>
+                                                                <a href="#" onclick="mapInstance.setView([${b.lat}, ${b.lng}], 15); return false;" class="text-info"><i class="bi bi-crosshair"></i></a>
+                                                            </div>
+                                                            <div class="d-flex align-items-center text-muted" style="font-size: 11px;">
+                                                                <i class="bi bi-pin-map-fill me-1"></i>${b.context}
+                                                            </div>
+                                                        </div>
+                                                    `}).join('')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                    stopsList.insertAdjacentHTML('afterend', tollsHtml);
+                                    window.currentTollBooths = booths;
+                                } else {
+                                    window.currentTollBooths = [];
+                                }
+                            });
+                        }
 
                         return; // Sucesso com OSRM!
                     }
@@ -8820,7 +8935,11 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
             data.trip.legs.forEach(leg => {
                 allPoints.push(...decodePolyline(leg.shape, 6));
             });
-            const polyline = L.polyline(allPoints, {
+
+            // Clear previous route
+            if (routePolyline) mapInstance.removeLayer(routePolyline);
+
+            routePolyline = L.polyline(allPoints, {
                 color: isManual ? '#f59e0b' : '#3b82f6', // Amber or Royal Blue
                 weight: 6,
                 opacity: 0.8,
@@ -8855,9 +8974,20 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
             // --- VISUALIZAÇÃO DE PEDÁGIOS (Overpass API) ---
             // Verifica se a função existe (carregada do toll_logic.js) e se a rota diz ter pedágio
             if (typeof fetchTollBooths === 'function') {
-                // Remove lista anterior se existir
-                const oldTolls = document.getElementById('route-tolls-section');
-                if (oldTolls) oldTolls.remove();
+                // LOCK: Remove lista anterior se existir (Limpa duplicatas do DOM)
+                document.querySelectorAll('#route-tolls-section').forEach(el => el.remove());
+
+                // LOCK: Remove marcadores anteriores do mapa
+                if (window.tollMarkers && Array.isArray(window.tollMarkers)) {
+                    window.tollMarkers.forEach(marker => {
+                        if (mapInstance && mapInstance.hasLayer(marker)) {
+                            mapInstance.removeLayer(marker);
+                        }
+                    });
+                    window.tollMarkers = []; // Reset array
+                } else {
+                    window.tollMarkers = []; // Initialize if undefined
+                }
 
                 if (data.trip.summary.has_toll) {
                     showToast("Identificando praças de pedágio...", "info");
@@ -8874,17 +9004,27 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                             booths.forEach(b => {
                                 if (!mapInstance) return; // Segurança contra fechamento rápido
 
+                                const isInactive = b.status === 'inactive';
+                                const color = isInactive ? TOLL_INACTIVE_COLOR : TOLL_ACTIVE_COLOR;
+                                const borderColor = isInactive ? '#7f8c8d' : TOLL_BORDER_COLOR;
+                                const badgeClass = isInactive ? 'bg-secondary' : 'bg-warning text-dark';
+                                const badgeText = isInactive ? 'Pedágio Desativado' : 'Pedágio Detectado';
+
                                 const tollIcon = L.divIcon({
                                     className: 'toll-marker',
-                                    html: `<div style="background-color: #f1c40f; border: 2px solid #000; color: black; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5); cursor: pointer;" title="${b.name} - ${b.context}"><i class="bi bi-cash-coin" style="font-size: 14px;"></i></div>`,
+                                    html: `<div style="background-color: ${color}; border: 2px solid ${borderColor}; color: black; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.5); cursor: pointer;" title="${b.name} - ${b.context}"><i class="bi bi-cash-coin" style="font-size: 14px;"></i></div>`,
                                     iconSize: [24, 24],
                                     iconAnchor: [12, 12]
                                 });
 
                                 try {
-                                    L.marker([b.lat, b.lng], { icon: tollIcon })
+                                    const marker = L.marker([b.lat, b.lng], { icon: tollIcon })
                                         .addTo(mapInstance)
-                                        .bindPopup(`<b>${b.name}</b><br><small>${b.context}</small><br><span class="badge bg-warning text-dark mt-1">Pedágio Detectado</span>`);
+                                        .bindPopup(`<b>${b.name}</b><br><small>${b.context}</small><br><span class="badge ${badgeClass} mt-1">${badgeText}</span>`);
+
+                                    // Adiciona ao tracker global
+                                    window.tollMarkers.push(marker);
+
                                 } catch (e) {
                                     console.warn("Erro ao adicionar marcador de pedágio (mapa pode ter fechado):", e);
                                 }
@@ -8905,17 +9045,21 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                                     </div>
                                     <div class="collapse show" id="tollsListCollapse">
                                         <div class="list-group list-group-flush small" style="max-height: 150px; overflow-y: auto;">
-                                            ${booths.map((b, i) => `
+                                            ${booths.map((b, i) => {
+                                const isInactive = b.status === 'inactive';
+                                const itemColor = isInactive ? 'text-muted' : 'text-white';
+
+                                return `
                                                 <div class="list-group-item bg-dark text-white-50 border-secondary py-1 px-2 d-flex flex-column">
                                                     <div class="d-flex justify-content-between">
-                                                        <span class="text-white">${i + 1}. ${b.name}</span>
+                                                        <span class="${itemColor}">${i + 1}. ${b.name}</span>
                                                         <a href="#" onclick="mapInstance.setView([${b.lat}, ${b.lng}], 15); return false;" class="text-info"><i class="bi bi-crosshair"></i></a>
                                                     </div>
                                                     <div class="d-flex align-items-center text-muted" style="font-size: 11px;">
                                                         <i class="bi bi-pin-map-fill me-1"></i>${b.context}
                                                     </div>
                                                 </div>
-                                            `).join('')}
+                                            `}).join('')}
                                         </div>
 
                                     </div>

@@ -18,6 +18,17 @@
  * @param {Array<Object>} stops - Lista de paradas (locations) com coordenadas e nomes.
  * @returns {Promise<Array>} Lista de pedágios encontrados.
  */
+
+// LISTA DE EXCESSÕES: Pedágios conhecidos que devem ser forçados como DESATIVADOS
+const KNOWN_INACTIVE_TOLLS = [
+    { name: 'Arapongas', lat: -23.41, lng: -51.46, radius: 5000 }, // Arapongas - BR-369 (aprox)
+    { name: 'Mandaguari', lat: -23.50, lng: -51.68, radius: 5000 }, // Mandaguari
+    { name: 'Presidente Castelo Branco', lat: -23.28, lng: -52.14, radius: 5000 },
+    { name: 'Cambará', lat: -23.05, lng: -50.05, radius: 5000 },
+    { name: 'Jataizinho', lat: -23.25, lng: -50.98, radius: 5000 },
+    { name: 'Sertaneja', lat: -23.04, lng: -50.84, radius: 5000 }
+];
+
 async function fetchTollBooths(bounds, routePoints, stops = []) {
     // 1. Constrói query Overpass
     const s = bounds.getSouth();
@@ -25,15 +36,18 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
     const n = bounds.getNorth();
     const e = bounds.getEast();
 
-    // Query otimizada: busca no bbox com timeout maior (45s)
+    // Query otimizada: busca no bbox com timeout maior (90s)
     // node["place"~"city|town"] busca cidades e vilas importantes
+    // Adicionado: highway=toll_gantry e man_made=toll_gantry para pegar Free Flow e pórticos
     const query = `
-        [out:json][timeout:45];
+        [out:json][timeout:90];
         (
             node["barrier"="toll_booth"](${s},${w},${n},${e});
+            node["highway"="toll_gantry"](${s},${w},${n},${e});
+            node["man_made"="toll_gantry"](${s},${w},${n},${e});
             node["place"~"city|town"](${s},${w},${n},${e});
         );
-        out;
+        out body;
     `;
 
     // Lista de servidores Overpass para fallback (Redundância em caso de falha/timeout)
@@ -107,8 +121,8 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                             type: 'city'
                         });
                     }
-                } else if (node.tags.barrier === 'toll_booth') {
-                    // É um pedágio
+                } else if (node.tags.barrier === 'toll_booth' || node.tags.highway === 'toll_gantry' || node.tags.man_made === 'toll_gantry') {
+                    // É um pedágio (Cabine ou Pórtico)
                     // Raio curto (200m)
                     if (isCloseToPolyline(nodeLat, nodeLon, routePoints, 200)) {
                         booths.push({
@@ -165,6 +179,49 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                 let boothName = booth.tags.name || booth.tags.operator || `Pedágio`;
                 if (booth.tags.ref) boothName += ` (${booth.tags.ref})`;
 
+                // VERIFICAÇÃO DE STATUS (Ativo/Inativo)
+                let status = 'active';
+                const tags = booth.tags;
+                if (
+                    tags.fee === 'no' ||
+                    tags.access === 'no' ||
+                    tags.disused === 'yes' ||
+                    tags.abandoned === 'yes' ||
+                    tags.operational_status === 'closed' ||
+                    tags.barrier === 'disused_toll_booth'
+                ) {
+                    status = 'inactive';
+                    if (!boothName.toUpperCase().includes('DESATIVADO')) {
+                        boothName += ' (DESATIVADO)';
+                    }
+                }
+
+                // CHECK FORCE INACTIVE (Por Lista Conhecida)
+                if (status === 'active') {
+                    const isKnownInactive = KNOWN_INACTIVE_TOLLS.some(known => {
+                        // Check Name (fuzzy)
+                        const nameMatch = boothName.toLowerCase().includes(known.name.toLowerCase());
+
+                        // Check Distance (if verify coordinates)
+                        let distMatch = false;
+                        if (known.lat && known.lng) {
+                            const dLat = known.lat - booth.lat;
+                            const dLng = known.lng - booth.lng;
+                            const dist = Math.sqrt(dLat * dLat + dLng * dLng) * 111000; // metros
+                            if (dist < known.radius) distMatch = true;
+                        }
+
+                        return nameMatch || distMatch;
+                    });
+
+                    if (isKnownInactive) {
+                        status = 'inactive';
+                        if (!boothName.toUpperCase().includes('DESATIVADO')) {
+                            boothName += ' (DESATIVADO - VIAPAR/ECONORTE)';
+                        }
+                    }
+                }
+
                 return {
                     lat: booth.lat,
                     lng: booth.lng,
@@ -172,7 +229,8 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                     name: boothName,
                     context: `Próximo a ${nearestName}`,
                     full_tags: booth.tags,
-                    routeIndex: closestRouteIndex
+                    routeIndex: closestRouteIndex,
+                    status: status // NOVO CAMPO
                 };
             });
 
@@ -181,6 +239,16 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
 
             // ORDENAR POR PROXIMIDADE NA ROTA
             uniqueBooths.sort((a, b) => a.routeIndex - b.routeIndex);
+
+            // DEBUG LOGGING
+            console.groupCollapsed("🔍 Pedágios Identificados (Debug)");
+            console.table(uniqueBooths.map(b => ({
+                Nome: b.name,
+                Status: b.status,
+                Contexto: b.context,
+                Tags: JSON.stringify(b.full_tags)
+            })));
+            console.groupEnd();
 
             return uniqueBooths;
         }
