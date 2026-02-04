@@ -233,6 +233,35 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                     }
                 }
 
+                // --- NOVO: Extração de Metadados (Ref, Estado, Direção) ---
+                const ref = tags.ref || ''; // Ex: "KM 123" ou "SP-300"
+                const state = tags['addr:state'] || (tags['is_in:state_code'] || ''); // Tenta pegar UF
+
+                // Cálculo de Direção (Azimute) baseada na rota
+                let bearing = 0;
+                let directionCard = 'N'; // Norte por padrão
+
+                if (closestRouteIndex >= 0 && routePoints.length > 1) {
+                    // Pega o ponto atual e o próximo (ou anterior se for o último) para determinar o vetor
+                    const p1 = routePoints[closestRouteIndex];
+                    const p2 = (closestRouteIndex < routePoints.length - 1)
+                        ? routePoints[closestRouteIndex + 1]
+                        : routePoints[closestRouteIndex - 1]; // Fallback se for o último ponto
+
+                    // Se for o último ponto, o vetor é invertido (p2 -> p1), então ajustamos a lógica ou aceitamos
+                    // Melhor pegar sempre p1 -> p2 (indol), então se estamos no ultimo, usamos pPrev -> pLast
+
+                    if (closestRouteIndex < routePoints.length - 1) {
+                        bearing = getBearing(p1.lat, p1.lng, p2.lat, p2.lng);
+                    } else {
+                        // Se for o último, usamos o bearing do segmento anterior mantendo a "chegada"
+                        const pPrev = routePoints[closestRouteIndex - 1];
+                        bearing = getBearing(pPrev.lat, pPrev.lng, p1.lat, p1.lng);
+                    }
+
+                    directionCard = getCardinalDirection(bearing);
+                }
+
                 return {
                     lat: booth.lat,
                     lng: booth.lng,
@@ -241,7 +270,13 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                     context: `Próximo a ${nearestName}`,
                     full_tags: booth.tags,
                     routeIndex: closestRouteIndex,
-                    status: status // NOVO CAMPO
+                    status: status, // NOVO CAMPO
+
+                    // Novos Campos Enriquecidos
+                    ref: ref,
+                    state: state,
+                    heading: bearing,
+                    direction: directionCard // N, NE, E, SE, S, SW, W, NW
                 };
             });
 
@@ -361,4 +396,37 @@ function copyTollReport() {
         console.error("Erro ao copiar: ", err);
         showToast("Erro ao copiar relatório.", "error");
     });
+}
+
+
+// --- FUNÇÕES AUXILIARES DE DIREÇÃO ---
+
+function toRad(deg) {
+    return deg * Math.PI / 180;
+}
+
+function toDeg(rad) {
+    return rad * 180 / Math.PI;
+}
+
+/**
+ * Calcula o azimute (bearing) entre dois pontos.
+ * Retorna graus (0-360).
+ */
+function getBearing(lat1, lon1, lat2, lon2) {
+    const dLon = toRad(lon2 - lon1);
+    const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+    const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+        Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+    let brng = toDeg(Math.atan2(y, x));
+    return (brng + 360) % 360;
+}
+
+/**
+ * Converte graus (0-360) em direção cardeal (N, NE, E, etc).
+ */
+function getCardinalDirection(angle) {
+    const directions = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO']; // L=Leste, O=Oeste
+    const index = Math.round(((angle %= 360) < 0 ? angle + 360 : angle) / 45) % 8;
+    return directions[index];
 }

@@ -9760,26 +9760,131 @@ window.generateTextPDF = async function () {
 
             cursorY += 4;
 
-            const tollData = window.currentTollBooths.map((b, i) => [
-                (i + 1).toString(),
-                b.name,
-                b.context || '-'
-            ]);
+            // --- ESTILO PERSONALIZADO SIMULANDO A IMAGEM DE REFERÊNCIA ---
 
-            doc.autoTable({
-                startY: cursorY,
-                head: [['#', 'Praça de Pedágio', 'Referência / Localização']],
-                body: tollData,
-                theme: 'striped',
-                styles: { fontSize: 8, cellPadding: 2 },
-                headStyles: { fillColor: [80, 80, 80] },
-                columnStyles: {
-                    0: { cellWidth: 10, halign: 'center' },
-                    1: { cellWidth: 50 },
-                    2: { cellWidth: 'auto' }
-                },
-                margin: { left: margin, right: margin },
-                tableWidth: 'auto' // Full width
+            const itemHeight = 14;
+            const itemGap = 3;
+            const cardWidth = pageWidth - (margin * 2);
+
+            window.currentTollBooths.forEach((b, i) => {
+                // Quebra de página se necessário
+                if (cursorY + itemHeight > pageHeight - margin) {
+                    doc.addPage();
+                    cursorY = margin + 10; // Margem superior na nova página
+
+                    // Repete título na nova página (opcional, mas bom para UX)
+                    doc.setFontSize(11);
+                    doc.setFont("helvetica", "bold");
+                    doc.setTextColor(33);
+                    doc.text("3. CUSTOS DE PEDÁGIO (Cont.)", margin, cursorY - 5);
+                }
+
+                const y = cursorY;
+                const x = margin;
+
+                // 1. Container do Card (Borda Cinza Clara)
+                doc.setDrawColor(220, 220, 220); // Border color
+                doc.setLineWidth(0.1);
+                doc.setFillColor(255, 255, 255); // White background
+                doc.roundedRect(x, y, cardWidth, itemHeight, 1, 1, 'FD');
+
+                // 2. Ícone "Remover" (Círculo Vermelho com X) - Simulado
+                const iconY = y + (itemHeight / 2);
+                const removeIconX = x + 8;
+
+                // Círculo Vermelho Outline
+                doc.setDrawColor(220, 53, 69); // Danger Red
+                doc.setLineWidth(0.3);
+                doc.circle(removeIconX, iconY, 3, 'S'); // Stroke only
+
+                // O "X" vermelho no meio
+                doc.setTextColor(220, 53, 69);
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "bold");
+                const xText = "×";
+                // Ajuste fino para centralizar o X
+                doc.text(xText, removeIconX - 1.2, iconY + 1.2);
+
+
+                // 3. Ícone "Direção" (Quadrado Verde com Texto da Direção)
+                const statusIconX = removeIconX + 10;
+                doc.setFillColor(25, 135, 84); // Success Green
+                doc.setDrawColor(25, 135, 84);
+                doc.roundedRect(statusIconX - 3, iconY - 3, 6, 6, 1, 1, 'F');
+
+                // Texto da Direção (N, S, L, O) centralizado no quadrado
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(6); // Fonte pequena para caber
+                doc.setFont("helvetica", "bold");
+                const dirText = b.direction || 'N'; // Fallback
+                doc.text(dirText, statusIconX, iconY + 1.2, { align: 'center' });
+
+
+                // 4. Texto do Pedágio Completo
+                const textX = statusIconX + 6; // Pouco mais de espaço
+                doc.setTextColor(60, 60, 60);
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+
+                // Formata o texto para parecer com o da imagem: "ID - Nome, Contexto"
+                // Tenta inferir o UF do contexto se não vier na tag
+                let uf = b.state || '';
+                if (!uf && b.context) {
+                    // Tenta extrair UF do contexto (ex: "Próximo a Londrina") -> Difícil sem mapa, mas "Londrina" é PR.
+                    // Vamos tentar checar se o nome tem UF (ex: "PR-444")
+                    if (b.name.includes('/PR') || b.context.includes('Paraná') || b.context.includes('PR')) uf = 'PR';
+                    else if (b.name.includes('/SP') || b.context.includes('São Paulo') || b.context.includes('SP')) uf = 'SP';
+                }
+
+                // Formatação: "1072 - PR-323 - SERTANEJA (N)"
+                const fakeId = 1000 + i + 1;
+                let displayName = b.name.toUpperCase();
+
+                // Limpeza do nome para não ficar gigante
+                displayName = displayName.replace('PEDÁGIO', '').replace('PRACA DE', '').replace('PÓRTICO', '').trim();
+
+                // Monta string final
+                // Ex: "1001 - KM 10 - ARAPONGAS/PR - N"
+                let metaInfo = [];
+                if (b.ref) metaInfo.push(b.ref);
+                if (uf) metaInfo.push(uf);
+
+                // Mapeia direção simples para nome completo se quiser (mas a letra já está no ícone)
+                // Vamos colocar: ID - REF - NOME - CONTEXTO
+                const textContent = `${fakeId} - ${b.ref ? b.ref + ' - ' : ''}${displayName} ${uf ? '(' + uf + ')' : ''} - ${b.context}`;
+
+                doc.text(textContent, textX, iconY + 1.5);
+
+
+                // 5. Ícones "Reordenar" (Setas Direita) - Simulado
+                // A imagem tem duas bolinhas com setas na direita
+                const rightControlsX = x + cardWidth - 15;
+
+                // Botão Cima
+                doc.setDrawColor(150, 150, 150);
+                doc.setLineWidth(0.1);
+                doc.circle(rightControlsX, iconY, 3, 'S');
+
+                // Seta Baixo (Simples 'v') - cinza
+                doc.setDrawColor(100, 100, 100);
+                doc.setLineWidth(0.3);
+                doc.line(rightControlsX - 1, iconY - 0.5, rightControlsX, iconY + 0.8);
+                doc.line(rightControlsX + 1, iconY - 0.5, rightControlsX, iconY + 0.8);
+
+                // Botão Baixo (ao lado? ou empilhado? A imagem mostra lado a lado)
+                const rightControlsX2 = rightControlsX + 8;
+                doc.setDrawColor(150, 150, 150);
+                doc.setLineWidth(0.1);
+                doc.circle(rightControlsX2, iconY, 3, 'S');
+
+                // Seta Cima (Simples '^')
+                doc.setDrawColor(100, 100, 100);
+                doc.line(rightControlsX2 - 1, iconY + 0.5, rightControlsX2, iconY - 0.8);
+                doc.line(rightControlsX2 + 1, iconY + 0.5, rightControlsX2, iconY - 0.8);
+
+
+                // Avança cursor
+                cursorY += (itemHeight + itemGap);
             });
         }
 
