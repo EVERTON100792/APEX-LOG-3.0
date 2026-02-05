@@ -3275,3 +3275,43 @@
                 font-size: 8pt !important;
             }
         }
+
+        /* --- PRINT LAYOUT OPTIMIZATIONS (MULTI-COLUMN) --- */
+        @media print {
+            .print-tolls-columns {
+                column-count: 3;
+                column-gap: 15px;
+                width: 100%;
+            }
+            
+            .print-tolls-columns .toll-item {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 8pt;
+                padding: 3px 0;
+                border-bottom: 1px dotted #ccc;
+                line-height: 1.1;
+            }
+            
+            .print-tolls-columns .toll-item strong {
+                font-weight: 700;
+                margin-right: 5px;
+            }
+
+            .print-tolls-columns .toll-item span {
+                color: #555;
+                font-size: 7.5pt;
+            }
+
+            /* Ensure Map + Cities row stays side-by-side */
+            #print-roadmap-info .row {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+            }
+
+            /* Map height adjustment if needed, but keeping user preference */
+            /* #map-container { height: 350px !important; } */ 
+        }

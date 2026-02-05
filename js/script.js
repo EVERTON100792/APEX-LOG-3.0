@@ -2613,8 +2613,10 @@ function displayGerais(div, grupos) {
             const veiculoNome = veiculo.replace('tresQuartos', '3/4').replace(/^\w/, c => c.toUpperCase());
             rotaDisplay = `Rota: ${rota} (${veiculoNome})`;
         }
-        // CORREá‡áƒO: O ID do collapse agora usa a rota, que á© um identificador está¡vel.
-        const collapseId = `collapseGeral-${rota}`;
+        // CORREÇÃO: O ID do collapse agora usa a rota, que é um identificador estável.
+        // Sanitiza o ID da rota para garantir que seja um seletor válido (remove espaços e caracteres especiais)
+        const safeRotaId = String(rota).replace(/[^a-zA-Z0-9]/g, '-');
+        const collapseId = `collapseGeral-${safeRotaId}`;
         accordionHtml += `<div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed ${veiculoClass}" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}"><strong>${rotaDisplay}</strong> &nbsp; <span class="badge bg-secondary ms-2"><i class="bi bi-box me-1"></i>${grupo.pedidos.length}</span> <span class="badge bg-light text-dark ms-2"><i class="bi bi-database me-1"></i>${totalKgFormatado} kg</span></button></h2>
                                   <div id="${collapseId}" class="accordion-collapse collapse" data-bs-parent="#accordionGeral">
                                     <div class="accordion-body">${createTable(grupo.pedidos, null, 'geral')}</div></div></div>`;
@@ -9460,27 +9462,22 @@ window.imprimirRelatorioPedagios = async function () {
     // Precisamos de uma cópia dos pedágios e paradas
     let tollsListHTML = '';
     if (window.currentTollBooths && window.currentTollBooths.length > 0) {
-        tollsListHTML = `
-            <table class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">#</th>
-                        <th>Praça de Pedágio</th>
-                        <th>Referência / Localização</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${window.currentTollBooths.map((b, i) => `
-                        <tr>
-                            <td>${i + 1}</td>
-                            <td><strong>${b.name}</strong></td>
-                            <td>${b.context}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>`;
+        // VERSÃO COLUNADA (3 Colunas)
+        tollsListHTML = `<div class="print-tolls-columns">`;
+        window.currentTollBooths.forEach((b, i) => {
+            // Simplifica o nome para caber melhor
+            let simpleName = b.name.replace('Pedágio', '').trim();
+            if (simpleName.length > 25) simpleName = simpleName.substring(0, 25) + '...';
+
+            tollsListHTML += `
+                <div class="toll-item">
+                    <div><strong>${i + 1}.</strong> ${simpleName}</div>
+                    <span>${b.state || ''}</span>
+                </div>`;
+        });
+        tollsListHTML += `</div>`;
     } else {
-        tollsListHTML = '<p>Nenhum pedágio identificado nesta rota.</p>';
+        tollsListHTML = '<p class="small text-muted">Nenhum pedágio identificado nesta rota.</p>';
     }
 
     let stopsListHTML = `
@@ -9530,14 +9527,19 @@ window.imprimirRelatorioPedagios = async function () {
         </div>
         
         <div class="row">
-            <div class="col-7 pe-1">
-                <h6 class="fw-bold border-bottom pb-1 mb-1">1. PEDÁGIOS</h6>
-                ${tollsListHTML.replace('table-striped table-bordered', 'table-sm table-bordered mb-0')}
+            <!-- COLUNA DA ESQUERDA: ENTREGAS (MANTENDO ESTRUTURA ORIGINAL LADO A LADO COM O MAPA SE POSSÍVEL, MAS AQUI É RESUMO) -->
+            <!-- O usuário pediu para manter Mapa e Cidades lado a lado. Aqui estamos gerando o rodapé abaixo do mapa. -->
+            <!-- Vamos colocar as Cidades aqui se elas não estiverem visíveis junto com o mapa no print padrão -->
+            
+            <div class="col-12">
+                 <h6 class="fw-bold border-bottom pb-1 mb-1 bg-light">ITINERÁRIO  &nbsp;<span class="small fw-normal">(${currentRouteLocations.length} pontos)</span></h6>
+                 ${stopsListHTML.replace('table-sm', 'table-sm table-bordered mb-0 table-striped')}
             </div>
-            <div class="col-5 ps-1">
-                <h6 class="fw-bold border-bottom pb-1 mb-1">2. ENTREGAS</h6>
-                ${stopsListHTML.replace('table-sm', 'table-sm table-bordered mb-0')}
-            </div>
+        </div>
+
+        <div class="mt-2">
+            <h6 class="fw-bold border-bottom pb-1 mb-1 bg-light">RELAÇÃO DE PEDÁGIOS &nbsp;<span class="small fw-normal">(${window.currentTollBooths ? window.currentTollBooths.length : 0} praças)</span></h6>
+            ${tollsListHTML}
         </div>
         
         <div class="text-end mt-1 text-muted" style="font-size: 8px;">
