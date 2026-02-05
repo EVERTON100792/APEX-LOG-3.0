@@ -3905,7 +3905,8 @@ function handlePostProcessingUI(sobras, rotasProcessadas, tituloRota, divId) {
         // NOVO: Acumula as sobras de SP e habilita o botá£o de exportaá§á£o
         if (isSaoPauloRoute) {
             allSaoPauloLeftovers.push(...allSobrasPedidos);
-            document.getElementById('export-sobras-sp-btn').disabled = false;
+            const exportBtn = document.getElementById('export-sobras-sp-btn');
+            if (exportBtn) exportBtn.disabled = false;
         }
         const finalLeftoverKg = allSobrasPedidos.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
         const printButtonHtml = `<button class="btn btn-info ms-2 no-print" onclick="imprimirSobras('Sobras Finais de ${tituloRota}')"><i class="bi bi-printer-fill me-1"></i>Imprimir Sobras</button>`;
