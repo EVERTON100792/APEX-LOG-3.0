@@ -47,7 +47,7 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
     // Query otimizada: substitui regex lento (~"city|town") por união direta
     // Isso reduz drasticamente a carga no servidor Overpass
     const query = `
-        [out:json][timeout:90];
+        [out:json][timeout:120];
         (
             node["barrier"="toll_booth"](${s},${w},${n},${e});
             node["highway"="toll_gantry"](${s},${w},${n},${e});
@@ -61,9 +61,9 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
     // Lista de servidores Overpass para fallback (Redundância Segura)
     // LZ4 promovido a primário por ser geralmente mais rápido para leitura
     const servers = [
-        "https://lz4.overpass-api.de/api/interpreter",
         "https://overpass-api.de/api/interpreter",
-        "https://overpass.kumi.systems/api/interpreter"
+        "https://overpass.kumi.systems/api/interpreter",
+        "https://lz4.overpass-api.de/api/interpreter"
     ];
 
     let data = null;
@@ -77,7 +77,7 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
 
             // Controller para abortar fetch se demorar muito (client-side timeout de 50s)
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s limite rigoroso
+            const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s (2 min) para evitar cortes prematuros
 
             const response = await fetch(url, { signal: controller.signal });
             clearTimeout(timeoutId);
