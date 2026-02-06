@@ -4553,6 +4553,7 @@ var cityCoordsCache = JSON.parse(localStorage.getItem('cityCoordsCache')) || {};
 let mapInstance = null;
 
 async function showRouteOnMap(loadId) {
+    if (window.toggleEpicLoading) window.toggleEpicLoading(true, "Roteirizando Carga...");
     const mapModalEl = document.getElementById('mapModal');
     const mapModal = bootstrap.Modal.getOrCreateInstance(mapModalEl);
     const mapContainer = document.getElementById('map-container'); // Container do mapa dentro do modal
@@ -4655,38 +4656,7 @@ async function showRouteOnMap(loadId) {
         }
     }, { once: true }); // Executa apenas uma vez por abertura
 
-    // --- HOLOGRAPHIC LOADING OVERLAY ---
-    const showLoadingOverlay = () => {
-        const overlayHtml = `
-            <div id="map-loading-overlay">
-                <div class="scanner-container">
-                    <div class="scanner-ring"></div>
-                    <div class="scanner-core"></div>
-                </div>
-                <div class="loading-text-container">
-                    <div class="loading-text-glitch" data-text="ROTEIRIZANDO...">ROTEIRIZANDO...</div>
-                    <div class="loading-subtext" id="map-loading-subtext">Calculando melhor trajeto e paradas</div>
-                </div>
-            </div>
-        `;
-        mapContainer.insertAdjacentHTML('beforeend', overlayHtml);
-    };
 
-    const updateOverlayStatus = (text) => {
-        const subtext = document.getElementById('map-loading-subtext');
-        if (subtext) subtext.textContent = text;
-    };
-
-    const removeOverlay = () => {
-        const overlay = document.getElementById('map-loading-overlay');
-        if (overlay) {
-            overlay.classList.add('fade-out');
-            setTimeout(() => overlay.remove(), 300);
-        }
-    };
-
-    showLoadingOverlay();
-    // -----------------------------------
 
     // Valhalla/Nominatim não usam chaves de API obrigatórias do GraphHopper
     const apiKey = document.getElementById('graphhopperApiKey')?.value || "";
@@ -4848,7 +4818,7 @@ async function showRouteOnMap(loadId) {
         console.error("Erro geral no mapa:", e);
         mapStatus.innerHTML = `<span class="text-danger">Erro: ${e.message}</span>`;
     } finally {
-        removeOverlay();
+        if (window.toggleEpicLoading) window.toggleEpicLoading(false);
     }
 }
 
@@ -9056,14 +9026,38 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                                 const isInactive = b.status === 'inactive';
                                 const itemColor = isInactive ? 'text-muted' : 'text-white';
 
+                                // Lógica de Ícones V8 (Sequencial: Cada item tem sua direção)
+                                // Lógica de Ícones V8 (Sequencial: Ajustada para Rota East/West)
+                                // Green=Up/N/E/SE, Red=Down/S/W/NW
+                                // Ajuste: 315 (NW) deve ser RED (Volta). Então range Green diminui.
+                                // Novo Range Green: 330 a 150. (Inclui 0/N, 90/L, 135/SE). Exclui 315/NO.
+                                const h = b.heading || 0;
+                                const isUp = (h >= 330 || h < 150);
+                                const dirIcon = isUp
+                                    ? '<i class="bi bi-arrow-up-circle-fill text-success" title="Direção: Ida"></i>'
+                                    : '<i class="bi bi-arrow-down-circle-fill text-danger" title="Direção: Volta"></i>';
+
+                                // Formato: ID - REF/UF, DIR, CIDADE
+                                const formatId = String(i + 1).padStart(2, '0');
+                                const refPart = b.ref ? `${b.ref}` : 'RODOVIA';
+                                const statePart = b.state ? `/${b.state}` : '';
+                                const dirPart = b.directionFull ? `, ${b.directionFull.toUpperCase()}` : '';
+                                const cityPart = b.cleanedName ? `, ${b.cleanedName.toUpperCase()}` : '';
+
+                                const fullText = `${refPart}${statePart}${dirPart}${cityPart}`;
+
                                 return `
-                                                <div class="list-group-item bg-dark text-white-50 border-secondary py-1 px-2 d-flex flex-column">
-                                                    <div class="d-flex justify-content-between">
-                                                        <span class="${itemColor}">${i + 1}. ${b.name}</span>
+                                                <div class="list-group-item bg-dark text-white-50 border-secondary py-2 px-2 d-flex flex-column">
+                                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                                        <div class="d-flex align-items-center">
+                                                            <span class="fw-bold me-2 ${itemColor}" style="font-size: 1.1em;">${formatId}</span>
+                                                            <div class="me-2">${dirIcon}</div>
+                                                            <span class="${itemColor} fw-bold text-uppercase" style="font-size: 0.85em; letter-spacing: 0.5px;">${fullText}</span>
+                                                        </div>
                                                         <a href="#" onclick="mapInstance.setView([${b.lat}, ${b.lng}], 15); return false;" class="text-info"><i class="bi bi-crosshair"></i></a>
                                                     </div>
-                                                    <div class="d-flex align-items-center text-muted" style="font-size: 11px;">
-                                                        <i class="bi bi-pin-map-fill me-1"></i>${b.context}
+                                                    <div class="d-flex align-items-center text-muted ms-4" style="font-size: 10px;">
+                                                        <i class="bi bi-geo-alt me-1"></i>${b.name}
                                                     </div>
                                                 </div>
                                             `}).join('')}
@@ -9466,14 +9460,28 @@ window.imprimirRelatorioPedagios = async function () {
         // VERSÃO COLUNADA (3 Colunas)
         tollsListHTML = `<div class="print-tolls-columns">`;
         window.currentTollBooths.forEach((b, i) => {
-            // Simplifica o nome para caber melhor
-            let simpleName = b.name.replace('Pedágio', '').trim();
-            if (simpleName.length > 25) simpleName = simpleName.substring(0, 25) + '...';
+            // Lógica de Ícones V8
+            // Lógica de Ícones V8 (Ajustada)
+            const h = b.heading || 0;
+            const isUp = (h >= 330 || h < 150);
+            const dirIcon = isUp
+                ? '<i class="bi bi-arrow-up-circle-fill text-success"></i>'
+                : '<i class="bi bi-arrow-down-circle-fill text-danger"></i>';
+
+            // Formato: ID - REF/UF, DIR, CIDADE
+            const formatId = String(i + 1).padStart(2, '0');
+            const refPart = b.ref ? `${b.ref}` : 'RODOVIA';
+            const statePart = b.state ? `/${b.state}` : '';
+            const dirPart = b.directionFull ? `, ${b.directionFull.toUpperCase()}` : '';
+            const cityPart = b.cleanedName ? `, ${b.cleanedName.toUpperCase()}` : '';
+
+            const fullText = `${refPart}${statePart}${dirPart}${cityPart}`;
 
             tollsListHTML += `
-                <div class="toll-item">
-                    <div><strong>${i + 1}.</strong> ${simpleName}</div>
-                    <span>${b.state || ''}</span>
+                <div class="toll-item d-flex align-items-center mb-1">
+                    <div class="me-2 text-muted fw-bold">${formatId}</div>
+                    <div class="me-2">${dirIcon}</div>
+                    <div class="fw-bold small text-uppercase" style="color: #333;">${fullText}</div>
                 </div>`;
         });
         tollsListHTML += `</div>`;
@@ -9785,82 +9793,68 @@ window.generateTextPDF = async function () {
                 const y = cursorY;
                 const x = margin;
 
-                // 1. Container do Card (Borda Cinza Clara)
+                // 1. Container do Card (Borda Cinza Clara) - Mais Estreito
+                const cardWidth = 130;  // 130mm fixed width
+
                 doc.setDrawColor(220, 220, 220); // Border color
                 doc.setLineWidth(0.1);
                 doc.setFillColor(255, 255, 255); // White background
                 doc.roundedRect(x, y, cardWidth, itemHeight, 1, 1, 'FD');
 
-                // 2. Ícone "Remover" (Círculo Vermelho com X) - Simulado
+                // 2. Ícone "Remover" (REMOVIDO A PEDIDO - "tirar os x" - Mas mantemos as variáveis para âncora)
                 const iconY = y + (itemHeight / 2);
                 const removeIconX = x + 8;
-
-                // Círculo Vermelho Outline
-                doc.setDrawColor(220, 53, 69); // Danger Red
-                doc.setLineWidth(0.3);
-                doc.circle(removeIconX, iconY, 3, 'S'); // Stroke only
-
-                // O "X" vermelho no meio
-                doc.setTextColor(220, 53, 69);
-                doc.setFontSize(8);
-                doc.setFont("helvetica", "bold");
-                const xText = "×";
-                // Ajuste fino para centralizar o X
-                doc.text(xText, removeIconX - 1.2, iconY + 1.2);
+                // ... (Código do X removido)
 
 
                 // 3. Ícone "Direção" (Quadrado Verde com Texto da Direção)
+                // 3. Ícone "Direção" (Quadrado Colorido com Texto da Direção)
                 const statusIconX = removeIconX + 10;
-                doc.setFillColor(25, 135, 84); // Success Green
-                doc.setDrawColor(25, 135, 84);
+
+                // Lógica de Direção V8 (Green=Up/N/E, Red=Down/S/W)
+                const h = b.heading || 0;
+                const isUp = (h >= 315 || h < 135);
+
+                if (isUp) {
+                    doc.setFillColor(25, 135, 84); // Success Green
+                    doc.setDrawColor(25, 135, 84);
+                } else {
+                    doc.setFillColor(220, 53, 69); // Danger Red
+                    doc.setDrawColor(220, 53, 69);
+                }
+
                 doc.roundedRect(statusIconX - 3, iconY - 3, 6, 6, 1, 1, 'F');
 
                 // Texto da Direção (N, S, L, O) centralizado no quadrado
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(6); // Fonte pequena para caber
                 doc.setFont("helvetica", "bold");
-                const dirText = b.direction || 'N'; // Fallback
-                doc.text(dirText, statusIconX, iconY + 1.2, { align: 'center' });
+                const dirCode = b.direction || (isUp ? 'N' : 'S');
+                doc.text(dirCode, statusIconX, iconY + 1.2, { align: 'center' });
 
 
-                // 4. Texto do Pedágio Completo
-                const textX = statusIconX + 6; // Pouco mais de espaço
+                // 4. Texto do Pedágio Completo (Formato Solicitado: 1001 - BR-376/PR, SUL, MANDAGUARI)
+                // 4. Texto do Pedágio Completo (Formato Solicitado: 1001 - BR-376/PR, MANDAGUARI)
+                // REMOVIDO: Direção em Texto ("SUDESTE") conforme pedido.
+                const textX = statusIconX + 6;
                 doc.setTextColor(60, 60, 60);
                 doc.setFontSize(8);
-                doc.setFont("helvetica", "normal");
+                doc.setFont("helvetica", "bold");
 
-                // Formata o texto para parecer com o da imagem: "ID - Nome, Contexto"
-                // Tenta inferir o UF do contexto se não vier na tag
-                let uf = b.state || '';
-                if (!uf && b.context) {
-                    // Tenta extrair UF do contexto (ex: "Próximo a Londrina") -> Difícil sem mapa, mas "Londrina" é PR.
-                    // Vamos tentar checar se o nome tem UF (ex: "PR-444")
-                    if (b.name.includes('/PR') || b.context.includes('Paraná') || b.context.includes('PR')) uf = 'PR';
-                    else if (b.name.includes('/SP') || b.context.includes('São Paulo') || b.context.includes('SP')) uf = 'SP';
-                }
+                const formatId = String(i + 1).padStart(2, '0');
+                const displayId = 1000 + i + 1;
 
-                // Formatação: "1072 - PR-323 - SERTANEJA (N)"
-                const fakeId = 1000 + i + 1;
-                let displayName = b.name.toUpperCase();
+                const refPart = b.ref ? `${b.ref}` : 'RODOVIA';
+                const statePart = b.state ? `/${b.state}` : '/UF';
+                const dirPart = b.directionFull ? `, ${b.directionFull.toUpperCase()}` : '';
+                const cityPart = b.cleanedName ? `, ${b.cleanedName.toUpperCase()}` : `, ${b.context.toUpperCase()}`;
 
-                // Limpeza do nome para não ficar gigante
-                displayName = displayName.replace('PEDÁGIO', '').replace('PRACA DE', '').replace('PÓRTICO', '').trim();
-
-                // Monta string final
-                // Ex: "1001 - KM 10 - ARAPONGAS/PR - N"
-                let metaInfo = [];
-                if (b.ref) metaInfo.push(b.ref);
-                if (uf) metaInfo.push(uf);
-
-                // Mapeia direção simples para nome completo se quiser (mas a letra já está no ícone)
-                // Vamos colocar: ID - REF - NOME - CONTEXTO
-                const textContent = `${fakeId} - ${b.ref ? b.ref + ' - ' : ''}${displayName} ${uf ? '(' + uf + ')' : ''} - ${b.context}`;
+                const textContent = `${displayId} - ${refPart}${statePart}${dirPart}${cityPart}`;
 
                 doc.text(textContent, textX, iconY + 1.5);
 
 
-                // 5. Ícones "Reordenar" (Setas Direita) - Simulado
-                // A imagem tem duas bolinhas com setas na direita
+                // 5. Ícones "Reordenar" (Setas Direita)
                 const rightControlsX = x + cardWidth - 15;
 
                 // Botão Cima

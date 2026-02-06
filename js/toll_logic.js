@@ -44,24 +44,25 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
     const n = bounds.getNorth();
     const e = bounds.getEast();
 
-    // Query otimizada: busca no bbox com timeout maior (90s)
-    // node["place"~"city|town"] busca cidades e vilas importantes
-    // Adicionado: highway=toll_gantry e man_made=toll_gantry para pegar Free Flow e pórticos
+    // Query otimizada: substitui regex lento (~"city|town") por união direta
+    // Isso reduz drasticamente a carga no servidor Overpass
     const query = `
         [out:json][timeout:90];
         (
             node["barrier"="toll_booth"](${s},${w},${n},${e});
             node["highway"="toll_gantry"](${s},${w},${n},${e});
             node["man_made"="toll_gantry"](${s},${w},${n},${e});
-            node["place"~"city|town"](${s},${w},${n},${e});
+            node["place"="city"](${s},${w},${n},${e});
+            node["place"="town"](${s},${w},${n},${e});
         );
         out body;
     `;
 
-    // Lista de servidores Overpass para fallback (Redundância em caso de falha/timeout)
+    // Lista de servidores Overpass para fallback (Redundância Segura)
+    // LZ4 promovido a primário por ser geralmente mais rápido para leitura
     const servers = [
+        "https://lz4.overpass-api.de/api/interpreter",
         "https://overpass-api.de/api/interpreter",
-        "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
         "https://overpass.kumi.systems/api/interpreter"
     ];
 
@@ -131,8 +132,8 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                     }
                 } else if (node.tags.barrier === 'toll_booth' || node.tags.highway === 'toll_gantry' || node.tags.man_made === 'toll_gantry') {
                     // É um pedágio (Cabine ou Pórtico)
-                    // Raio curto (200m)
-                    if (isCloseToPolyline(nodeLat, nodeLon, routePoints, 200)) {
+                    // Raio aumentado para 500m para maior precisão (Feedback user)
+                    if (isCloseToPolyline(nodeLat, nodeLon, routePoints, 500)) {
                         booths.push({
                             lat: nodeLat,
                             lng: nodeLon,
@@ -149,26 +150,64 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                 ...cities
             ];
 
-            const detailedBooths = booths.map(booth => {
-                // Encontra a referência mais próxima
-                let nearestName = "Local Desconhecido";
-                let minDist = Infinity;
+            // NOVA LÓGICA V2 (MULTI-PASS): Detectar MÚLTIPLAS passagens (Ida/Volta)
+            const DETECT_RADIUS_SQ = 0.003 * 0.003; // ~300m (ao quadrado para evitar sqrt)
+            const detectedBooths = [];
 
-                // Encontra o índice do ponto da rota mais próximo para ordenação
-                let closestRouteIndex = -1;
-                let minRouteDist = Infinity;
+            booths.forEach(booth => {
+                // Para cada pedágio, varre TODA a rota buscando interseções
+                // Uma "interseção" é definida como entrar no raio de detecção
+                let insideZone = false;
+                let currentPass = null;
 
-                // 1. Achar índice na rota (para ordenação)
                 for (let i = 0; i < routePoints.length; i++) {
                     const rp = routePoints[i];
                     const d = (rp.lat - booth.lat) ** 2 + (rp.lng - booth.lng) ** 2;
-                    if (d < minRouteDist) {
-                        minRouteDist = d;
-                        closestRouteIndex = i;
+
+                    if (d < DETECT_RADIUS_SQ) {
+                        if (!insideZone) {
+                            // Entrou na zona: Começa nova detecção
+                            insideZone = true;
+                            currentPass = {
+                                minDist: d,
+                                closestIndex: i,
+                                booth: booth
+                            };
+                        } else {
+                            // Já está dentro: Atualiza se for mais perto
+                            if (d < currentPass.minDist) {
+                                currentPass.minDist = d;
+                                currentPass.closestIndex = i;
+                            }
+                        }
+                    } else {
+                        if (insideZone) {
+                            // Saiu da zona: Fecha a passagem anterior e salva
+                            insideZone = false;
+                            if (currentPass) {
+                                detectedBooths.push(createDetailedBooth(currentPass.booth, currentPass.closestIndex, routePoints, allReferences));
+                                currentPass = null;
+                            }
+                        }
                     }
                 }
 
-                // 2. Achar contexto (Cidade ou Parada)
+                // Se terminou a rota dentro da zona, salva o último
+                if (insideZone && currentPass) {
+                    detectedBooths.push(createDetailedBooth(currentPass.booth, currentPass.closestIndex, routePoints, allReferences));
+                }
+            });
+
+            // Replaces the old map loop
+            const detailedBooths = detectedBooths;
+
+            // Função Helper para criar o objeto detalhado (Extraída da lógica antiga)
+            function createDetailedBooth(booth, activeIndex, routePoints, allReferences) {
+                // Encontra a referência mais próxima (Repetido da lógica v1)
+                let nearestName = "Local Desconhecido";
+                let minDist = Infinity;
+
+                // 2. Achar contexto (Cidade ou Parada) - Busca Global
                 if (allReferences.length > 0) {
                     allReferences.forEach(ref => {
                         if (ref.coords || (ref.lat && ref.lng)) {
@@ -233,33 +272,41 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                     }
                 }
 
-                // --- NOVO: Extração de Metadados (Ref, Estado, Direção) ---
-                const ref = tags.ref || ''; // Ex: "KM 123" ou "SP-300"
-                const state = tags['addr:state'] || (tags['is_in:state_code'] || ''); // Tenta pegar UF
+                // --- NOVO: Extração de Metadados Otimizada V8 ---
+                let ref = tags.ref || '';
+                if (!ref) {
+                    const match = boothName.match(/(BR|PR|SP|SC|RS|MG|RJ)-\d{3}/i);
+                    if (match) ref = match[0].toUpperCase();
+                }
 
-                // Cálculo de Direção (Azimute) baseada na rota
+                let state = tags['addr:state'] || tags['is_in:state_code'] || '';
+
+                // Cálculo de Direção (Azimute) baseada na rota (No ponto específico da passagem)
                 let bearing = 0;
-                let directionCard = 'N'; // Norte por padrão
+                let directionFull = 'Norte';
+                let directionCard = 'N';
 
-                if (closestRouteIndex >= 0 && routePoints.length > 1) {
-                    // Pega o ponto atual e o próximo (ou anterior se for o último) para determinar o vetor
-                    const p1 = routePoints[closestRouteIndex];
-                    const p2 = (closestRouteIndex < routePoints.length - 1)
-                        ? routePoints[closestRouteIndex + 1]
-                        : routePoints[closestRouteIndex - 1]; // Fallback se for o último ponto
+                if (activeIndex >= 0 && routePoints.length > 1) {
+                    // Check index boundaries
+                    const p1 = routePoints[activeIndex];
+                    const p2 = (activeIndex < routePoints.length - 1)
+                        ? routePoints[activeIndex + 1]
+                        : routePoints[activeIndex - 1]; // Fallback if last point
 
-                    // Se for o último ponto, o vetor é invertido (p2 -> p1), então ajustamos a lógica ou aceitamos
-                    // Melhor pegar sempre p1 -> p2 (indol), então se estamos no ultimo, usamos pPrev -> pLast
-
-                    if (closestRouteIndex < routePoints.length - 1) {
+                    if (activeIndex < routePoints.length - 1) {
                         bearing = getBearing(p1.lat, p1.lng, p2.lat, p2.lng);
                     } else {
-                        // Se for o último, usamos o bearing do segmento anterior mantendo a "chegada"
-                        const pPrev = routePoints[closestRouteIndex - 1];
+                        // Se for o último ponto, pega o anterior
+                        const pPrev = routePoints[activeIndex - 1];
                         bearing = getBearing(pPrev.lat, pPrev.lng, p1.lat, p1.lng);
                     }
 
                     directionCard = getCardinalDirection(bearing);
+                    const dirMap = {
+                        'N': 'Norte', 'NE': 'Nordeste', 'L': 'Leste', 'SE': 'Sudeste',
+                        'S': 'Sul', 'SO': 'Sudoeste', 'O': 'Oeste', 'NO': 'Noroeste'
+                    };
+                    directionFull = dirMap[directionCard] || directionCard;
                 }
 
                 return {
@@ -267,18 +314,20 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                     lng: booth.lng,
                     id: booth.id,
                     name: boothName,
+                    cleanedName: nearestName,
                     context: `Próximo a ${nearestName}`,
                     full_tags: booth.tags,
-                    routeIndex: closestRouteIndex,
-                    status: status, // NOVO CAMPO
+                    routeIndex: activeIndex, // The specific index of this pass
+                    status: status,
 
-                    // Novos Campos Enriquecidos
-                    ref: ref,
-                    state: state,
+                    // Campos V8 Detalhados
+                    ref: ref || 'Rodovia',
+                    state: state || 'UF',
                     heading: bearing,
-                    direction: directionCard // N, NE, E, SE, S, SW, W, NW
+                    direction: directionCard,
+                    directionFull: directionFull
                 };
-            });
+            }
 
             // Remove duplicatas muito próximas
             const uniqueBooths = combineCloseBooths(detailedBooths);
@@ -338,29 +387,46 @@ function combineCloseBooths(booths) {
     if (booths.length === 0) return [];
 
     const combined = [];
-    const threshold = 0.003; // ~300m de raio para agrupar
-
-    // Ordenar por indice antes de combinar para garantir que pegamos o "primeiro" na rota como referência?
-    // Ou apenas manter. Se a lista já vier sortida, ok. Mas ela ta sendo sortida DEPOIS lá em cima.
-    // O ideal é que aqui a gente preserve min(routeIndex).
+    const threshold = 0.003; // ~300m de raio
+    const indexThreshold = 50; // Reduzido (era 500) para evitar merge em entregas curtas (ex: Andira <-> Cambará)
 
     booths.forEach(b => {
-        // Tenta achar um grupo existente perto
+        // Tenta achar um grupo existente perto GEOGRAFICAMENTE
+        // MAS TAMBÉM PERTO NA ROTA (senão é ida e volta) e MESMO SENTIDO
         const existing = combined.find(c => {
             const dLat = c.lat - b.lat;
             const dLng = c.lng - b.lng;
-            return (dLat * dLat + dLng * dLng) < (threshold * threshold);
+            const geoClose = (dLat * dLat + dLng * dLng) < (threshold * threshold);
+
+            // Só combina se for geográficamente perto E temporalmente perto (route index)
+            const indexDiff = Math.abs(c.routeIndex - b.routeIndex);
+
+            // Verificação de Sentido (Heading)
+            // Se o sentido for muito diferente (> 80 graus), considera PASSAGEM DISTINTA (ex: Ida vs Volta)
+            // O heading vai de 0 a 360. Diferença menor = mesmo sentido.
+            let angleDiff = Math.abs(c.heading - b.heading);
+            if (angleDiff > 180) angleDiff = 360 - angleDiff; // Normaliza para 0-180
+
+            const sameDirection = angleDiff < 80; // Se dif > 80, tratamos como oposto/outro sentido
+
+            // Combine APENAS se: Perto Geo + Perto Index + Mesmo Sentido
+            // OU: Perto Geo + Perto Index (mas sentido oposto IMPEDE merge se index for maior que um mínimo, mas aqui index é principal)
+
+            // Na verdade, se o sentido for oposto, NUNCA deve mergear, mesmo se index for perto (ex: caminhão manobrando?)
+            // Mas indexThreshold já deve cuidar disso. O problema é Andira (Ida) e Andira (Volta) separados por 15km.
+            // Com indexThreshold = 500, mergeava. Com 50, deve separar.
+            // Mas para garantir, adicionamos check de direção.
+
+            return geoClose && (indexDiff < indexThreshold) && sameDirection;
         });
 
         if (!existing) {
             combined.push(b);
         } else {
-            // Se já existe, vamos ver se o atual (b) aparece "antes" na rota (menor index).
-            // Se sim, atualizamos o existing para ter o index menor.
+            // Se já existe (mesma passagem), mantém o com menor index (primeira detecção do grupo)
+            // ou atualiza se achar algo melhor? Geralmente mantemos o primeiro.
             if (b.routeIndex < existing.routeIndex) {
                 existing.routeIndex = b.routeIndex;
-                // Talvez atualizar coordenadas também?
-                // Vamos manter o 'existing' como representativo visual, mas atualizar ordem.
             }
         }
     });
