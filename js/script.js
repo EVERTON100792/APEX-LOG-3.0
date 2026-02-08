@@ -4318,8 +4318,8 @@ function renderLoadCard(load, vehicleType, vInfo) {
                     <div class="load-badge-id">
                         <i class="bi ${vInfo.icon}" style="color: ${titleIconColor}"></i>
                         <span class="d-flex flex-column align-items-start leading-tight">
-                            <span>${load.numero || load.id.split('-').pop()}</span>
-                            <span style="font-size: 0.65em; opacity: 0.7; font-weight: 300; font-family: monospace;">#${load.shortId}</span>
+                            <span style="font-size: 1.2rem; font-weight: 700;">${load.numero || load.id.split('-').pop()}</span>
+                            <span style="font-size: 0.7em; opacity: 0.7; font-weight: 300; font-family: monospace;">#${load.shortId}</span>
                         </span>
                     </div>
                     <div class="load-main-title">
