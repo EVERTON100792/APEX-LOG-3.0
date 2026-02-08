@@ -155,7 +155,7 @@ async function initApp() {
 
 // 5. Cloud Integration Logic
 window.openCloudManager = async () => {
-    const modal = new bootstrap.Modal(document.getElementById('cloudModal'));
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cloudModal'));
     modal.show();
     await window.renderSessionLists();
 };
@@ -354,17 +354,33 @@ window.performLoadSession = async (id) => {
 
         localStorage.setItem('currentSessionName', session.name); // Salva o nome da sessão carregada
 
-        // Dismiss Shared Session Alert/Toast
+        // Create a robust close function
+        const closeCloudModal = () => {
+            const cloudModalEl = document.getElementById('cloudModal');
+            if (cloudModalEl) {
+                // Try standard bootstrap method first
+                const modal = bootstrap.Modal.getOrCreateInstance(cloudModalEl);
+                modal.hide();
+
+                // Backup: Manually clean up if bootstrap fails to remove styles immediately
+                setTimeout(() => {
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) backdrop.remove();
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    cloudModalEl.classList.remove('show');
+                    cloudModalEl.style.display = 'none';
+                }, 300); // Wait for transition
+            }
+        };
+
+        closeCloudModal();
+
+        // Also remove the shared session toast if visible
         const sharedToast = document.getElementById('shared-sessions-alert-toast');
         if (sharedToast) {
             sharedToast.classList.remove('show');
-        }
-
-        // Close Cloud Modal (Global History)
-        const cloudModalEl = document.getElementById('cloudModal');
-        if (cloudModalEl) {
-            const modal = bootstrap.Modal.getInstance(cloudModalEl);
-            if (modal) modal.hide();
+            setTimeout(() => sharedToast.remove(), 300);
         }
 
         // Redirect to Dashboard (Resumo Geral)
