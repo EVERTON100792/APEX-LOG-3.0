@@ -66,8 +66,9 @@ applyInitialTheme();
 //  NOVO: Lá“GICA DE PERSISTáŠNCIA DE DADOS DA PLANILHA COM IndexedDB
 //  Isso garante que os dados brutos da planilha ná£o se percam ao recarregar a pá¡gina.
 // ================================================================================================
-const dbName = "ApexLogDB";
-const storeName = "planilhaStore";
+// Usando var para evitar erro se o script for carregado duas vezes
+var dbName = "ApexLogDB";
+var storeName = "planilhaStore";
 
 function openDb() {
     return new Promise((resolve, reject) => {
@@ -108,7 +109,7 @@ async function loadPlanilhaFromDb() {
 //  A Lá“GICA DO GRáFICO FOI ATUALIZADA PARA MELHORAR A VISUALIZAá‡áƒO DOS NášMEROS E A ESTá‰TICA.
 //  O RESTANTE DO Cá“DIGO JAVASCRIPT PERMANECE IDáŠNTICO E TOTALMENTE FUNCIONAL.
 // ================================================================================================
-let resumoChart = null;
+var resumoChart = null;
 
 function updateAndRenderChart() {
     const vehicleCounts = { fiorino: 0, van: 0, tresQuartos: 0, toco: 0 };
@@ -299,7 +300,7 @@ function updateAndRenderChart() {
     if (emptyState) emptyState.style.display = 'none';
 }
 
-const agendamentoClientCodes = new Set([
+var agendamentoClientCodes = new Set([
     '1398', '1494', '4639', '4872', '5546', '6896', 'D11238', '17163', '19622', '20350', '22545', '23556', '23761', '24465', '29302', '32462', '32831', '32851', '32869', '32905', '33039', '33046', '33047', '33107', '33388', '33392', '33400', '33401', '33403', '33406', '33420', '33494', '33676', '33762', '33818', '33859', '33907', '33971', '34011', '34096', '34167', '34425', '34511', '34810', '34981', '35050', '35054', '35798', '36025', '36580', '36792', '36853', '36945', '37101', '37589', '37634', '38207', '38448', '38482', '38564', '38681', '38735', 'D38896', '39081', '39177', '39620', '40144', '40442', '40702', '40844', '41233', '42200', '42765', '47244', '47253', '47349', '50151', '50816', '51993', '52780', '53134', '58645', '60900', '61182', '61315', '61316', '61317', '61318', '61324', '63080', '63500', '63705', '64288', '66590', '67660', '67884', '69281', '69286', '69318', '70968', '71659', '73847', '76019', '76580', '77475', '77520', '78895', '79838', '80727', '81353', 'DB3183', '83184', '83634', '85534', 'DB6159', '86350', '86641', '89073', '89151', '90373', '92017', '95092', '95660', '96758', '98227', '99268', '100087', '101246', '101253', '101346', '103518', '105394', '106198', '109288', '110023', '110894', '111145', '111154', '111302', '112207', '112670', '117028', '117123', '120423', '120455', '120473', '120533', '121747', '122155', '122785', '123815', '124320', '125228', '126430', '131476', '132397', '133916', '135395', '135928', '136086', '136260', '137919', '138825', '139013', '139329', '139611', '143102', '44192', '144457', '145014', '145237', '145322', '146644', '146988', '148071', '149598', '150503', '151981', '152601', '152835', '152925', '153289', '154423', '154778', '154808', '155177', '155313', '155368', '155419', '155475', '155823', '155888', '156009', '156585', '156696', '157403', '158235', '159168', '160382', '160982', '161737', '162499', '162789', '163234', '163382', '163458', '164721', '164779', '164780', '164924', '165512', '166195', '166337', '166353', '166468', '166469', '167353', '167810', '167819', '168464', '169863', '169971', '170219', '170220', '170516', '171147', '171160', '171191', '171200', '171320', '171529', '171642', '171863', '172270', '172490', '172656', '172859', '173621', '173964', '173977', '174249', '174593', '174662', '174901', '175365', '175425', '175762', '175767', '175783', '176166', '176278', '176453', '176747', '177327', '177488', '177529', '177883', '177951', '177995', '178255', '178377', '178666', '179104', '179510', '179542', '179690', '180028', '180269', '180342', '180427', '180472', '180494', '180594', '180772', '181012', '181052', '181179', '182349', '182885', '182901', '183011', '183016', '183046', '183048', '183069', '183070', '183091', '183093', '183477', '183676', '183787', '184011', '184038', '189677', '190163', '190241', '190687', '190733', '191148', '191149', '191191', '191902', '191972', '192138', '192369', '192638', '192713', '193211', '193445', '193509', '194432', '194508', '194750', '194751', '194821', '194831', '195287', '195338', '195446', '196118', '196405', '196446', '196784', '197168', '197249', '197983', '198187', '198438', '198747', '198796', '198895', '198907', '198908', '199172', '199615', '199625', '199650', '199651', '199713', '199733', '199927', '199991', '200091', '200194', '200239', '200253', '200382', '200404', '200597', '200917', '201294', '201754', '201853', '201936', '201948', '201956', '201958', '201961', '201974', '202022', '202187', '202199', '202714', '203072', '203093', '203201', '203435', '203436', '203451', '203512', '203769', '204895', '204910', '204911', '204913', '204914', '204915', '204917', '204971', '204979', '205108', '205220', '205744', '205803', '206116', '206163', '206208', '206294', '206380', '206628', '206730', '206731', '206994', '207024', '207029', '207403', '207689', '207902', '208489', '208613', '208622', '208741', '208822', '208844', '208853', '208922', '209002', '209004', '209248', '209281', '209321', '209322', '209684', '210124', '210230', '210490', '210747', '210759', '210819', '210852', '211059', '211110', '211276', '211277', '211279', '211332', '211411', '212401', '212417', '212573', '212900', '213188', '213189', '213190', '213202', '213203', '213242', '213442', '213454', '213855', '213909', '213910', '213967', '214046', '214150', '214387', '214433', '214442', '214594', '214746', '215022', '215116', '215160', '215161', '215493', '215494', '215651', '215687', '215733', '215777', '215942', '216112', '216393', '216400', '216630', '216684', '217190', '217283', '217310', '217343', '217545', '217605', '217828', '217871', '217872', '217877', '217949', '217965', '218169', '218196', '218383', '218486', '218578', '218580', '218640', '218820', '218845', '219539', '219698', '219715', '219884', '220158', '220183', '220645', '220950', '221023', '221248', '221251', '222164', '222165', '223025', '223379', '223525', '223703', '223727', '223877', '223899', '223900', '223954', '224956', '224957', '224958', '224959', '224961', '224962', '225112', '225408', '225449', '225904', '226903', '226939', '227190', '227387', '228589', '228693', '228695'
 ]);
 
@@ -933,35 +934,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Restaura a áºltima view e aba ativas
     // Restaura a ultima view e aba ativas (Robust)
+    // REMOVIDO: A restauração agora é centralizada em loadStateFromLocalStorage para evitar conflitos e double-loading
+    /*
     const restoreState = () => {
-        const lastView = localStorage.getItem('lastActiveView');
-        if (lastView) {
-            document.querySelector(`a[href="${lastView}"]`)?.click();
-        }
-
-        // Tiny delay to ensure view is active before clicking tab
-        setTimeout(() => {
-            const lastTab = localStorage.getItem('lastActiveTab');
-            if (lastTab) {
-                // Try to find the button that targets this pane
-                const tabBtn = document.querySelector(`button[data-bs-target="${lastTab}"]`);
-                if (tabBtn) {
-                    console.log(`[Persist] Restoring tab: ${lastTab}`);
-                    // Ensure we use Bootstrap API for reliable switching
-                    const tab = bootstrap.Tab.getOrCreateInstance(tabBtn);
-                    tab.show();
-                } else {
-                    console.warn(`[Persist] Saved tab not found: ${lastTab}`);
-                }
-            }
-        }, 150);
+        // ... (lógica movida/já existente em loadStateFromLocalStorage)
     };
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', restoreState);
-    } else {
-        restoreState();
-    }
+    */
 
     document.addEventListener('shown.bs.collapse', function (event) { // prettier-ignore
         const accordionCollapse = event.target;
@@ -7837,6 +7815,17 @@ async function loadStateFromLocalStorage() {
 
         console.log("Estado da aplicaá§á£o restaurado do Local Storage.");
         isRestoringState = false;
+        // SAFEGUARD: Ensure Cloud Modal is CLOSED after restoration
+        const cloudModal = document.getElementById('cloudModal');
+        if (cloudModal) {
+            const modalInstance = bootstrap.Modal.getInstance(cloudModal);
+            if (modalInstance) modalInstance.hide();
+            cloudModal.classList.remove('show');
+            cloudModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            document.querySelector('.modal-backdrop')?.remove();
+        }
+
         console.log("Restauração de estado concluída. Flags de segurança liberadas.");
     } catch (e) {
         isRestoringState = false;
@@ -9988,52 +9977,101 @@ function searchLoadByShortId(shortId) {
     if (targetLoad) {
         targetLoadId = targetLoad.id;
 
-        // Identifica a aba correta
+        // Identifica a aba correta baseado no tipo de veículo ou ID da carga
         let tabId = null;
+
+        // 1. Checa tipos explícitos primeiro
         if (targetLoad.vehicleType === 'fiorino') tabId = 'fiorino-tab-pane';
         else if (targetLoad.vehicleType === 'van') tabId = 'van-tab-pane';
-        else if (targetLoad.vehicleType === 'tresQuartos') tabId = 'tres-quartos-tab-pane';
         else if (targetLoad.vehicleType === 'toco') tabId = 'toco-tab-pane';
-        else if (targetLoad.vehicleType === 'especial') tabId = 'montagens-especiais-tab-pane'; // Supondo aba de especiais
+        else if (targetLoad.vehicleType === 'tresQuartos' || targetLoad.vehicleType === '3/4') tabId = 'tres-quartos-tab-pane';
 
-        // Se for carga fechada PR/BR, a lógica é mais complexa pois estão em acordeões dentro de outras abas
-        // Mas o sistema atual parece focar nos tipos de veículo principais para o shortId
+        // 2. Checa categorias especiais baseadas no ID
+        else if (targetLoadId.includes('especial') || targetLoad.vehicleType === 'especial') tabId = 'montagens-especiais-tab-pane';
+        else if (targetLoadId.includes('venda-antecipada')) tabId = 'outros-pedidos-tab-pane'; // Venda antecipada geralmente fica em Outros ou Especiais? Ajustar conforme UX
+        else if (targetLoadId.startsWith('route-') || targetLoad.isRoteirizado) tabId = 'roteirizados-tab-pane';
 
+        // 3. Fallback: Tenta encontrar o elemento e ver onde ele está (mais custoso, mas seguro)
+        if (!tabId) {
+            const cardElement = document.getElementById(targetLoadId);
+            if (cardElement) {
+                const pane = cardElement.closest('.tab-pane');
+                if (pane) tabId = pane.id;
+            }
+        }
+
+        // Se encontrou a aba, ativa ela
         if (tabId) {
-            // Ativa a aba
-            const tabBtn = document.querySelector(`button[data-bs-target="#${tabId}"]`) || document.querySelector(`a[data-bs-target="#${tabId}"]`);
+            const tabBtn = document.querySelector(`button[data-bs-target="#${tabId}"]`);
             if (tabBtn) {
+                // Usa API do Bootstrap para troca robusta
                 const tabInstance = bootstrap.Tab.getOrCreateInstance(tabBtn);
                 tabInstance.show();
             }
-
-            // Rola até o card e destaca
-            setTimeout(() => {
-                const card = document.getElementById(targetLoadId);
-                if (card) {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    card.classList.add('search-highlight');
-                    // Piscar borda - Estilos inline para garantir
-                    const originalBoxShadow = card.style.boxShadow;
-                    const originalTransition = card.style.transition;
-
-                    card.style.transition = 'box-shadow 0.5s ease, transform 0.5s ease';
-                    card.style.boxShadow = '0 0 20px 5px var(--dark-primary)';
-                    card.style.transform = 'scale(1.02)';
-
-                    setTimeout(() => {
-                        card.style.boxShadow = originalBoxShadow;
-                        card.style.transform = 'scale(1)';
-                        card.classList.remove('search-highlight');
-                    }, 2000);
-
-                    showToast(`Carga encontrada: ${targetLoad.numero}`, 'success');
-                } else {
-                    showToast(`Carga encontrada (${targetLoad.numero}), mas o card não está visível.`, 'warning');
-                }
-            }, 300); // tempo para troca de aba
         }
+
+        // Delay para garantir que a aba abriu e o layout estabilizou
+        setTimeout(() => {
+            const card = document.getElementById(targetLoadId);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Efeito visual de destaque
+                card.classList.add('search-highlight');
+
+                // Força estilo inline momentâneo para garantir visibilidade
+                const originalTransition = card.style.transition;
+                const originalTransform = card.style.transform;
+                const originalBoxShadow = card.style.boxShadow;
+                const originalBorder = card.style.border;
+
+                card.style.transition = 'all 0.5s ease';
+                card.style.transform = 'scale(1.05)';
+                card.style.boxShadow = '0 0 25px rgba(255, 255, 0, 0.7)'; // Glow amarelo brilhante
+                card.style.border = '2px solid yellow';
+                card.style.zIndex = '100';
+
+                setTimeout(() => {
+                    // Remove estilos inline e volta ao CSS original
+                    card.style.transition = originalTransition;
+                    card.style.transform = originalTransform;
+                    card.style.boxShadow = originalBoxShadow;
+                    card.style.border = originalBorder;
+                    card.style.zIndex = '';
+                    card.classList.remove('search-highlight');
+                }, 3000); // 3 segundos de destaque
+
+                // Se houver toast, mostra confirmação
+                if (typeof showToast === 'function') {
+                    showToast(`Carga ${targetLoad.numero || targetLoad.shortId || 'encontrada'} localizada!`, 'success');
+                }
+            } else {
+                console.warn("Card da carga não encontrado no DOM (pode não ter sido renderizado ainda).");
+                if (typeof showToast === 'function') {
+                    showToast(`Carga encontrada nos dados, mas não visível na tela.`, 'warning');
+                }
+            }
+        }, 300); // 300ms de delay para a troca de aba
     } else {
-        showToast(`Carga com ID "${term}" não encontrada.`, 'error');
+        if (typeof showToast === 'function') {
+            showToast(`Carga "${term}" não encontrada.`, 'error');
+        } else {
+            alert(`Carga "${term}" não encontrada.`);
+        }
     }
 }
+
+
+// Fix Map Modal Focus Issue
+document.addEventListener('DOMContentLoaded', () => {
+    const mapModalEl = document.getElementById('mapModal');
+    if (mapModalEl) {
+        mapModalEl.addEventListener('hidden.bs.modal', function () {
+            // Remove focus from any element inside the modal when it closes
+            // This prevents "Blocked aria-hidden" errors
+            if (document.activeElement && mapModalEl.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
+        });
+    }
+});

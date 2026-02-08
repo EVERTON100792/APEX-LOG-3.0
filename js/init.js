@@ -165,6 +165,8 @@ async function initApp() {
 
 // 5. Cloud Integration Logic
 window.openCloudManager = async () => {
+    console.log("openCloudManager called!");
+    console.trace("Stack trace for openCloudManager:");
     const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('cloudModal'));
     modal.show();
     await window.renderSessionLists();

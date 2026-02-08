@@ -127,7 +127,8 @@ export async function getSharedWithMe() {
         .from('saved_sessions')
         .select('*')
         .neq('user_id', user.id) // Exclui as minhas
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(20); // Limit to prevent timeout on large datasets
 
     if (error) throw error;
     if (!sessions || sessions.length === 0) return [];
