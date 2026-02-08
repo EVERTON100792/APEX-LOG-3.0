@@ -2362,55 +2362,53 @@
 
     <script src="js/script.js"></script>
     <script src="js/freight_logic.js"></script>
-    <!-- Cloud Manager Modal -->
+    <!-- Cloud Manager Modal (Unified Global History) -->
     <div class="modal fade" id="cloudModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content text-bg-dark border-secondary">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title"><i class="bi bi-cloud-fill me-2"></i>Gerenciador de Sessões na Nuvem</h5>
+                    <h5 class="modal-title"><i class="bi bi-cloud-fill me-2"></i>Histórico Global de Sessões</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ul class="nav nav-tabs border-secondary mb-3" id="cloudTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active text-light" id="my-sessions-tab" data-bs-toggle="tab"
-                                data-bs-target="#my-sessions-pane" type="button" role="tab">Minhas Sessões</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link text-light" id="shared-sessions-tab" data-bs-toggle="tab"
-                                data-bs-target="#shared-sessions-pane" type="button" role="tab">Compartilhados
-                                Comigo</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="cloudTabsContent">
-                        <!-- My Sessions -->
-                        <div class="tab-pane fade show active" id="my-sessions-pane" role="tabpanel">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span>Gerencie suas sessões salvas.</span>
-                                <button class="btn btn-success btn-sm" onclick="openSaveSessionModal()"><i
-                                        class="bi bi-plus-circle me-1"></i>Salvar Sessão Atual</button>
-                            </div>
-                            <div id="my-sessions-list"
-                                class="list-group list-group-flush border-top border-secondary pt-3"
-                                style="max-height: 400px; overflow-y: auto;">
-                                <!-- Loaded dynamically -->
-                                <div class="text-center p-3 text-muted">Carregando...</div>
+                    <!-- Controls Toolbar -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="cloudDateFilter" class="form-label mb-0 text-muted small text-nowrap">Filtrar
+                                Data:</label>
+                            <input type="date" id="cloudDateFilter"
+                                class="form-control form-control-sm bg-dark text-light border-secondary"
+                                style="width: auto;" onchange="window.renderSessionLists()">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="window.clearDateFilter()"
+                                title="Limpar Filtro"><i class="bi bi-x"></i></button>
+                        </div>
+                        <button class="btn btn-success btn-sm" onclick="openSaveSessionModal()"><i
+                                class="bi bi-plus-circle me-1"></i>Salvar Sessão Atual</button>
+                    </div>
+
+                    <!-- Unified List -->
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-header bg-transparent border-secondary py-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="small text-uppercase fw-bold text-muted">Sessões Disponíveis</span>
+                                <span class="badge bg-secondary" id="session-count-badge">0</span>
                             </div>
                         </div>
-                        <!-- Shared With Me -->
-                        <div class="tab-pane fade" id="shared-sessions-pane" role="tabpanel">
-                            <div class="mb-3">
-                                <span>Sessões que outros usuários compartilharam com você.</span>
-                            </div>
-                            <div id="shared-sessions-list"
-                                class="list-group list-group-flush border-top border-secondary pt-3"
-                                style="max-height: 400px; overflow-y: auto;">
-                                <!-- Loaded dynamically -->
-                                <div class="text-center p-3 text-muted">Carregando...</div>
+                        <div id="global-sessions-list"
+                            class="list-group list-group-flush overflow-auto custom-scrollbar"
+                            style="max-height: 400px;">
+                            <!-- Loaded dynamically -->
+                            <div class="text-center p-4 text-muted">
+                                <div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+                                <p class="mb-0 small">Carregando histórico global...</p>
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="modal-footer border-secondary justify-content-start">
+                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Todas as sessões salvas são visíveis
+                        para a equipe.</small>
                 </div>
             </div>
         </div>

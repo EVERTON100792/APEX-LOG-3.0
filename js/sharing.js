@@ -60,6 +60,56 @@ export async function getMySessions() {
 }
 
 /**
+ * Retorna TODAS as sessões (Histórico Global) com filtro opcional de data.
+ * @param {string|null} dateFilter - Data (YYYY-MM-DD) ou null para todas (limitado).
+ */
+export async function getAllSessions(dateFilter = null) {
+    let query = supabase
+        .from('saved_sessions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (dateFilter) {
+        // Filtrar pelo dia específico (Do início ao fim do dia em UTC ou local? Supabase guarda UTC)
+        // Simplificação: casting date
+        // O ideal é gte T00:00:00 e lte T23:59:59
+        const start = `${dateFilter}T00:00:00`;
+        const end = `${dateFilter}T23:59:59`;
+        query = query.gte('created_at', start).lte('created_at', end);
+    } else {
+        // Se não tem filtro, limita a 50 para não pesar
+        query = query.limit(50);
+    }
+
+    const { data: sessions, error } = await query;
+
+    if (error) throw error;
+    if (!sessions || sessions.length === 0) return [];
+
+    // Busca e-mails dos donos para exibir "Criado por..."
+    // (Poderia ser um join se tivesse foreign key relation configurada na query, mas map resolve)
+    const userIds = [...new Set(sessions.map(s => s.user_id))];
+    const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .in('id', userIds);
+
+    const profileMap = {};
+    if (profiles) {
+        profiles.forEach(p => profileMap[p.id] = p.email);
+    }
+
+    return sessions.map(s => ({
+        ...s,
+        owner: { email: profileMap[s.user_id] || 'Desconhecido' }
+    }));
+}
+
+/**
+ * Retorna as sessões compartilhadas com o usuário.
+ * (Mantido para compatibilidade, mas a UI vai usar getAllSessions)
+ */
+/**
  * Retorna as sessões compartilhadas com o usuário.
  * (A query é simplificada pois o RLS já filtra)
  */

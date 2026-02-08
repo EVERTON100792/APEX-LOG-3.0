@@ -1,6 +1,6 @@
 ﻿import { requireAuth, logout } from './auth.js';
 import { logActivity, subscribeToActivities } from './realtime.js';
-import { saveSessionToCloud, getMySessions, getSharedWithMe, loadSessionFromCloud, shareSession, deleteSession } from './sharing.js';
+import { saveSessionToCloud, getMySessions, getSharedWithMe, getAllSessions, loadSessionFromCloud, shareSession, deleteSession } from './sharing.js';
 import { supabase } from './supabase-client.js'; // FIX: Explicit import for initApp
 
 // 1. Check Session & Init
@@ -161,13 +161,14 @@ window.openCloudManager = async () => {
 };
 
 window.renderSessionLists = async () => {
-    const mySessionsEl = document.getElementById('my-sessions-list');
-    const sharedSessionsEl = document.getElementById('shared-sessions-list');
+    const listEl = document.getElementById('global-sessions-list');
+    const dateInput = document.getElementById('cloudDateFilter');
+    const countBadge = document.getElementById('session-count-badge');
 
-    mySessionsEl.innerHTML = '<div class="text-center p-3 text-muted"><div class="spinner-border spinner-border-sm" role="status"></div> Carregando...</div>';
-    sharedSessionsEl.innerHTML = '<div class="text-center p-3 text-muted"><div class="spinner-border spinner-border-sm" role="status"></div> Carregando...</div>';
+    // Mostra loading
+    listEl.innerHTML = '<div class="text-center p-4 text-muted"><div class="spinner-border spinner-border-sm mb-2" role="status"></div><p class="mb-0 small">Carregando histórico global...</p></div>';
 
-    // Helper para formatar data BR (Garante que o timezone seja respeitado)
+    // Helper para formatar data BR
     const formatDateBR = (dateString) => {
         if (!dateString) return 'Data desconhecida';
         const date = new Date(dateString);
@@ -178,62 +179,75 @@ window.renderSessionLists = async () => {
     };
 
     try {
-        const [mySessions, sharedSessions] = await Promise.all([
-            getMySessions(),
-            getSharedWithMe()
-        ]);
+        // Pega data do filtro se houver
+        const dateFilter = dateInput.value || null;
 
-        // Render My Sessions
-        if (mySessions.length === 0) {
-            mySessionsEl.innerHTML = '<div class="empty-state-premium py-4"><i class="bi bi-cloud-slash empty-state-icon fs-2 mb-2"></i><p class="text-muted mb-0 small">Nenhuma sessão salva.</p></div>';
+        // Busca TODAS as sessões (Global)
+        // Se tiver filtro de data, usa. Se não, traz as últimas 50.
+        const sessions = await getAllSessions(dateFilter);
+
+        // Atualiza contador
+        if (countBadge) countBadge.textContent = sessions.length;
+
+        if (sessions.length === 0) {
+            listEl.innerHTML = `
+                <div class="empty-state-premium py-5">
+                    <i class="bi bi-cloud-slash empty-state-icon fs-1 mb-3 text-secondary"></i>
+                    <p class="text-muted mb-0">Nenhuma sessão encontrada${dateFilter ? ' nesta data' : ''}.</p>
+                </div>`;
         } else {
-            mySessionsEl.innerHTML = mySessions.map(s => {
-                // Tenta extrair metadados se disponíveis (retrocompatibilidade)
+            const { data: { user } } = await supabase.auth.getUser();
+            const currentUserId = user?.id;
+
+            listEl.innerHTML = sessions.map(s => {
+                const isOwner = s.user_id === currentUserId;
+                const ownerLabel = isOwner ? '<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 ms-2">Minha</span>' : '';
+                const ownerName = isOwner ? 'Você' : (s.owner?.email || 'Desconhecido');
+
+                // Metadados
                 const veiculosCount = s.data?.appState?.activeLoads ? Object.keys(s.data.appState.activeLoads).length : 0;
-                const pesoTotal = s.data?.appState?.activeLoads ? Object.values(s.data.appState.activeLoads).reduce((acc, l) => acc + (l.totalKg || 0), 0) : 0;
-                const details = veiculosCount > 0 ? ` &bull; <small class="text-info">${veiculosCount} Veículos (${(pesoTotal / 1000).toFixed(1)}t)</small>` : '';
+                const totalPeso = s.data?.appState?.activeLoads ? Object.values(s.data.appState.activeLoads).reduce((acc, l) => acc + (l.totalKg || 0), 0) : 0;
+                const details = veiculosCount > 0 ? `<div class="d-flex align-items-center gap-2 mt-1 small text-info"><i class="bi bi-truck"></i> ${veiculosCount} Veículos <span class="text-secondary">|</span> ${(totalPeso / 1000).toFixed(1)}t</div>` : '';
 
                 return `
-                <div class="list-group-item list-group-item-action bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="fw-bold">${s.name} ${details}</div>
-                        <small class="text-muted"><i class="bi bi-clock me-1"></i>${formatDateBR(s.created_at)}</small>
-                    </div>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-info" onclick="window.openShareModal('${s.id}', '${s.name.replace(/'/g, "\\'")}')" title="Compartilhar"><i class="bi bi-share-fill"></i></button>
-                        <button class="btn btn-outline-primary" onclick="window.performLoadSession('${s.id}')" title="Carregar"><i class="bi bi-upload"></i></button>
-                        <button class="btn btn-outline-danger" onclick="window.performDeleteSession('${s.id}')" title="Excluir"><i class="bi bi-trash-fill"></i></button>
+                <div class="list-group-item list-group-item-action bg-transparent text-light border-secondary p-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="me-3">
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="fw-bold text-light">${s.name}</span>
+                                ${ownerLabel}
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <i class="bi bi-person-circle me-1"></i>${ownerName} &bull; ${formatDateBR(s.created_at)}
+                            </div>
+                            ${details}
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="window.performLoadSession('${s.id}')" title="Carregar Sessão">
+                                <i class="bi bi-upload me-1"></i>Carregar
+                            </button>
+                            ${isOwner ? `<button class="btn btn-sm btn-outline-danger" onclick="window.performDeleteSession('${s.id}')" title="Excluir"><i class="bi bi-trash-fill"></i></button>` : ''}
+                        </div>
                     </div>
                 </div>
-            `}).join('');
-        }
-
-        // Render Shared Sessions
-        if (sharedSessions.length === 0) {
-            sharedSessionsEl.innerHTML = '<div class="empty-state-premium py-4"><i class="bi bi-inbox empty-state-icon fs-2 mb-2"></i><p class="text-muted mb-0 small">Nenhum compartilhamento recebido.</p></div>';
-        } else {
-            sharedSessionsEl.innerHTML = sharedSessions.map(s => {
-                const veiculosCount = s.data?.appState?.activeLoads ? Object.keys(s.data.appState.activeLoads).length : 0;
-                const details = veiculosCount > 0 ? ` &bull; <small class="text-info">${veiculosCount} Veículos</small>` : '';
-
-                return `
-                <div class="list-group-item list-group-item-action bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="fw-bold text-info">${s.name} ${details}</div>
-                        <small class="text-muted">De: ${s.owner?.email || 'Desconhecido'}</small><br>
-                        <small class="text-muted"><i class="bi bi-clock me-1"></i>${formatDateBR(s.created_at)}</small>
-                    </div>
-                    <button class="btn btn-sm btn-primary" onclick="window.performLoadSession('${s.id}')"><i class="bi bi-upload me-1"></i>Carregar</button>
-                </div>
-            `}).join('');
+            `;
+            }).join('');
         }
 
     } catch (error) {
         console.error(error);
-        const errMsg = '<div class="empty-state-premium py-4 border-danger"><i class="bi bi-exclamation-triangle text-danger empty-state-icon fs-2 mb-2"></i><p class="text-danger mb-0 small">Erro ao carregar sessões.</p></div>';
-        mySessionsEl.innerHTML = errMsg;
-        sharedSessionsEl.innerHTML = errMsg;
+        listEl.innerHTML = `
+            <div class="empty-state-premium py-4 border-danger">
+                <i class="bi bi-exclamation-triangle text-danger empty-state-icon fs-2 mb-2"></i>
+                <p class="text-danger mb-0 small">Erro ao carregar histórico.</p>
+                <div class="small text-muted mt-2">${error.message}</div>
+            </div>`;
     }
+};
+
+window.clearDateFilter = () => {
+    document.getElementById('cloudDateFilter').value = '';
+    window.renderSessionLists();
 };
 
 window.openSaveSessionModal = () => {
@@ -344,17 +358,41 @@ window.performLoadSession = async (id) => {
         const sharedToast = document.getElementById('shared-sessions-alert-toast');
         if (sharedToast) {
             sharedToast.classList.remove('show');
-            setTimeout(() => sharedToast.remove(), 300);
         }
 
-        // Close Modals
-        const cloudModal = bootstrap.Modal.getInstance(document.getElementById('cloudModal'));
-        if (cloudModal) cloudModal.hide();
+        // Close Cloud Modal (Global History)
+        const cloudModalEl = document.getElementById('cloudModal');
+        if (cloudModalEl) {
+            const modal = bootstrap.Modal.getInstance(cloudModalEl);
+            if (modal) modal.hide();
+        }
 
-        // Trigger restore logic
-        await loadStateFromLocalStorage();
+        // Redirect to Dashboard (Resumo Geral)
+        document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active-view'));
+        document.getElementById('summary-view').classList.add('active-view');
 
-        alert('Sessão carregada com sucesso!');
+        // Update Sidebar Active State
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        document.querySelector('[data-view="summary-view"]')?.classList.add('active');
+
+        // Reload App State
+        // Ensure loadStateFromLocalStorage is available (it's in script.js, should be global)
+        if (typeof window.loadStateFromLocalStorage === 'function') {
+            await window.loadStateFromLocalStorage();
+        } else {
+            // Fallback if not on window (e.g. if script.js not loaded yet or module scope issue)
+            // Try to just call it if it was imported or available in scope
+            try {
+                await loadStateFromLocalStorage();
+            } catch (e) {
+                console.warn("Could not find loadStateFromLocalStorage. Reloading page might be needed.", e);
+                // Last resort: simple reload
+                window.location.reload();
+                return;
+            }
+        }
+
+        alert('Sessão "' + session.name + '" carregada com sucesso!');
 
     } catch (error) {
         console.error(error);
