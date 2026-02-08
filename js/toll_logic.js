@@ -44,13 +44,12 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
     const n = bounds.getNorth();
     const e = bounds.getEast();
 
-    // Query otimizada: substitui regex lento (~"city|town") por união direta
-    // Isso reduz drasticamente a carga no servidor Overpass
-    // --- QUERY OTIMIZADA V6 (TWO-PHASE) ---
-    // Em vez de buscar TODAS as cidades no BBOX (lento e pesado),
-    // buscamos primeiro os pedágios, e depois APENAS as cidades num raio de 20km deles.
+    // --- QUERY OTIMIZADA V6.1 (NO REGEX) ---
+    // Removemos o regex (~"city|town") que causa timeout no Overpass.
+    // Usamos node["place"="city"] e node["place"="town"] explicitamente.
+    // Timeout ajustado para 25s no servidor.
     const query = `
-        [out:json][timeout:90]; // Timeout menor por tentativa
+        [out:json][timeout:25];
         (
             node["barrier"="toll_booth"](${s},${w},${n},${e});
             node["highway"="toll_gantry"](${s},${w},${n},${e});
@@ -58,18 +57,19 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
         )->.tolls;
         .tolls out body;
         (
-            node(around.tolls:20000)["place"~"city|town"];
+            node(around.tolls:20000)["place"="city"];
+            node(around.tolls:20000)["place"="town"];
         );
         out body;
     `;
 
-    // Lista de servidores Overpass para fallback (Redundância Segura)
-    // LZ4 promovido a primário por ser geralmente mais rápido para leitura
+    // Lista de servidores Overpass para fallback (Otimizada para 2026)
+    // Priorizando a Main API e Mirrors estáveis, evitando timeouts.
     const servers = [
-        "https://lz4.overpass-api.de/api/interpreter", // LZ4: Compressão rápida (Primário)
-        "https://overpass.kumi.systems/api/interpreter", // Kumi: Alta capacidade
-        "https://api.openstreetmap.fr/oapi/interpreter", // Francês: Backup robusto
-        "https://overpass-api.de/api/interpreter" // Main: Último recurso (frequentemente lotado)
+        "https://overpass-api.de/api/interpreter", // Main: Mais estável e previsível
+        "https://lz4.overpass-api.de/api/interpreter", // LZ4: Compressão rápida (Backup imediato)
+        "https://maps.mail.ru/osm/tools/overpass/api/interpreter", // RU: Muito rápido para queries grandes
+        "https://overpass.kumi.systems/api/interpreter" // Kumi: Backup final
     ];
 
     let data = null;
@@ -81,9 +81,9 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
             console.log(`Tentando buscar pedágios em: ${server}`);
             const url = `${server}?data=${encodeURIComponent(query)}`;
 
-            // Timeout de 25s por tentativa para falhar rápido e tentar o próximo espelho
+            // Timeout de 30s por tentativa (aumentado de 25s) para dar chance de resposta em redes lentas
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 25000);
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
 
             const response = await fetch(url, { signal: controller.signal });
             clearTimeout(timeoutId);
@@ -133,7 +133,8 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                             lat: nodeLat,
                             lng: nodeLon,
                             name: node.tags.name || "Cidade Desconhecida",
-                            type: 'city'
+                            type: 'city', // Mantemos 'city' como identificador genérico de tipo de objeto
+                            placeType: node.tags.place // 'city', 'town', 'village', etc.
                         });
                     }
                 } else if (node.tags.barrier === 'toll_booth' || node.tags.highway === 'toll_gantry' || node.tags.man_made === 'toll_gantry') {
@@ -214,12 +215,37 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
                 let minDist = Infinity;
 
                 // 2. Achar contexto (Cidade ou Parada) - Busca Global
+                // 2. Achar contexto (Cidade ou Parada) - Busca Global OTIMIZADA V9
+                // Tenta primeiro usar tags do próprio nó (addr:city)
+                let directCity = booth.tags['addr:city'] || booth.tags['is_in:city'] || booth.tags['city'];
+
+                if (directCity) {
+                    nearestName = directCity;
+                    // Ainda calculamos minDist para fins de log, mas o nome é forçado
+                }
+
                 if (allReferences.length > 0) {
                     allReferences.forEach(ref => {
                         if (ref.coords || (ref.lat && ref.lng)) {
                             const rLat = ref.coords ? ref.coords.lat : ref.lat;
                             const rLng = ref.coords ? ref.coords.lng : ref.lng;
-                            const d = (rLat - booth.lat) ** 2 + (rLng - booth.lng) ** 2;
+
+                            // Distância ao quadrado
+                            let d = (rLat - booth.lat) ** 2 + (rLng - booth.lng) ** 2;
+
+                            // LOGICA DE PESO: Se for uma cidade GRANDE (place=city), 
+                            // reduzimos a distância "virtual" para ela e 'puxa' a referência.
+                            // Isso ajuda a preferir "Ortigueira" (city) a "Imbaú" (town) se estiverem próximas.
+                            if (ref.placeType === 'city') {
+                                d = d * 0.4; // Dá um "desconto" de 60% na distância para cidades grandes
+                            }
+
+                            // Se já temos um nome fixo via tags, só atualizamos se for uma parada de rota (stop)
+                            // pois paradas de rota são definitivas (ex: "Entrega Tintas")
+                            if (directCity && ref.type !== 'stop') {
+                                return;
+                            }
+
                             if (d < minDist) {
                                 minDist = d;
                                 nearestName = ref.name ? ref.name.split(',')[0].trim() : "Local";
