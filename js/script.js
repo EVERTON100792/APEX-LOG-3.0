@@ -4150,6 +4150,19 @@ function deleteObservation(loadId) {
 }
 
 function renderLoadCard(load, vehicleType, vInfo) {
+    // --- GERAÇÃO DE ID CURTO (SE NECESSÁRIO) ---
+    // Garante que a carga tenha um shortId se não tiver (migração/compatibilidade)
+    if (!load.shortId) {
+        // Verifica se generateLoadId existe (pois pode não ter sido carregado ainda se estivermos editando)
+        if (typeof generateLoadId === 'function') {
+            load.shortId = generateLoadId();
+            if (typeof debouncedSaveState === 'function') debouncedSaveState();
+        } else {
+            // Fallback temporário se a função não estiver disponível no escopo (embora deva estar)
+            load.shortId = Math.floor(10000 + Math.random() * 90000).toString();
+        }
+    }
+
     load.pedidos.sort((a, b) => {
         const clienteA = String(a.Cliente); const clienteB = String(b.Cliente);
         const pedidoA = String(a.Num_Pedido); const pedidoB = String(b.Num_Pedido);
@@ -4304,7 +4317,10 @@ function renderLoadCard(load, vehicleType, vInfo) {
                 <div class="header-main-info">
                     <div class="load-badge-id">
                         <i class="bi ${vInfo.icon}" style="color: ${titleIconColor}"></i>
-                        <span>#${load.numero || load.id.split('-').pop()}</span>
+                        <span class="d-flex flex-column align-items-start leading-tight">
+                            <span>${load.numero || load.id.split('-').pop()}</span>
+                            <span style="font-size: 0.65em; opacity: 0.7; font-weight: 300; font-family: monospace;">#${load.shortId}</span>
+                        </span>
                     </div>
                     <div class="load-main-title">
                         ${vInfo.name}${spDescription}
@@ -5695,7 +5711,8 @@ function finalizeManualLoad() {
     const newLoad = {
         ...manualLoadInProgress,
         id: `manual-${vehicleType}-${Date.now()}`,
-        numero: `M-${Object.keys(activeLoads).filter(k => k.startsWith('manual')).length + 1}`
+        numero: `M-${Object.keys(activeLoads).filter(k => k.startsWith('manual')).length + 1}`,
+        shortId: generateLoadId() // GERA ID DE 5 DÍGITOS
     };
 
     activeLoads[newLoad.id] = newLoad;
@@ -6000,6 +6017,17 @@ function toggleAllCheckboxes(source) {
     updateBulkActionsPanel();
 }
 
+// --- FUNÇÃO PARA GERAR ID CURTO DE 5 DÍGITOS ---
+function generateLoadId() {
+    let id;
+    do {
+        id = Math.floor(10000 + Math.random() * 90000).toString();
+    } while (Object.values(activeLoads).some(load => load.shortId === id));
+    return id;
+}
+
+
+
 function updateBulkActionsPanel(event) {
     if (event) event.stopPropagation(); // Impede que o clique no checkbox dispare o highlight da linha
 
@@ -6202,7 +6230,8 @@ function montarCargaPredefinida(inputId, resultadoId, processedSet, nomeCarga) {
             totalKg: totalKg,
             totalCubagem: totalCubagem,
             numero: nomeCarga,
-            vehicleType: veiculoEscolhido.tipo
+            vehicleType: veiculoEscolhido.tipo,
+            shortId: generateLoadId() // GERA ID DE 5 DÍGITOS
         };
         activeLoads[loadId] = load;
 
@@ -9907,3 +9936,83 @@ window.generateTextPDF = async function () {
 
 
 
+
+// --- LÓGICA DE PESQUISA DE CARGA POR ID CURTO ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Listener para pesquisa de carga
+    const loadSearchInput = document.getElementById('loadSearchInput');
+    if (loadSearchInput) {
+        loadSearchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                searchLoadByShortId(e.target.value);
+            }
+        });
+    }
+});
+
+function searchLoadByShortId(shortId) {
+    if (!shortId) return;
+    const term = shortId.trim();
+
+    // Encontra a carga pelo shortId (ou parte dele, ou até pelo ID completo se colar)
+    // Prioriza shortId exato
+    let targetLoadId = null;
+    let targetLoad = Object.values(activeLoads).find(l => l.shortId === term);
+
+    if (!targetLoad) {
+        // Tenta pelo ID interno
+        targetLoad = activeLoads[term];
+    }
+
+    if (targetLoad) {
+        targetLoadId = targetLoad.id;
+
+        // Identifica a aba correta
+        let tabId = null;
+        if (targetLoad.vehicleType === 'fiorino') tabId = 'fiorino-tab-pane';
+        else if (targetLoad.vehicleType === 'van') tabId = 'van-tab-pane';
+        else if (targetLoad.vehicleType === 'tresQuartos') tabId = 'tres-quartos-tab-pane';
+        else if (targetLoad.vehicleType === 'toco') tabId = 'toco-tab-pane';
+        else if (targetLoad.vehicleType === 'especial') tabId = 'montagens-especiais-tab-pane'; // Supondo aba de especiais
+
+        // Se for carga fechada PR/BR, a lógica é mais complexa pois estão em acordeões dentro de outras abas
+        // Mas o sistema atual parece focar nos tipos de veículo principais para o shortId
+
+        if (tabId) {
+            // Ativa a aba
+            const tabBtn = document.querySelector(`button[data-bs-target="#${tabId}"]`) || document.querySelector(`a[data-bs-target="#${tabId}"]`);
+            if (tabBtn) {
+                const tabInstance = bootstrap.Tab.getOrCreateInstance(tabBtn);
+                tabInstance.show();
+            }
+
+            // Rola até o card e destaca
+            setTimeout(() => {
+                const card = document.getElementById(targetLoadId);
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    card.classList.add('search-highlight');
+                    // Piscar borda - Estilos inline para garantir
+                    const originalBoxShadow = card.style.boxShadow;
+                    const originalTransition = card.style.transition;
+
+                    card.style.transition = 'box-shadow 0.5s ease, transform 0.5s ease';
+                    card.style.boxShadow = '0 0 20px 5px var(--dark-primary)';
+                    card.style.transform = 'scale(1.02)';
+
+                    setTimeout(() => {
+                        card.style.boxShadow = originalBoxShadow;
+                        card.style.transform = 'scale(1)';
+                        card.classList.remove('search-highlight');
+                    }, 2000);
+
+                    showToast(`Carga encontrada: ${targetLoad.numero}`, 'success');
+                } else {
+                    showToast(`Carga encontrada (${targetLoad.numero}), mas o card não está visível.`, 'warning');
+                }
+            }, 300); // tempo para troca de aba
+        }
+    } else {
+        showToast(`Carga com ID "${term}" não encontrada.`, 'error');
+    }
+}
