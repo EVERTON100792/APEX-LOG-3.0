@@ -932,14 +932,35 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Restaura a áºltima view e aba ativas
-    const lastView = localStorage.getItem('lastActiveView');
+    // Restaura a ultima view e aba ativas (Robust)
+    const restoreState = () => {
+        const lastView = localStorage.getItem('lastActiveView');
+        if (lastView) {
+            document.querySelector(`a[href="${lastView}"]`)?.click();
+        }
 
-    if (lastView) {
-        document.querySelector(`a[href="${lastView}"]`)?.click();
-    }
-    const lastTab = localStorage.getItem('lastActiveTab');
-    if (lastTab) {
-        document.querySelector(`button[data-bs-target="${lastTab}"]`)?.click();
+        // Tiny delay to ensure view is active before clicking tab
+        setTimeout(() => {
+            const lastTab = localStorage.getItem('lastActiveTab');
+            if (lastTab) {
+                // Try to find the button that targets this pane
+                const tabBtn = document.querySelector(`button[data-bs-target="${lastTab}"]`);
+                if (tabBtn) {
+                    console.log(`[Persist] Restoring tab: ${lastTab}`);
+                    // Ensure we use Bootstrap API for reliable switching
+                    const tab = bootstrap.Tab.getOrCreateInstance(tabBtn);
+                    tab.show();
+                } else {
+                    console.warn(`[Persist] Saved tab not found: ${lastTab}`);
+                }
+            }
+        }, 150);
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', restoreState);
+    } else {
+        restoreState();
     }
 
     document.addEventListener('shown.bs.collapse', function (event) { // prettier-ignore

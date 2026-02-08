@@ -17,6 +17,16 @@ async function initApp() {
     if (!session) return; // redirect handled in auth.js
 
     // 2. Realtime Subscription
+    // Safeguard: Ensure cloud modal is closed on reload
+    const cloudModal = document.getElementById('cloudModal');
+    if (cloudModal) {
+        cloudModal.classList.remove('show');
+        cloudModal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) backdrop.remove();
+    }
+
     subscribeToActivities((activity) => {
         const container = document.getElementById('realtime-toast-container');
         if (!container) return;
