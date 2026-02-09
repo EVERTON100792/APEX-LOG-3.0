@@ -10014,36 +10014,20 @@ function searchLoadByShortId(shortId) {
         setTimeout(() => {
             const card = document.getElementById(targetLoadId);
             if (card) {
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // NOVO: Verifica se o card está dentro de um Accordion colapsado
+                const parentCollapse = card.closest('.accordion-collapse');
+                if (parentCollapse) {
+                    // Se estiver em um accordion, expande-o
+                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(parentCollapse);
+                    bsCollapse.show();
 
-                // Efeito visual de destaque
-                card.classList.add('search-highlight');
-
-                // Força estilo inline momentâneo para garantir visibilidade
-                const originalTransition = card.style.transition;
-                const originalTransform = card.style.transform;
-                const originalBoxShadow = card.style.boxShadow;
-                const originalBorder = card.style.border;
-
-                card.style.transition = 'all 0.5s ease';
-                card.style.transform = 'scale(1.05)';
-                card.style.boxShadow = '0 0 25px rgba(255, 255, 0, 0.7)'; // Glow amarelo brilhante
-                card.style.border = '2px solid yellow';
-                card.style.zIndex = '100';
-
-                setTimeout(() => {
-                    // Remove estilos inline e volta ao CSS original
-                    card.style.transition = originalTransition;
-                    card.style.transform = originalTransform;
-                    card.style.boxShadow = originalBoxShadow;
-                    card.style.border = originalBorder;
-                    card.style.zIndex = '';
-                    card.classList.remove('search-highlight');
-                }, 3000); // 3 segundos de destaque
-
-                // Se houver toast, mostra confirmação
-                if (typeof showToast === 'function') {
-                    showToast(`Carga ${targetLoad.numero || targetLoad.shortId || 'encontrada'} localizada!`, 'success');
+                    // Se expandiu um accordion, precisamos de mais um tempinho para a animação
+                    setTimeout(() => {
+                        executeScrollAndHighlight(card, targetLoad);
+                    }, 400); // Tempo para animação do accordion (padrão bootstrap é ~350ms)
+                } else {
+                    // Se não tiver accordion, rola direto
+                    executeScrollAndHighlight(card, targetLoad);
                 }
             } else {
                 console.warn("Card da carga não encontrado no DOM (pode não ter sido renderizado ainda).");
@@ -10058,6 +10042,41 @@ function searchLoadByShortId(shortId) {
         } else {
             alert(`Carga "${term}" não encontrada.`);
         }
+    }
+}
+
+// Função auxiliar para rolar e destacar (para evitar duplicação de código)
+function executeScrollAndHighlight(card, targetLoad) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    // Efeito visual de destaque
+    card.classList.add('search-highlight');
+
+    // Força estilo inline momentâneo para garantir visibilidade
+    const originalTransition = card.style.transition;
+    const originalTransform = card.style.transform;
+    const originalBoxShadow = card.style.boxShadow;
+    const originalBorder = card.style.border;
+
+    card.style.transition = 'all 0.5s ease';
+    card.style.transform = 'scale(1.05)';
+    card.style.boxShadow = '0 0 25px rgba(255, 255, 0, 0.7)'; // Glow amarelo brilhante
+    card.style.border = '2px solid yellow';
+    card.style.zIndex = '100';
+
+    setTimeout(() => {
+        // Remove estilos inline e volta ao CSS original
+        card.style.transition = originalTransition;
+        card.style.transform = originalTransform;
+        card.style.boxShadow = originalBoxShadow;
+        card.style.border = originalBorder;
+        card.style.zIndex = '';
+        card.classList.remove('search-highlight');
+    }, 3000); // 3 segundos de destaque
+
+    // Se houver toast, mostra confirmação
+    if (typeof showToast === 'function') {
+        showToast(`Carga ${targetLoad.numero || targetLoad.shortId || 'encontrada'} localizada!`, 'success');
     }
 }
 
