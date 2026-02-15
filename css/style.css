@@ -689,6 +689,19 @@
             box-shadow: 0 0 10px rgba(14, 165, 233, 0.05);
         }
 
+        /* Classes utilitárias para VAN */
+        .bg-van {
+            background-color: var(--dark-accent) !important;
+        }
+
+        .border-van {
+            border-color: var(--dark-accent) !important;
+        }
+
+        .text-van {
+            color: var(--dark-accent) !important;
+        }
+
         .btn-tactical.van:hover,
         .btn-tactical.van.active {
             background-color: var(--dark-accent);
@@ -2059,7 +2072,7 @@
         }
 
         .route-van {
-            border-left: 4px solid var(--dark-primary);
+            border-left: 4px solid var(--dark-accent);
         }
 
         .route-tresQuartos {
@@ -2071,7 +2084,7 @@
         }
 
         .route-van:hover>td {
-            background-color: rgba(10, 132, 255, 0.15) !important;
+            background-color: rgba(14, 165, 233, 0.15) !important;
         }
 
         .route-tresQuartos:hover>td {
@@ -2099,7 +2112,7 @@
         }
 
         .accordion-button.route-van {
-            border-left: 5px solid var(--dark-primary);
+            border-left: 5px solid var(--dark-accent);
         }
 
         .accordion-button.route-tresQuartos {
@@ -2231,8 +2244,8 @@
         }
 
         .nav-tabs-modern .nav-link.tab-van.active {
-            background: linear-gradient(135deg, var(--dark-primary), var(--dark-primary-hover));
-            box-shadow: 0 4px 15px var(--dark-primary-glow);
+            background: linear-gradient(135deg, var(--dark-accent), var(--dark-accent));
+            box-shadow: 0 4px 15px var(--dark-accent-glow);
         }
 
         .nav-tabs-modern .nav-link.tab-tres-quartos.active {
@@ -3283,7 +3296,7 @@
                 column-gap: 15px;
                 width: 100%;
             }
-            
+
             .print-tolls-columns .toll-item {
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -3295,7 +3308,7 @@
                 border-bottom: 1px dotted #ccc;
                 line-height: 1.1;
             }
-            
+
             .print-tolls-columns .toll-item strong {
                 font-weight: 700;
                 margin-right: 5px;
@@ -3313,5 +3326,5 @@
             }
 
             /* Map height adjustment if needed, but keeping user preference */
-            /* #map-container { height: 350px !important; } */ 
+            /* #map-container { height: 350px !important; } */
         }

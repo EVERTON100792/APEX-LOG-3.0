@@ -1780,7 +1780,7 @@ function atualizarUIAposAcao(mensagemToast, affectedLoadId = null) {
         if (load && cardElement) { // A carga ainda existe, renderiza novamente
             const vehicleInfo = {
                 fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
-                van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
+                van: { name: 'Van', colorClass: 'bg-van', textColor: 'text-white', icon: 'bi-truck-front-fill' },
                 tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
                 toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
             };
@@ -2077,7 +2077,7 @@ function processar() {
 function renderActiveLoadCards() {
     const vehicleInfo = {
         fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
-        van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
+        van: { name: 'Van', colorClass: 'bg-van', textColor: 'text-white', icon: 'bi-truck-front-fill' },
         tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
         especial: { name: 'Especial', colorClass: 'bg-dark', textColor: 'text-white', icon: 'bi-clipboard-check-fill' }
     };
@@ -2114,7 +2114,7 @@ function renderActiveLoadCards() {
 function renderRoteiroLoads() {
     const vehicleInfo = {
         fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
-        van: { name: 'Van', colorClass: 'bg-primary', textColor: 'text-white', icon: 'bi-truck-front-fill' },
+        van: { name: 'Van', colorClass: 'bg-van', textColor: 'text-white', icon: 'bi-truck-front-fill' },
         tresQuartos: { name: '3/4', colorClass: 'bg-warning', textColor: 'text-dark', icon: 'bi-truck-flatbed' },
         toco: { name: 'Toco', colorClass: 'bg-secondary', textColor: 'text-white', icon: 'bi-inboxes-fill' }
     };
