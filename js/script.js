@@ -2084,24 +2084,37 @@ function renderActiveLoadCards() {
 
     // Limpa os containers de resultado antes de redesenhar para evitar duplicatas.
     document.getElementById('resultado-fiorino-geral').innerHTML = '';
-    document.getElementById('resultado-van-geral').innerHTML = '';
-    document.getElementById('resultado-34-geral').innerHTML = '';
+    document.getElementById('resultado-van-pr').innerHTML = '';
+    document.getElementById('resultado-van-sp').innerHTML = '';
+    // document.getElementById('resultado-34-geral').innerHTML = ''; // Removido pois a aba 3/4 foi excluída
     const especialContainer = document.getElementById('resultado-montagens-especiais');
     if (especialContainer) especialContainer.innerHTML = '';
 
     for (const loadId in activeLoads) {
         const load = activeLoads[loadId];
-        // Ignora cargas 'Toco', pois são tratadas por displayToco()
+        // Ignora cargas 'Toco' e roteirizadas por lista
         if (load.vehicleType === 'toco' || load.id.startsWith('roteiro-')) continue;
 
         const vInfo = vehicleInfo[load.vehicleType];
         if (vInfo) {
             const cardHtml = renderLoadCard(load, load.vehicleType, vInfo);
-            let containerId;
-            if (load.vehicleType === 'fiorino') containerId = 'resultado-fiorino-geral';
-            else if (load.vehicleType === 'van') containerId = 'resultado-van-geral';
-            else if (load.vehicleType === 'tresQuartos') containerId = 'resultado-34-geral';
-            else if (load.vehicleType === 'especial') containerId = 'resultado-montagens-especiais';
+            if (load.vehicleType === 'fiorino') {
+                containerId = 'resultado-fiorino-geral';
+            } else if (load.vehicleType === 'van' || load.vehicleType === 'tresQuartos') {
+                // Lógica para separar PR e SP
+                // Verifica a primeira rota da carga para determinar a origem
+                const firstRoute = load.pedidos && load.pedidos.length > 0 ? String(load.pedidos[0].Cod_Rota) : '';
+                // PR: Começa com 1 (ex: 10101) OU título começa com "Rota 1" (verificação mais segura se map disponível)
+                const isPR = firstRoute.startsWith('1') || (rotaVeiculoMap[firstRoute] && rotaVeiculoMap[firstRoute].title.startsWith('Rota 1'));
+
+                if (isPR) {
+                    containerId = 'resultado-van-pr';
+                } else {
+                    containerId = 'resultado-van-sp';
+                }
+            } else if (load.vehicleType === 'especial') {
+                containerId = 'resultado-montagens-especiais';
+            }
 
             const container = document.getElementById(containerId);
             if (container) {
@@ -2174,11 +2187,23 @@ function renderAllUI() {
 }
 
 function updateTabCounts() {
+    // Helper to check if load is PR
+    const isPRLoad = (load) => {
+        const firstRoute = load.pedidos && load.pedidos.length > 0 ? String(load.pedidos[0].Cod_Rota) : '';
+        return firstRoute.startsWith('1') || (rotaVeiculoMap[firstRoute] && rotaVeiculoMap[firstRoute].title.startsWith('Rota 1'));
+    };
+
     // Calcula os totais para cada aba
+    const allVanAnd34 = Object.values(activeLoads).filter(l => (l.vehicleType === 'van' || l.vehicleType === 'tresQuartos') && !l.id.startsWith('roteiro-'));
+    const vanPRCount = allVanAnd34.filter(l => isPRLoad(l)).length;
+    const vanSPCount = allVanAnd34.filter(l => !isPRLoad(l)).length;
+
     const counts = {
         fiorino: Object.values(activeLoads).filter(l => l.vehicleType === 'fiorino' && !l.id.startsWith('roteiro-')).length,
-        van: Object.values(activeLoads).filter(l => l.vehicleType === 'van' && !l.id.startsWith('roteiro-')).length,
-        tresQuartos: Object.values(activeLoads).filter(l => l.vehicleType === 'tresQuartos' && !l.id.startsWith('roteiro-')).length,
+        vanPR: vanPRCount,
+        vanSP: vanSPCount,
+        // Mantemos tresQuartos zerado ou somado onde fizer sentido, mas a UI agora foca em Van PR/SP
+        tresQuartos: 0,
         toco: Object.keys(gruposToco).length,
         pr: new Set(cargasFechadasPR.map(p => {
             const col5 = String(p.Coluna5 || '').toUpperCase();
@@ -2200,7 +2225,8 @@ function updateTabCounts() {
     };
 
     updateBadge('badge-fiorino', counts.fiorino);
-    updateBadge('badge-van', counts.van);
+    updateBadge('badge-van-pr', counts.vanPR);
+    updateBadge('badge-van-sp', counts.vanSP);
     updateBadge('badge-tres-quartos', counts.tresQuartos);
     updateBadge('badge-toco', counts.toco);
     updateBadge('badge-pr', counts.pr);
@@ -2541,7 +2567,7 @@ function displayGerais(div, grupos) {
     // Usa a funá§á£o centralizada para garantir a mesma ordem da busca
     const rotasOrdenadas = getSortedVarejoRoutes(Array.from(todasRotas));
 
-    const botoes = { fiorino: '', van: '', tresQuartos: '' };
+    const botoes = { fiorino: '', vanPR: '', vanSP: '', tresQuartos: '' };
     const addedButtons = new Set();
 
     rotasOrdenadas.forEach(rota => {
@@ -2562,34 +2588,53 @@ function displayGerais(div, grupos) {
 
             // Define o tá­tulo do botá£o dinamicamente
             let buttonTitle = config.title; // prettier-ignore
-            if (config.type === 'van' && !config.title.startsWith('Rota 1')) { // Se for van e ná£o for do Paraná¡
+            const isPR = config.title.startsWith('Rota 1') || String(rota).startsWith('1');
+
+            if (config.type === 'van' && !isPR) { // Se for van e ná£o for do Paraná¡
                 buttonTitle = `${rota} (VAN-3/4- SP)`;
             }
 
             const vehicleType = config.type;
             const colorClass = vehicleType === 'fiorino' ? 'success' : (vehicleType === 'van' ? 'primary' : 'warning');
-            const divId = vehicleType === 'fiorino' ? 'resultado-fiorino-geral' : (vehicleType === 'van' ? 'resultado-van-geral' : 'resultado-34-geral');
+
+            if (vehicleType === 'fiorino') {
+                targetKey = 'fiorino';
+                divId = 'resultado-fiorino-geral';
+            } else if (vehicleType === 'van' || vehicleType === 'tresQuartos') {
+                // Redireciona 3/4 para a lógica de Van (PR/SP) também
+                if (isPR) {
+                    targetKey = 'vanPR';
+                    divId = 'resultado-van-pr';
+                } else {
+                    targetKey = 'vanSP';
+                    divId = 'resultado-van-sp';
+                }
+            }
+
             const btnId = `btn-${vehicleType}-${rota}`;
             const routesKeyString = rotaValue.replace(/\[|\]|'|\s/g, ''); // Transforma ['1', '2'] em 1,2 (sem espaá§os)
 
             // Verifica se a rota já¡ foi processada para renderizar o botá£o no estado correto
-            // Verifica se a rota já¡ foi processada para renderizar o botá£o no estado correto
             // UX Tática: Botoes menores e mais tecnicos
+            let btnHtml = '';
             if (processedRoutes.has(routesKeyString)) {
-                botoes[vehicleType] += `
+                btnHtml = `
                             <div class="btn-group mt-2 me-2" role="group">
                                 <button id="${btnId}" class="btn btn-tactical ${vehicleType} active" onclick="exibirCargasDaRota('${routesKeyString}')"><i class="bi bi-check2-circle"></i>${buttonTitle}</button>
                                 <button class="btn btn-tactical ${vehicleType} active" onclick="reprocessarRota('${routesKeyString}', event)" title="Reprocessar Rota"><i class="bi bi-arrow-clockwise"></i></button>
                             </div>`;
             } else {
                 const functionCall = `separarCargasGeneric(${rotaValue}, '${divId}', '${buttonTitle}', '${vehicleType}', this)`;
-                botoes[vehicleType] += `<button id="${btnId}" class="btn btn-tactical ${vehicleType} mt-2 me-2" onclick="${functionCall}"><i class="bi bi-play-fill"></i>${buttonTitle}</button>`;
+                btnHtml = `<button id="${btnId}" class="btn btn-tactical ${vehicleType} mt-2 me-2" onclick="${functionCall}"><i class="bi bi-play-fill"></i>${buttonTitle}</button>`;
             }
+
+            botoes[targetKey] += btnHtml;
         }
     });
     document.getElementById('botoes-fiorino').innerHTML = botoes.fiorino || '<div class="empty-state-premium"><i class="bi bi-box-seam empty-state-icon"></i><h5 class="text-light">Nenhuma rota de Fiorino encontrada</h5><p class="text-muted small">Não há rotas para este veículo na carga atual.</p></div>';
-    document.getElementById('botoes-van').innerHTML = botoes.van || '<div class="empty-state-premium"><i class="bi bi-truck-front-fill empty-state-icon"></i><h5 class="text-light">Nenhuma rota de Van encontrada</h5><p class="text-muted small">Não há rotas para este veículo na carga atual.</p></div>';
-    document.getElementById('botoes-34').innerHTML = botoes.tresQuartos || '<div class="empty-state-premium"><i class="bi bi-truck-flatbed empty-state-icon"></i><h5 class="text-light">Nenhuma rota de 3/4 encontrada</h5><p class="text-muted small">Não há rotas para este veículo na carga atual.</p></div>';
+    document.getElementById('botoes-van-pr').innerHTML = botoes.vanPR || '<div class="empty-state-premium"><i class="bi bi-truck-front-fill empty-state-icon"></i><h5 class="text-light">Nenhuma rota (PR) encontrada</h5><p class="text-muted small">Não há rotas do Paraná na carga atual.</p></div>';
+    document.getElementById('botoes-van-sp').innerHTML = botoes.vanSP || '<div class="empty-state-premium"><i class="bi bi-truck-front-fill empty-state-icon"></i><h5 class="text-light">Nenhuma rota (SP) encontrada</h5><p class="text-muted small">Não há rotas de SP na carga atual.</p></div>';
+    // document.getElementById('botoes-34').innerHTML = botoes.tresQuartos || ''; // Removido pois a aba 3/4 foi excluída
     let accordionHtml = '<div class="accordion accordion-flush" id="accordionGeral">';
     let hasPendingItems = false;
 
@@ -4688,9 +4733,21 @@ async function showRouteOnMap(loadId) {
         // 2. Geocodificação dos Destinos (Nominatim)
         const selmiAddress = "Empresa Selmi, BR-369, Rolândia - PR, 86181-570, Brasil";
         const locations = [{ name: selmiAddress, coords: origemCoords, isOrigin: true, pedidos: [] }];
+
         const cityGroups = {};
         load.pedidos.forEach(p => {
-            const key = `${p.Cidade}, ${p.UF}`;
+            // Normaliza a chave da cidade para garantir agrupamento correto
+            // Ex: "Maringa (PR)" -> "MARINGA, PR"
+            // Se UF não estiver presente no campo cidade, usa o campo UF do pedido
+            let cleanCityName = p.Cidade.trim().toUpperCase();
+            // Remove parenteses e conteúdo extra
+            if (cleanCityName.includes('(')) cleanCityName = cleanCityName.split('(')[0].trim();
+            // Remove traços
+            if (cleanCityName.includes('-')) cleanCityName = cleanCityName.split('-')[0].trim();
+
+            const uf = p.UF ? p.UF.trim().toUpperCase() : 'PR';
+            const key = `${cleanCityName}, ${uf}`;
+
             if (!cityGroups[key]) cityGroups[key] = [];
             cityGroups[key].push(p);
         });
@@ -4698,6 +4755,7 @@ async function showRouteOnMap(loadId) {
         const delay = ms => new Promise(res => setTimeout(res, ms));
 
         mapStatus.innerHTML = '<span class="text-info">Buscando coordenadas das cidades...</span>';
+        const failedCities = []; // Lista para reportar cidades não encontradas
 
         // Pre-carrega coordenadas de Rolândia para evitar fetch desnecessário (e erros de DNS)
         const rolandiaCoord = { lat: -23.3002, lng: -51.3358 };
@@ -4706,55 +4764,32 @@ async function showRouteOnMap(loadId) {
         if (!cityCoordsCache['ROLANDIA , PR']) cityCoordsCache['ROLANDIA , PR'] = rolandiaCoord; // Cacheia a versão 'suja' também
 
         for (const city of uniqueCities) {
-            // Limpeza mais robusta: remove espaços duplos e garante espaçamento correto na vírgula
-            const cleanedCity = city.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ', ').trim().toUpperCase();
 
-            // Verifica no cache global primeiro
-            if (cityCoordsCache[cleanedCity]) {
+            // Tenta geocodificar usando a nova função robusta
+            const result = await geocodeCityWithRetry(city, cityCoordsCache);
+            if (result.success) {
                 locations.push({
                     name: city,
-                    coords: cityCoordsCache[cleanedCity],
+                    coords: result.coords,
                     pedidos: cityGroups[city]
                 });
-                continue;
+            } else {
+                failedCities.push(city);
             }
 
-            try {
-                // Nominatim requer um User-Agent e delay entre requisições
-                // MODIFICADO: Busca 5 resultados e filtra por tipo para evitar ruas com nome de cidade
-                const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanedCity + ', Brasil')}&format=json&limit=5&addressdetails=1`;
-                const geoResponse = await fetch(geoUrl, { headers: { 'User-Agent': 'ApexLogApp/3.0' } });
-                const geoData = await geoResponse.json();
-
-                if (geoData && geoData.length > 0) {
-                    // Tenta encontrar um resultado que seja cidade/município
-                    let bestMatch = geoData[0];
-                    const cityMatch = geoData.find(item =>
-                        (item.class === 'boundary' && item.type === 'administrative') ||
-                        (item.class === 'place' && ['city', 'town', 'village', 'municipality', 'hamlet'].includes(item.type))
-                    );
-
-                    if (cityMatch) {
-                        bestMatch = cityMatch;
-                        // console.log(`Geocoding preferencial usado para ${city}: ${bestMatch.display_name} (${bestMatch.type})`);
-                    }
-
-                    const coords = { lat: parseFloat(bestMatch.lat), lng: parseFloat(bestMatch.lon) };
-                    cityCoordsCache[cleanedCity] = coords; // Salva no cache
-                    locations.push({
-                        name: city, coords, pedidos: cityGroups[city]
-                    });
-                } else {
-                    console.warn(`Cidade não encontrada: ${city}`);
-                }
-            } catch (err) {
-                console.warn(`Erro ao geocodificar ${city}:`, err);
-                if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-                    showToast('Erro de conexão. Verifique sua internet.', 'error');
-                }
-            }
-            await delay(1000); // Respeita rate limit de 1 req/sec do Nominatim
+            // Pequeno delay entre tratamentos de cidades para não travar a UI, 
+            // mas o delay principal da API já está dentro de geocodeCityWithRetry
+            await new Promise(r => setTimeout(r, 100));
         }
+
+        // Feedback de erro para o usuário
+        if (failedCities.length > 0) {
+            const msg = `Não foi possível localizar as seguintes cidades no mapa: ${failedCities.join(', ')}. A rota pode estar incompleta.`;
+            showToast(msg, 'warning');
+            console.warn(msg);
+        }
+
+
 
         if (locations.length <= 1) {
             mapStatus.innerHTML = '<span class="text-warning">Cidades não encontradas no mapa.</span>';
@@ -4833,8 +4868,205 @@ async function showRouteOnMap(loadId) {
         console.error("Erro geral no mapa:", e);
         mapStatus.innerHTML = `<span class="text-danger">Erro: ${e.message}</span>`;
     } finally {
+        window.isRouting = false;
+        document.body.style.cursor = 'default';
         if (window.toggleEpicLoading) window.toggleEpicLoading(false);
     }
+}
+
+
+/**
+ * Função robusa para geocodificação de cidades com retentativas e limpeza de nomes.
+ * @param {string} cityKey - Chave da cidade no formato "NOME, UF"
+ * @param {object} cache - Referência ao cache de coordenadas
+ * @returns {Promise<object>} - { success: boolean, coords: {lat, lng} }
+ */
+const UF_TO_STATE = {
+    'PR': 'PARANA',
+    'SP': 'SAO PAULO',
+    'SC': 'SANTA CATARINA',
+    'RS': 'RIO GRANDE DO SUL',
+    'MS': 'MATO GROSSO DO SUL',
+    'MT': 'MATO GROSSO',
+    'GO': 'GOIAS',
+    'MG': 'MINAS GERAIS',
+    'RJ': 'RIO DE JANEIRO',
+    'ES': 'ESPIRITO SANTO',
+    'BA': 'BAHIA',
+    'DF': 'DISTRITO FEDERAL'
+};
+
+/**
+ * Global Rate Limiter for Nominatim
+ * Ensures strictly 1 request every 1.5 seconds app-wide.
+ */
+const NominatimQueue = {
+    queue: [],
+    isProcessing: false,
+    lastRequestTime: 0,
+    DELAY_MS: 2000, // 2.0s interval (Safe mode for 425 errors)
+
+    /**
+     * Adds a request to the queue.
+     * @param {string} url - The URL to fetch.
+     * @returns {Promise<any>} - Resolves with JSON data.
+     */
+    add(url) {
+        return new Promise((resolve, reject) => {
+            this.queue.push({ url, resolve, reject });
+            this.process();
+        });
+    },
+
+    async process() {
+        if (this.isProcessing || this.queue.length === 0) return;
+        this.isProcessing = true;
+
+        const { url, resolve, reject, retries = 0 } = this.queue.shift();
+
+        // Calculate functionality required wait time
+        let now = Date.now();
+        let timeSinceLast = now - this.lastRequestTime;
+        let wait = Math.max(0, this.DELAY_MS - timeSinceLast);
+
+        if (wait > 0) {
+            await new Promise(r => setTimeout(r, wait));
+        }
+
+        try {
+            this.lastRequestTime = Date.now();
+
+            // Adiciona User-Agent genérico para tentar satisfazer políticas sem CORS preflight (alguns browsers permitem)
+            // Mas se falhar com CORS, o retry vai lidar.
+            const res = await fetch(url);
+
+            if (!res.ok) {
+                // 429: Too Many Requests | 425: Too Early | 503: Service Unavailable
+                if ([429, 425, 503].includes(res.status)) {
+                    throw new Error(`PROFILE_RATE_LIMIT_${res.status}`);
+                }
+                throw new Error(`HTTP Error: ${res.status} ${res.statusText}`);
+            }
+
+            const data = await res.json();
+            resolve(data);
+        } catch (err) {
+            // Se for erro de Rate Limit e ainda tiver tentativas (Max 3)
+            if (err.message.includes('PROFILE_RATE_LIMIT') && retries < 3) {
+                const backoff = (retries + 1) * 3000; // 3s, 6s, 9s
+                console.warn(`Nominatim 425/429 detectado. Retentando em ${backoff / 1000}s... (Tentativa ${retries + 1}/3)`);
+
+                // Devolve para o INÍCIO da fila com contador de retries incrementado
+                // Mas espera o backoff antes de processar de novo
+                await new Promise(r => setTimeout(r, backoff));
+
+                this.queue.unshift({ url, resolve, reject, retries: retries + 1 });
+            } else {
+                // Silently fail here, let the caller handle it.
+                reject(err);
+            }
+        } finally {
+            this.isProcessing = false;
+            // Process next item immediately (recursion via event loop)
+            setTimeout(() => this.process(), 0);
+        }
+    }
+};
+
+/**
+ * Função robusa para geocodificação de cidades com retentativas e limpeza de nomes.
+ * Uses NominatimQueue to prevent 425/CORS errors.
+ * @param {string} cityKey - Chave da cidade no formato "NOME, UF"
+ * @param {object} cache - Referência ao cache de coordenadas
+ * @returns {Promise<object>} - { success: boolean, coords: {lat, lng} }
+ */
+async function geocodeCityWithRetry(cityKey, cache) {
+    // 1. Verifica Cache
+    if (cache[cityKey]) {
+        return { success: true, coords: cache[cityKey] };
+    }
+
+    // 2. Prepara variações de nome para busca
+    // Ex: "TERRA ROXA, PR" -> ["TERRA ROXA, PR, Brasil", "TERRA ROXA, Brasil"]
+    const parts = cityKey.split(',');
+    const cityName = parts[0].trim();
+    const uf = parts.length > 1 ? parts[1].trim().toUpperCase() : '';
+
+    // Limpezas extras
+    const cleanCityName = cityName
+        .replace(/\bS\.\s/g, 'SAO ') // S. PAULO -> SAO PAULO
+        .replace(/\bSTO\.\s/g, 'SANTO ') // STO. -> SANTO
+        .replace(/[^\w\s\u00C0-\u00FF]/g, '') // Remove chars especiais exceto acentos
+        .trim();
+
+    const attempts = [];
+    if (uf) attempts.push(`${cleanCityName}, ${uf}, Brasil`);
+    attempts.push(`${cleanCityName}, Brasil`); // Tentativa sem UF se a primeira falhar
+    if (cityName !== cleanCityName) attempts.push(`${cityName}, ${uf}, Brasil`); // Tenta original se limpou demais
+
+    for (const query of attempts) {
+        try {
+            // Queue handles the delay now!
+            // await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Aumentamos limit para 5 para ter chance de pegar o estado certo se vier misturado
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1`;
+
+            // Use Queue instead of direct fetch
+            const data = await NominatimQueue.add(url);
+
+            if (data && data.length > 0) {
+                // Filtra candidatos que sejam cidades/municípios
+                const cityCandidates = data.filter(item =>
+                    (item.class === 'boundary' && item.type === 'administrative') ||
+                    (item.class === 'place' && ['city', 'town', 'village', 'municipality'].includes(item.type))
+                );
+
+                let bestMatch = null;
+
+                // VALIDACAO DE ESTADO (UF)
+                // Se temos UF no input, tentamos forçar o match com o estado retornado
+                if (uf && UF_TO_STATE[uf]) {
+                    const targetState = UF_TO_STATE[uf];
+
+                    // Procura match exato ou parcial do estado
+                    bestMatch = cityCandidates.find(item => {
+                        const addr = item.address || {};
+                        const stateName = (addr.state || '').toUpperCase()
+                            .replace(/[^\w\s]/g, '') // Remove acentos para comparação
+                            .replace('SAO', 'SAO'); // Normaliza
+
+                        const normalizedTarget = targetState.replace(/[^\w\s]/g, '');
+
+                        // Verifica Nome do Estado ou Codigo ISO (ex: BR-PR)
+                        const stateCode = (addr["ISO3166-2-lvl4"] || '').toUpperCase();
+
+                        return stateName.includes(normalizedTarget) || stateCode.endsWith(`-${uf}`);
+                    });
+                }
+
+                // Se não achou com validação (ou não tinha UF), pega o primeiro candidato válido de cidade
+                if (!bestMatch) bestMatch = cityCandidates[0];
+
+                // Fallback final: pega qualquer coisa que o Nominatim devolveu
+                if (!bestMatch) bestMatch = data[0];
+
+                if (bestMatch) {
+                    const coords = { lat: parseFloat(bestMatch.lat), lng: parseFloat(bestMatch.lon) };
+
+                    // Salva no cache com a chave original
+                    cache[cityKey] = coords;
+
+                    return { success: true, coords: coords };
+                }
+            }
+        } catch (error) {
+            // console.debug(`Tentativa falhou para ${query}:`, error.message);
+            // Continua para a próxima tentativa
+        }
+    }
+
+    return { success: false };
 }
 
 // Decodificador Polyline6 (padrão Valhalla/OSRM)
@@ -4890,8 +5122,22 @@ function removerParadaDoMapa(loadId, cityKey) {
     const load = activeLoads[loadId];
     if (!load) return;
 
-    const pedidosParaRemover = load.pedidos.filter(p => `${p.Cidade}, ${p.UF}` === cityKey);
-    if (pedidosParaRemover.length === 0) return;
+    // CORREÇÃO: Normaliza a chave da cidade para garantir o match
+    // A chave cityKey vem do botão (ex: "LONDRINA, PR")
+    // O pedido tem p.Cidade (ex: "Londrina") e p.UF (ex: "PR")
+    const pedidosParaRemover = load.pedidos.filter(p => {
+        let cleanCityName = (p.Cidade || '').trim().toUpperCase();
+        if (cleanCityName.includes('(')) cleanCityName = cleanCityName.split('(')[0].trim();
+        if (cleanCityName.includes('-')) cleanCityName = cleanCityName.split('-')[0].trim();
+        const uf = p.UF ? p.UF.trim().toUpperCase() : 'PR';
+        const pKey = `${cleanCityName}, ${uf}`;
+        return pKey === cityKey;
+    });
+
+    if (pedidosParaRemover.length === 0) {
+        console.warn(`Nenhum pedido encontrado para remover em ${cityKey}`);
+        return;
+    }
 
     const orderIdsParaRemover = new Set(pedidosParaRemover.map(p => p.Num_Pedido));
     const kgRemovido = pedidosParaRemover.reduce((sum, p) => sum + p.Quilos_Saldo, 0);
@@ -4923,6 +5169,22 @@ function removerParadaDoMapa(loadId, cityKey) {
         delete activeLoads[loadId];
         bootstrap.Modal.getInstance(document.getElementById('mapModal'))?.hide();
         showToast(`Entrega em ${cityKey} removida. A carga ficou vazia e foi excluída.`, 'info');
+
+        // Atualiza UI Geral
+        const containerGeral = document.getElementById('resultado-geral');
+        if (containerGeral) {
+            const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
+            displayGerais(containerGeral, gruposGerais);
+        }
+        updateAndRenderKPIs();
+        updateAndRenderChart();
+        saveStateToLocalStorage();
+
+        // Remove card visualmente
+        const cardElement = document.getElementById(loadId);
+        if (cardElement) cardElement.remove();
+
+        return; // Sai da função pois a carga não existe mais
     } else {
         showToast(`Removida entrega de ${cityKey} (${pedidosParaRemover.length} pedidos). Re-traçando rota...`, 'success');
         // Re-abre o mapa para atualizar (mais simples que tentar apagar camadas seletivamente)
@@ -4954,6 +5216,56 @@ function removerParadaDoMapa(loadId, cityKey) {
 
     updateAndRenderKPIs();
     updateAndRenderChart();
+    saveStateToLocalStorage();
+}
+
+/**
+ * Remove TODAS as cargas do mapa atual (Esvazia a carga)
+ */
+function removerTodasAsCargasDoMapa(loadId) {
+    if (!confirm("Tem certeza que deseja remover TODAS as entregas desta carga e devolvê-las para a lista de disponíveis?")) {
+        return;
+    }
+
+    const load = activeLoads[loadId];
+    if (!load) return;
+
+    const pedidosParaRemover = [...load.pedidos]; // Cópia
+    if (pedidosParaRemover.length === 0) return;
+
+    // 0. UNDO (Opcional, mas recomendado para operações destrutivas)
+    // registerUndo('REMOVE_ALL_LOAD', { ... }); // Implementar se necessário
+
+    // 1. Devolve para pedidos gerais
+    pedidosGeraisAtuais.push(...pedidosParaRemover);
+
+    // 2. Libera rotas processadas
+    const routesAffected = new Set(pedidosParaRemover.map(p => String(p.Cod_Rota).trim()));
+    routesAffected.forEach(r => {
+        if (processedRoutes.has(r)) processedRoutes.delete(r);
+    });
+
+    // 3. Deleta a carga
+    delete activeLoads[loadId];
+
+    // 4. Interface
+    bootstrap.Modal.getInstance(document.getElementById('mapModal'))?.hide();
+    showToast(`Carga ${loadId} esvaziada. Todos os pedidos retornaram para "Disponíveis".`, 'success');
+
+    // 5. Atualiza Listas e KPIs
+    const containerGeral = document.getElementById('resultado-geral');
+    if (containerGeral) {
+        const gruposGerais = pedidosGeraisAtuais.reduce((acc, p) => { const rota = p.Cod_Rota; if (!acc[rota]) { acc[rota] = { pedidos: [], totalKg: 0 }; } acc[rota].pedidos.push(p); acc[rota].totalKg += p.Quilos_Saldo; return acc; }, {});
+        displayGerais(containerGeral, gruposGerais);
+    }
+
+    updateAndRenderKPIs();
+    updateAndRenderChart();
+
+    // Remove o Card
+    const cardElement = document.getElementById(loadId);
+    if (cardElement) cardElement.remove();
+
     saveStateToLocalStorage();
 }
 
@@ -5105,12 +5417,8 @@ async function refreshLoadFreight(loadId) {
                 // MODIFICADO: Busca 5 resultados e prioriza cidades
                 const geoUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city + ', Brasil')}&format=json&limit=5&addressdetails=1`;
 
-                // USA A FILA PARA EVITAR 429
-                const data = await apiQueue.add(async () => {
-                    const response = await fetch(geoUrl, { headers: { 'User-Agent': 'ApexLogApp/3.0' } });
-                    if (!response.ok) throw new Error(`Nominatim Error: ${response.status}`);
-                    return await response.json();
-                });
+                // USA A FILA GLOBAL PARA EVITAR CONFLITO COM O MAPA
+                const data = await NominatimQueue.add(geoUrl);
 
                 if (data && data.length > 0) {
                     let bestMatch = data[0];
@@ -5186,7 +5494,6 @@ async function refreshLoadFreight(loadId) {
     }
 }
 
-
 function abrirMapaCarga(loadId) {
     const load = activeLoads[loadId];
     if (!load) {
@@ -5195,9 +5502,10 @@ function abrirMapaCarga(loadId) {
     }
 
     // DISPARA CÁLCULO DE FRETE EM BACKGROUND
-    refreshLoadFreight(loadId);
+    if (typeof refreshLoadFreight === 'function') refreshLoadFreight(loadId);
 
     const cidadesMap = new Map();
+
     // Usa diretamente os pedidos da carga, sem buscar na planilhaData
     load.pedidos.forEach(pedido => {
         const cidade = (String(pedido.Cidade || '')).split(',')[0].trim();
@@ -8520,9 +8828,14 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
                     <span>Pedidos:</span>
                     <span class="map-stats-value" id="map-sel-count">0</span>
                 </div>
-                <button class="map-stats-btn" onclick="createSpecialLoadFromMap()" disabled id="btn-create-map-load">
-                    <i class="bi bi-box-seam-fill me-2"></i>Criar Carga
-                </button>
+                <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 8px;">
+                    <button class="map-stats-btn" onclick="createSpecialLoadFromMap()" disabled id="btn-create-map-load">
+                        <i class="bi bi-box-seam-fill me-2"></i>Criar Carga
+                    </button>
+                    <button class="map-stats-btn" onclick="removerTodasAsCargasDoMapa('${loadId}')" id="btn-clear-map-load" style="background-color: #dc3545; border-color: #dc3545;">
+                        <i class="bi bi-trash-fill me-2"></i>Limpar Mapa
+                    </button>
+                </div>
             </div>`;
         // Adiciona dentro do map-container
         mapContainer.insertAdjacentHTML('beforeend', panelHTML);
@@ -8701,6 +9014,13 @@ async function calculateAndDrawRoute(locations, loadId, isManual = false) {
 
                 // If client error (400-499, except 429), don't retry - BAD REQUEST IS PERMANENT
                 const textErr = await resp.text();
+
+                // EXCEPTION: If distance limit exceeded (Valhalla 400), break loop to trigger OSRM fallback
+                if (resp.status === 400 && (textErr.includes("distance limit") || textErr.includes("exceeds the max distance"))) {
+                    console.warn("⚠️ Valhalla Distance Limit Exceeded. Skipping retries and switching to OSRM...");
+                    break; // Exits retry loop -> Falls into 'if (!resp || !resp.ok) { FALLBACK }'
+                }
+
                 // Create error object with specific property to signal "Do Not Retry"
                 const fatalError = new Error(`API Error ${resp.status}: ${textErr.substring(0, 100)}...`);
                 fatalError.shouldRetry = false;

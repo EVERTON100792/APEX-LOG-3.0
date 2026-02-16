@@ -47,9 +47,9 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
     // --- QUERY OTIMIZADA V6.1 (NO REGEX) ---
     // Removemos o regex (~"city|town") que causa timeout no Overpass.
     // Usamos node["place"="city"] e node["place"="town"] explicitamente.
-    // Timeout ajustado para 25s no servidor.
+    // Timeout ajustado para 90s (Servidor) para áreas grandes (Sul do Brasil)
     const query = `
-        [out:json][timeout:25];
+        [out:json][timeout:90];
         (
             node["barrier"="toll_booth"](${s},${w},${n},${e});
             node["highway"="toll_gantry"](${s},${w},${n},${e});
@@ -78,12 +78,12 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
     // Tenta cada servidor até ter sucesso
     for (const server of servers) {
         try {
-            console.log(`Tentando buscar pedágios em: ${server}`);
+            // console.debug(`Tentando buscar pedágios em: ${server}`);
             const url = `${server}?data=${encodeURIComponent(query)}`;
 
-            // Timeout de 30s por tentativa (aumentado de 25s) para dar chance de resposta em redes lentas
+            // Timeout de 95s por tentativa (aumentado de 30s) para coincidir com o query timeout
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            const timeoutId = setTimeout(() => controller.abort(), 95000);
 
             const response = await fetch(url, { signal: controller.signal });
             clearTimeout(timeoutId);
@@ -101,7 +101,7 @@ async function fetchTollBooths(bounds, routePoints, stops = []) {
             break;
 
         } catch (err) {
-            console.warn(`Falha ao buscar em ${server}:`, err.message);
+            // console.debug(`Falha ao buscar em ${server} (tentando próximo...):`, err.message);
             lastError = err;
             // Continua para o próximo servidor...
         }
