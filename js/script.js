@@ -3861,7 +3861,15 @@ function exibirCargasDaRota(routesKey) {
     if (!context) return;
 
     const resultadoDiv = document.getElementById(context.divId);
+
+    // VERIFICAÇÃO DE SEGURANÇA: Evita erro se o elemento não existir
+    if (!resultadoDiv) {
+        console.warn(`[ApexLog] Erro Crítico: Elemento de destino '${context.divId}' não encontrado para a rota '${routesKey}'. A exibição desta rota falhou.`);
+        return;
+    }
+
     resultadoDiv.innerHTML = ''; // Limpa a á¡rea de resultado
+
 
     const vehicleInfo = {
         fiorino: { name: 'Fiorino', colorClass: 'bg-success', textColor: 'text-white', icon: 'bi-box-seam-fill' },
