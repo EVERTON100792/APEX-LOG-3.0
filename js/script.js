@@ -61,8 +61,31 @@ function toggleTheme() {
 }
 
 // Chama a funá§á£o para aplicar o tema salvo assim que a pá¡gina carrega.
+// Chama a funá§á£o para aplicar o tema salvo assim que a pá¡gina carrega.
 applyInitialTheme();
+
 // ================================================================================================
+//  NOVO: Lógica de Filtro para Pedidos Atrasados (Incluir Hoje)
+// ================================================================================================
+let includeTodayInOverdue = localStorage.getItem('includeTodayInOverdue') === 'true';
+
+function toggleTodayOverdue() {
+    includeTodayInOverdue = document.getElementById('toggle-today-overdue').checked;
+    localStorage.setItem('includeTodayInOverdue', includeTodayInOverdue);
+
+    // Atualiza a visualização se houver dados
+    if (typeof renderAllUI === 'function') {
+        renderAllUI();
+    }
+}
+
+// Inicializa o estado do checkbox
+document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('toggle-today-overdue');
+    if (toggle) {
+        toggle.checked = includeTodayInOverdue;
+    }
+});
 //  NOVO: Lá“GICA DE PERSISTáŠNCIA DE DADOS DA PLANILHA COM IndexedDB
 //  Isso garante que os dados brutos da planilha ná£o se percam ao recarregar a pá¡gina.
 // ================================================================================================
@@ -2409,7 +2432,14 @@ function isOverdue(predat) {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date < today;
+
+    // Se o filtro "Incluir Hoje" estiver ativo, usa <= (menor ou igual)
+    // Se não, usa < (menor estrito), comportamento original
+    if (includeTodayInOverdue) {
+        return date <= today;
+    } else {
+        return date < today;
+    }
 }
 
 function exportarPedidosAtrasados() {

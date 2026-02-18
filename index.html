@@ -1051,6 +1051,15 @@
 
                     <!-- Coluna Direita: KPIs Principais -->
                     <div class="col-lg-4 animated-entry">
+                        <!-- Filtro de Data para KPIs -->
+                        <div class="d-flex align-items-center mb-2 justify-content-end">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="toggle-today-overdue"
+                                    onchange="toggleTodayOverdue()">
+                                <label class="form-check-label small text-secondary" for="toggle-today-overdue">Incluir
+                                    Pedidos de Hoje</label>
+                            </div>
+                        </div>
                         <div class="row g-3 h-100 align-content-start" id="kpi-main-container">
                             <!-- KPIs Principais inseridos via JS -->
                         </div>
