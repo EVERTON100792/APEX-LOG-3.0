@@ -2077,8 +2077,31 @@ function processar() {
             displayPedidosCFNumerico(resultadoCfNumericoDiv, pedidosComCFNumericoIsolado);
             displayCargasFechadasRestBrasil(resultadoCargasFechadasRestBrDiv, gruposPorCFGlobais, pedidosCarretaSemCF);
 
+            // ── FIFO: Prioridade por Antiguidade de Pedido ──────────────────────────────
+            // Pedidos mais antigos (menor Data Ped) devem aparecer antes nas listas.
+            // Isso garante que nenhum pedido fique parado enquanto pedidos novos saem na frente.
+            const getDataPed = (p) => {
+                const d = p['predat'] || p['dat_ped'] || p['Dat_Ped'] || p['PREDAT'] || p['Data_Ped'];
+                if (!d) return Infinity; // Sem data: vai para o fim
+                if (d instanceof Date) return d.getTime();
+                const parsed = new Date(d);
+                return isNaN(parsed.getTime()) ? Infinity : parsed.getTime();
+            };
+            pedidosParaProcessamentoVarejo.sort((a, b) => getDataPed(a) - getDataPed(b));
+
+            // Aplica o mesmo critério dentro dos grupos de Cargas Fechadas (Resto BR)
+            Object.values(gruposPorCFGlobais).forEach(grupo => {
+                grupo.pedidos.sort((a, b) => getDataPed(a) - getDataPed(b));
+            });
+
+            // Aplica também nos grupos Toco — pedidos mais antigos entram na carga primeiro
+            Object.values(gruposToco).forEach(grupo => {
+                grupo.pedidos.sort((a, b) => getDataPed(a) - getDataPed(b));
+            });
+            // ────────────────────────────────────────────────────────────────────────────
+
             pedidosGeraisAtuais = [...pedidosParaProcessamentoVarejo];
-            renderAllUI(); // NOVO: Chama a funá§á£o de renderizaá§á£o centralizada
+            renderAllUI(); // NOVO: Chama a função de renderização centralizada
 
             statusDiv.innerHTML = `<p class="text-success">Processamento concluá­do!</p>`;
         } catch (error) {
