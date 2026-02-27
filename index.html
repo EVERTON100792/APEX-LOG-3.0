@@ -40,6 +40,7 @@
     <script src="js/route_simulator.js"></script> <!-- Script do Novo Simulador -->
 
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/email-generator.css">
 </head>
 <style>
     /* --- ESTILOS PARA O NOVO DASHBOARD (SUMMARY VIEW) --- */
@@ -892,6 +893,13 @@
                 <span>Simulador Rotas</span>
                 <span class="badge bg-primary ms-auto"
                     style="font-size: 0.6rem; box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);">NOVO</span>
+            </a>
+
+            <!-- LINK GERADOR DE E-MAILS -->
+            <a href="#email-generator-view" class="sidebar-link"
+                onclick="activateView('email-generator-view', this); if(window.initEmailGenerator) window.initEmailGenerator();">
+                <i class="bi bi-envelope-check-fill" style="color: #10b981;"></i>
+                <span>Gerador de E-mails</span>
             </a>
 
             <!-- Dropdown Logic for Sidebar (Basic Collapse) -->
@@ -2106,6 +2114,504 @@
         </div>
     </div>
 
+    <!-- VIEW: GERADOR DE E-MAILS -->
+    <div id="email-generator-view" class="main-view px-3 py-4" style="display: none;">
+
+        <!-- HEADER PREMIUM -->
+        <div class="email-gen-header animated-entry mb-4">
+            <div class="email-gen-header-left">
+                <div class="email-gen-icon-wrap">
+                    <i class="bi bi-envelope-paper-fill"></i>
+                </div>
+                <div>
+                    <h1 class="h3 mb-0 fw-bold text-white">Gerador de E-mails</h1>
+                    <p class="text-muted small mb-0">Templates profissionais e integrados para comunicação logística.
+                    </p>
+                </div>
+            </div>
+            <div class="email-gen-header-actions">
+                <button class="email-gen-action-btn secondary" data-bs-toggle="modal"
+                    data-bs-target="#gerenciarMotoristasModal">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Gerenciar Motoristas</span>
+                </button>
+                <button class="email-gen-action-btn primary" data-bs-toggle="modal"
+                    data-bs-target="#novoMotoristaModal">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span>Novo Motorista</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- MODAL: GERENCIAR MOTORISTAS -->
+        <div class="modal fade" id="gerenciarMotoristasModal" tabindex="-1" aria-labelledby="gerenciarMotoristasLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content text-bg-dark border-secondary">
+                    <div class="modal-header border-secondary">
+                        <h5 class="modal-title fw-bold" id="gerenciarMotoristasLabel">
+                            <i class="bi bi-people-fill me-2 text-info"></i>Gerenciar Motoristas Cadastrados
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <!-- Barra de busca -->
+                        <div class="p-3 border-bottom border-secondary">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-muted"><i
+                                        class="bi bi-search"></i></span>
+                                <input type="text" id="searchGerenciarMotoristas"
+                                    class="form-control bg-dark border-secondary text-light"
+                                    placeholder="Buscar motorista por nome ou código...">
+                            </div>
+                        </div>
+                        <!-- Lista de motoristas -->
+                        <div id="listaGerenciarMotoristas" style="max-height: 420px; overflow-y: auto;">
+                            <div class="text-center p-4 text-muted">
+                                <div class="spinner-border spinner-border-sm me-2"></div>Carregando motoristas...
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary justify-content-between">
+                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Apenas motoristas cadastrados
+                            via "Novo Motorista" podem ser editados/excluídos.</small>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: EDITAR MOTORISTA -->
+        <div class="modal fade" id="editarMotoristaModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-bg-dark border-warning">
+                    <div class="modal-header border-warning">
+                        <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2 text-warning"></i>Editar
+                            Motorista</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="editarMotoristaId">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Nome Completo</label>
+                            <input type="text" id="editarNomeMotorista"
+                                class="form-control bg-dark border-secondary text-light text-uppercase"
+                                placeholder="Nome do Motorista">
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-muted">Código LCONT</label>
+                                <input type="text" id="editarCodigoMotorista"
+                                    class="form-control bg-dark border-secondary text-light" placeholder="Ex: 577">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-bold small text-muted">Placa</label>
+                                <input type="text" id="editarPlacaMotorista"
+                                    class="form-control bg-dark border-secondary text-light text-uppercase"
+                                    placeholder="Ex: AGX3I88">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-warning btn-sm fw-bold"
+                            onclick="window.confirmarEdicaoMotorista()">
+                            <i class="bi bi-check-lg me-1"></i>Salvar Alterações
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 justify-content-center animated-entry">
+            <div class="col-12 col-xl-10">
+                <div class="cargo-card w-100 p-4 email-generator-container">
+
+                    <!-- SELETOR DE MODOS -->
+                    <div class="mode-switcher mb-4">
+                        <button id="modeCreditoBtn" class="btn btn-mode active">Crédito por KM</button>
+                        <button id="modePortariaBtn" class="btn btn-mode">Lib. Abastecimento</button>
+                        <button id="modeTransbordoBtn" class="btn btn-mode">Transbordo</button>
+                        <button id="modeRemonteBtn" class="btn btn-mode">Remonte</button>
+                        <button id="modeAjusteRotaBtn" class="btn btn-mode">Ajuste de Rota</button>
+                    </div>
+
+                    <!-- CAMPOS REUTILIZÁVEIS (DESTINATÁRIO/CC) -->
+                    <div id="generalEmailFields" class="mb-4 pb-3 border-bottom border-secondary-subtle">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="emailDestinatario"
+                                    class="form-label text-muted small fw-bold">Destinatário(s) (separar por
+                                    vírgula):</label>
+                                <input type="text" id="emailDestinatario"
+                                    class="form-control bg-dark border-secondary text-light" value="ana@empresa.com"
+                                    placeholder="email@exemplo.com, outro@exemplo.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="emailCopia" class="form-label text-muted small fw-bold">CC (em
+                                    cópia):</label>
+                                <input type="text" id="emailCopia"
+                                    class="form-control bg-dark border-secondary text-light"
+                                    placeholder="copia@exemplo.com">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FORMULÁRIO 1: CRÉDITO -->
+                    <div id="formCredito" class="generator-form fade-in">
+                        <div class="mb-3">
+                            <label for="motoristaCredito" class="form-label text-muted small fw-bold">Motorista (Busque
+                                por Nome):</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-muted"><i
+                                        class="bi bi-search"></i></span>
+                                <input type="text" id="searchMotoristaCredito"
+                                    class="form-control bg-dark border-secondary text-light"
+                                    placeholder="Digite para buscar...">
+                            </div>
+                            <select id="motoristaCredito"
+                                class="form-select bg-dark border-secondary text-light mt-2"></select>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="kmInformado" class="form-label text-muted small fw-bold">KM
+                                    Informado:</label>
+                                <input type="number" id="kmInformado"
+                                    class="form-control bg-dark border-secondary text-light" placeholder="Ex: 500">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="kmPago" class="form-label text-muted small fw-bold">KM Pago:</label>
+                                <input type="number" id="kmPago"
+                                    class="form-control bg-dark border-secondary text-light" placeholder="Ex: 455">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="autorizacaoSaida" class="form-label text-muted small fw-bold">Nº Saída
+                                    (Opcional):</label>
+                                <input type="number" id="autorizacaoSaida"
+                                    class="form-control bg-dark border-secondary text-light" placeholder="Ex: 12345">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="motivo" class="form-label text-muted small fw-bold">Motivo
+                                    Diferença:</label>
+                                <select id="motivo" class="form-select bg-dark border-secondary text-light">
+                                    <option value="de estrada de chão">Estrada de Chão</option>
+                                    <option value="de distrito">Distrito</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="valorKm" class="form-label text-muted small fw-bold">Valor KM (R$):</label>
+                                <input type="number" id="valorKm"
+                                    class="form-control bg-dark border-secondary text-light" value="2.11" step="0.01">
+                            </div>
+                        </div>
+
+                        <div class="preview-box p-3 mb-4 rounded-3 d-flex justify-content-between align-items-center">
+                            <span class="text-secondary small fw-bold text-uppercase">Valor Calculado</span>
+                            <strong id="previewCredito" class="fs-4 text-primary">R$ 0,00</strong>
+                        </div>
+
+                        <button id="gerarCreditoBtn"
+                            class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
+                                class="bi bi-envelope-paper-fill me-2"></i>Preparar E-mail (Copiar e Abrir)</button>
+                    </div>
+
+                    <!-- FORMULÁRIO 2: PORTARIA -->
+                    <div id="formPortaria" class="generator-form" style="display: none;">
+                        <div class="row g-3 mb-4 border-bottom border-secondary-subtle pb-3">
+                            <div class="col-md-6">
+                                <label for="emailDestinatarioPortaria"
+                                    class="form-label text-muted small fw-bold">Destinatário Portaria:</label>
+                                <input type="text" id="emailDestinatarioPortaria"
+                                    class="form-control bg-dark border-secondary text-light"
+                                    value="portaria@empresa.com" placeholder="portaria@exemplo.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="emailCopiaPortaria" class="form-label text-muted small fw-bold">CC
+                                    Portaria:</label>
+                                <input type="text" id="emailCopiaPortaria"
+                                    class="form-control bg-dark border-secondary text-light"
+                                    placeholder="copia@exemplo.com">
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-8">
+                                <label for="motoristaPortaria"
+                                    class="form-label text-muted small fw-bold">Motorista:</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text bg-dark border-secondary text-muted"><i
+                                            class="bi bi-search"></i></span>
+                                    <input type="text" id="searchMotoristaPortaria"
+                                        class="form-control bg-dark border-secondary text-light"
+                                        placeholder="Buscar...">
+                                </div>
+                                <select id="motoristaPortaria"
+                                    class="form-select bg-dark border-secondary text-light"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="tipoVeiculo" class="form-label text-muted small fw-bold">Tipo
+                                    Veículo:</label>
+                                <select id="tipoVeiculo" class="form-select bg-dark border-secondary text-light">
+                                    <option value="VAN">VAN</option>
+                                    <option value="FIORINO">FIORINO</option>
+                                    <option value="3/4">3/4</option>
+                                    <option value="TOCO">TOCO</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="gerarPortariaBtn"
+                            class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
+                                class="bi bi-envelope-paper-fill me-2"></i>Preparar E-mail</button>
+                    </div>
+
+                    <!-- FORMULÁRIO 3: TRANSBORDO -->
+                    <div id="formTransbordo" class="generator-form" style="display: none;">
+                        <!-- Modern Radio Group styled in css -->
+                        <div class="form-group full-width mb-3">
+                            <label class="form-label text-muted small fw-bold">Tipo de Transbordo:</label>
+                            <div class="radio-group-moderno">
+                                <label class="radio-option">
+                                    <input type="radio" id="tipoProporcional" name="tipoTransbordo" value="proporcional"
+                                        checked>
+                                    <span class="custom-radio"></span>
+                                    <span class="option-text">
+                                        <strong class="text-light">Pagamento Proporcional</strong>
+                                        <small>Divisão pelo número de entregas realizadas.</small>
+                                    </span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" id="tipoIntegral" name="tipoTransbordo" value="integral">
+                                    <span class="custom-radio"></span>
+                                    <span class="option-text">
+                                        <strong class="text-light">Pagamento Integral</strong>
+                                        <small>Motorista substituto recebe 100%.</small>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-danger">Original (Veículo c/
+                                    Avaria):</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text bg-dark border-secondary text-danger"><i
+                                            class="bi bi-truck"></i></span>
+                                    <input type="text" id="searchMotoristaOriginal"
+                                        class="form-control bg-dark border-secondary text-light"
+                                        placeholder="Buscar...">
+                                </div>
+                                <select id="motoristaOriginal"
+                                    class="form-select bg-dark border-danger text-light"></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold text-success">Substituto (Que
+                                    assumiu):</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text bg-dark border-secondary text-success"><i
+                                            class="bi bi-truck-front"></i></span>
+                                    <input type="text" id="searchMotoristaSubstituto"
+                                        class="form-control bg-dark border-secondary text-light"
+                                        placeholder="Buscar...">
+                                </div>
+                                <select id="motoristaSubstituto"
+                                    class="form-select bg-dark border-success text-light"></select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3 border-top border-secondary-subtle pt-3">
+                            <div class="col-md-6">
+                                <label for="valorTotalFrete" class="form-label text-muted small fw-bold">Valor Total
+                                    Frete (R$):</label>
+                                <input type="number" id="valorTotalFrete"
+                                    class="form-control bg-dark border-secondary text-light" placeholder="Ex: 350.00">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="numeroSaidaTransbordo" class="form-label text-muted small fw-bold">Nº
+                                    Saída:</label>
+                                <input type="number" id="numeroSaidaTransbordo"
+                                    class="form-control bg-dark border-secondary text-light" placeholder="Ex: 67890">
+                            </div>
+                        </div>
+
+                        <div id="camposProporcional" class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="totalEntregas" class="form-label text-muted small fw-bold">Nº Total de
+                                    Entregas:</label>
+                                <input type="number" id="totalEntregas"
+                                    class="form-control bg-dark border-secondary text-light" placeholder="Ex: 7">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="entregasFeitas" class="form-label text-muted small fw-bold">Entregas Feitas
+                                    (Original):</label>
+                                <input type="number" id="entregasFeitas"
+                                    class="form-control bg-dark border-secondary text-light" placeholder="Ex: 3">
+                            </div>
+                        </div>
+
+                        <div class="preview-box p-3 mb-4 rounded-3 d-flex flex-column gap-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary small fw-bold text-uppercase">Original (Avaria)</span>
+                                <strong id="previewValorOriginal" class="fs-5 text-danger">R$ 0,00</strong>
+                            </div>
+                            <hr class="border-secondary m-0 opacity-25">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-secondary small fw-bold text-uppercase">Substituto</span>
+                                <strong id="previewValorSubstituto" class="fs-5 text-success">R$ 0,00</strong>
+                            </div>
+                        </div>
+
+                        <button id="gerarTransbordoBtn"
+                            class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
+                                class="bi bi-envelope-paper-fill me-2"></i>Preparar E-mail</button>
+                    </div>
+
+                    <!-- FORMULÁRIO 4: REMONTE -->
+                    <div id="formRemonte" class="generator-form" style="display: none;">
+                        <div class="row g-3 mb-4 border-bottom border-secondary-subtle pb-3">
+                            <div class="col-md-6">
+                                <label for="emailDestinatarioRemonte"
+                                    class="form-label text-muted small fw-bold">Destinatário Supervisão:</label>
+                                <input type="text" id="emailDestinatarioRemonte"
+                                    class="form-control bg-dark border-secondary text-light"
+                                    value="patricia@empresa.com" placeholder="supervisor@exemplo.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="emailCopiaRemonte" class="form-label text-muted small fw-bold">CC
+                                    Remonte:</label>
+                                <input type="text" id="emailCopiaRemonte"
+                                    class="form-control bg-dark border-secondary text-light"
+                                    placeholder="copia@exemplo.com">
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="motoristaRemonte"
+                                    class="form-label text-muted small fw-bold">Motorista:</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text bg-dark border-secondary text-muted"><i
+                                            class="bi bi-search"></i></span>
+                                    <input type="text" id="searchMotoristaRemonte"
+                                        class="form-control bg-dark border-secondary text-light"
+                                        placeholder="Buscar...">
+                                </div>
+                                <select id="motoristaRemonte"
+                                    class="form-select bg-dark border-secondary text-light"></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tipoVeiculoRemonte"
+                                    class="form-label text-muted small fw-bold">Veículo:</label>
+                                <select id="tipoVeiculoRemonte" class="form-select bg-dark border-secondary text-light">
+                                    <option value="VAN">VAN</option>
+                                    <option value="FIORINO">FIORINO</option>
+                                    <option value="3/4" selected>3/4</option>
+                                    <option value="TOCO">TOCO</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="numeroRomaneioRemonte"
+                                    class="form-label text-muted small fw-bold">Romaneio:</label>
+                                <input type="number" id="numeroRomaneioRemonte"
+                                    class="form-control bg-dark border-secondary text-light" placeholder="Ex: 231556">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="dataCarregamentoRemonte"
+                                    class="form-label text-muted small fw-bold">Data/Dia:</label>
+                                <input type="text" id="dataCarregamentoRemonte"
+                                    class="form-control bg-dark border-secondary text-light"
+                                    placeholder="Ex: quinta (11/09)">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="nomeSupervisoraRemonte"
+                                    class="form-label text-muted small fw-bold">Supervisora:</label>
+                                <input type="text" id="nomeSupervisoraRemonte"
+                                    class="form-control bg-dark border-secondary text-light" value="Patrícia">
+                            </div>
+                        </div>
+                        <button id="gerarRemonteBtn"
+                            class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
+                                class="bi bi-envelope-paper-fill me-2"></i>Preparar E-mail</button>
+                    </div>
+
+                    <!-- FORMULÁRIO 5: AJUSTE ROTA -->
+                    <div id="formAjusteRota" class="generator-form" style="display: none;">
+                        <div class="row g-3 mb-4 border-bottom border-secondary-subtle pb-3">
+                            <div class="col-md-6">
+                                <label for="emailDestinatarioAjusteRota"
+                                    class="form-label text-muted small fw-bold">Destinatário Rota:</label>
+                                <input type="text" id="emailDestinatarioAjusteRota"
+                                    class="form-control bg-dark border-secondary text-light" value="mozao@empresa.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="emailCopiaAjusteRota" class="form-label text-muted small fw-bold">CC
+                                    Ajuste:</label>
+                                <input type="text" id="emailCopiaAjusteRota"
+                                    class="form-control bg-dark border-secondary text-light">
+                            </div>
+                        </div>
+
+                        <label class="form-label text-muted small fw-bold">Clientes a Ajustar:</label>
+                        <div id="linhasAjusteRota" class="mb-3 d-flex flex-column gap-2">
+                            <div class="rota-entry-row input-group">
+                                <input type="text"
+                                    class="cliente-input form-control bg-dark border-secondary text-light"
+                                    placeholder="Cliente">
+                                <input type="text" class="rota-input form-control bg-dark border-secondary text-light"
+                                    placeholder="Rota" style="max-width: 100px;">
+                                <input type="text" class="praca-input form-control bg-dark border-secondary text-light"
+                                    placeholder="Praça">
+                                <button class="btn btn-outline-danger btn-remover-linha" disabled><i
+                                        class="bi bi-trash-fill"></i></button>
+                            </div>
+                        </div>
+                        <button id="addLinhaAjusteRotaBtn" class="btn btn-sm btn-outline-success mb-4"><i
+                                class="bi bi-plus-circle me-1"></i>Adicionar Cliente</button>
+
+                        <button id="gerarAjusteRotaBtn"
+                            class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
+                                class="bi bi-envelope-paper-fill me-2"></i>Preparar E-mail</button>
+                    </div>
+
+                    <hr class="border-secondary-subtle my-5 opacity-50">
+
+                    <!-- E-MAIL BODY COPY CONFIRMATION HIDDEN BOX -->
+                    <div id="globalCopyBox"
+                        class="alert alert-success mt-4 mb-4 border-success-subtle bg-success-subtle text-success-emphasis"
+                        style="display: none;">
+                        <h6 class="alert-heading fw-bold"><i class="bi bi-clipboard2-check-fill me-2"></i>Copiado!</h6>
+                        <p class="mb-0 small">O conteúdo enriquecido foi copiado para a área de transferência. Basta
+                            colar (CTRL+V) no seu cliente de e-mail.</p>
+                        <div id="emailBodyParaCopiar" contenteditable="true" class="d-none"></div>
+                    </div>
+
+                    <!-- ASSINATURA -->
+                    <div
+                        class="form-group border border-secondary-subtle p-3 rounded-3 bg-dark-subtle position-relative signature-wrapper">
+                        <label for="assinaturaEditavel"
+                            class="form-label text-muted small fw-bold d-flex align-items-center">
+                            <i class="bi bi-pen me-2"></i>Sua Assinatura Digital
+                        </label>
+                        <div id="assinaturaEditavel" contenteditable="true"
+                            class="form-control border-0 bg-transparent text-light p-3 custom-scrollbar"
+                            style="min-height: 120px; font-size: 14px; outline: none;"></div>
+
+                        <div class="position-absolute top-0 end-0 mt-3 me-3">
+                            <button id="copiarAssinaturaBtn"
+                                class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm"
+                                title="Copiar Assinatura">
+                                <i class="bi bi-files"></i> Copiar
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-muted small mt-2 d-flex align-items-center"><i
+                            class="bi bi-info-circle me-1"></i>Cole (Ctrl+V) aqui a sua assinatura incluindo
+                        imagens/logos do e-mail. Ela é salva automaticamente.</p>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Priorização em Massa -->
     <div class="modal fade" id="bulkPriorityModal" tabindex="-1">
         <div class="modal-dialog">
@@ -2383,6 +2889,51 @@
 
     <script src="js/script.js"></script>
     <script src="js/freight_logic.js"></script>
+    <script src="js/email-generator.js"></script>
+
+    <!-- Modal Novo Motorista -->
+    <div class="modal fade" id="novoMotoristaModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content text-bg-dark border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Cadastrar Novo
+                        Motorista</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="novoMotoristaForm">
+                        <div class="mb-3">
+                            <label for="novoNomeMotorista" class="form-label small text-muted fw-bold">Nome
+                                Completo</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-light"
+                                id="novoNomeMotorista" required placeholder="Ex: JOAO CARLOS SILVA">
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="novoCodigoMotorista" class="form-label small text-muted fw-bold">Código
+                                    (LCONT00X)</label>
+                                <input type="number" class="form-control bg-dark border-secondary text-light"
+                                    id="novoCodigoMotorista" required placeholder="Ex: 999">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="novaPlacaMotorista"
+                                    class="form-label small text-muted fw-bold">Placa</label>
+                                <input type="text" class="form-control bg-dark border-secondary text-light"
+                                    id="novaPlacaMotorista" required placeholder="Ex: ABC1D23" maxlength="7">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarNovoMotorista(event)">Salvar
+                        Motorista</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Cloud Manager Modal (Unified Global History) -->
     <div class="modal fade" id="cloudModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -2490,6 +3041,10 @@
     </div>
 
 
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <!-- Email Generator -->
+    <script src="js/email-generator.js"></script>
     <script type="module" src="js/init.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- OVERLAY DE CARREGAMENTO ÉPICO -->
