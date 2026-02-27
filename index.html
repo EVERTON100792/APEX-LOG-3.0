@@ -2311,9 +2311,14 @@
                             <strong id="previewCredito" class="fs-4 text-primary">R$ 0,00</strong>
                         </div>
 
-                        <button id="gerarCreditoBtn"
-                            class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
-                                class="bi bi-envelope-paper-fill me-2"></i>Preparar E-mail (Copiar e Abrir)</button>
+                        <div class="d-flex gap-2">
+                            <button id="gerarCreditoBtn"
+                                class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
+                                    class="bi bi-envelope-paper-fill me-2"></i>Preparar E-mail</button>
+                            <button id="whatsappCreditoBtn"
+                                class="btn btn-success w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
+                                    class="bi bi-whatsapp me-2"></i>Avisar (WhatsApp)</button>
+                        </div>
                     </div>
 
                     <!-- FORMULÁRIO 2: PORTARIA -->
@@ -2359,9 +2364,14 @@
                                 </select>
                             </div>
                         </div>
-                        <button id="gerarPortariaBtn"
-                            class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
-                                class="bi bi-envelope-paper-fill me-2"></i>Preparar E-mail</button>
+                        <div class="d-flex gap-2">
+                            <button id="gerarPortariaBtn"
+                                class="btn btn-primary w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
+                                    class="bi bi-envelope-paper-fill me-2"></i>Preparar E-mail</button>
+                            <button id="whatsappPortariaBtn"
+                                class="btn btn-success w-100 fw-bold py-2 shadow-sm rounded-3 transition-all"><i
+                                    class="bi bi-whatsapp me-2"></i>Avisar (WhatsApp)</button>
+                        </div>
                     </div>
 
                     <!-- FORMULÁRIO 3: TRANSBORDO -->
@@ -3043,8 +3053,6 @@
 
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <!-- Email Generator -->
-    <script src="js/email-generator.js"></script>
     <script type="module" src="js/init.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- OVERLAY DE CARREGAMENTO ÉPICO -->

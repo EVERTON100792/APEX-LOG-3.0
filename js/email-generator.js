@@ -4,10 +4,10 @@
  */
 
 // Supabase client setup
-const SUPABASE_URL = 'https://izpcrgnevzwparsslchd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6cGNyZ25ldnp3cGFyc3NsY2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxMjAxNTMsImV4cCI6MjA4NDY5NjE1M30.xYtk3mzOjSCYCNv3P5eq5aEmRUFSA_ERa58ABdL5Tpk';
+const EMAIL_SUPABASE_URL = 'https://izpcrgnevzwparsslchd.supabase.co';
+const EMAIL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6cGNyZ25ldnp3cGFyc3NsY2hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxMjAxNTMsImV4cCI6MjA4NDY5NjE1M30.xYtk3mzOjSCYCNv3P5eq5aEmRUFSA_ERa58ABdL5Tpk';
 const _supabase = (typeof supabase !== 'undefined')
-    ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    ? supabase.createClient(EMAIL_SUPABASE_URL, EMAIL_SUPABASE_ANON_KEY)
     : null;
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -527,6 +527,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         openMailClient(dest, cc, assunto);
     });
 
+    document.getElementById('whatsappCreditoBtn')?.addEventListener('click', () => {
+        const motSelect = document.getElementById('motoristaCredito').value;
+        if (!motSelect) return showToast('Aviso', 'Selecione o motorista.', 'warning');
+        const mot = JSON.parse(motSelect);
+
+        const kmInfo = parseFloat(document.getElementById('kmInformado').value) || 0;
+        const kmPago = parseFloat(document.getElementById('kmPago').value) || 0;
+        const dif = kmInfo - kmPago;
+
+        if (dif <= 0) return showToast('Aviso', 'KM informado deve ser maior que o pago.', 'warning');
+
+        const msg = `Olá tudo bem?\nPassando para informar que a diferença de ${dif} KM já foi enviada para a Ana lançar como crédito.\nQualquer dúvida, sigo à disposição.`;
+        const msgEncoded = encodeURIComponent(msg);
+        window.open(`https://wa.me/?text=${msgEncoded}`, '_blank');
+    });
+
     // 2. Portaria
     document.getElementById('gerarPortariaBtn')?.addEventListener('click', async () => {
         const dest = document.getElementById('emailDestinatarioPortaria').value;
@@ -544,6 +560,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         await showCopyBoxAndCopyToClipboard(corpoHtml);
         openMailClient(dest, cc, assunto);
+    });
+
+    document.getElementById('whatsappPortariaBtn')?.addEventListener('click', () => {
+        const motSelect = document.getElementById('motoristaPortaria').value;
+        if (!motSelect) return showToast('Aviso', 'Selecione o motorista.', 'warning');
+        const mot = JSON.parse(motSelect);
+        const tipoVeiculo = document.getElementById('tipoVeiculo').value;
+
+        const msg = `O e-mail solicitando a sua liberação já foi enviado para a portaria (Veículo: ${tipoVeiculo}, Placa: ${mot.placa}).\nVocê já pode prosseguir com o abastecimento.`;
+        const msgEncoded = encodeURIComponent(msg);
+        window.open(`https://wa.me/?text=${msgEncoded}`, '_blank');
     });
 
     // 3. Transbordo
